@@ -190,6 +190,42 @@ export function loadCommandImagesFromDisk(): void {
 // Initial load on import
 loadCommandImagesFromDisk();
 
+// Preload the default image buffer immediately so it is instantly available in memory for all WhatsApp commands
+export async function preloadDefaultImageBuffer(): Promise<void> {
+  const url = defaultImageUrl || DEFAULT_GLOBAL_IMAGE_URL;
+  if (!url || !url.startsWith('http')) return;
+  try {
+    const res = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: 8000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      },
+    });
+    if (res.status === 200 && res.data) {
+      const buffer = Buffer.from(res.data);
+      const mimeType = String(res.headers['content-type'] || 'image/png');
+      bufferCache.set(url, {
+        buffer,
+        mimeType,
+        timestamp: Date.now() + 86400000, // 24h cache
+      });
+      bufferCache.set(DEFAULT_GLOBAL_IMAGE_URL, {
+        buffer,
+        mimeType,
+        timestamp: Date.now() + 86400000,
+      });
+      console.log(`[CMD IMAGES] ✅ Image officielle pré-chargée en mémoire (${(buffer.length / 1024).toFixed(1)} KB) pour toutes les commandes WhatsApp : ${url}`);
+    }
+  } catch (err: any) {
+    console.warn(`[CMD IMAGES] Avertissement préchargement image (${url}):`, err?.message || err);
+  }
+}
+
+// Trigger preload immediately in background
+preloadDefaultImageBuffer();
+
 /**
  * Saves current configuration to disk
  */
