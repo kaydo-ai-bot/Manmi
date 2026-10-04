@@ -1,10 +1,10 @@
 {
-  "prefix": "🥷🏿",
+  "prefix": ".",
   "prefixResetNoticeSent": true,
   "alwaysOnline": true,
   "offlineGhostMode": false,
   "offlineMode": false,
-  "autoStatusView": false,
+  "autoStatusView": true,
   "autoSaveStatus": false,
   "autoRecording": false,
   "autoTyping": true,
@@ -13,11 +13,11 @@
   "antiLink": false,
   "antiTag": false,
   "antiGroupMention": false,
-  "botMode": "private",
+  "botMode": "public",
   "antiCall": true,
   "antiDelete": false,
   "nuleMode": true,
-  "botName": "𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓",
+  "botName": "KAYDO BOT V2 𓃶",
   "welcomeGroups": [
     "120363413611196986@g.us"
   ],

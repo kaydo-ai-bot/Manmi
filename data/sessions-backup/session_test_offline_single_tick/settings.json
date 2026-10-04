@@ -1,9 +1,9 @@
 {
   "prefix": ".",
-  "alwaysOnline": false,
+  "alwaysOnline": true,
   "offlineGhostMode": false,
   "offlineMode": false,
-  "autoStatusView": false,
+  "autoStatusView": true,
   "autoSaveStatus": false,
   "autoRecording": false,
   "autoTyping": false,
@@ -16,7 +16,7 @@
   "antiCall": true,
   "antiDelete": false,
   "nuleMode": false,
-  "botName": "kaydo bot",
+  "botName": "KAYDO BOT V2 𓃶",
   "welcomeGroups": [],
   "goodbyeGroups": []
 }

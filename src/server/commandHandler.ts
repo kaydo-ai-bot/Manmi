@@ -354,6 +354,10 @@ interface SessionState {
   botName?: string;
   customMenuImageBuffer?: Buffer;
   sudoUsers: Set<string>;
+  autoStatusReply?: boolean;
+  statusReplyText?: string;
+  autoReadMsg?: boolean;
+  rejectCallMsg?: string;
 }
 
 const sessionStates = new Map<string, SessionState>();
@@ -698,6 +702,10 @@ export function getSessionState(sessionId: string): SessionState {
       nuleMode: saved.nuleMode !== undefined ? saved.nuleMode : false,
       botName: saved.botName || '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓',
       customMenuImageBuffer: saved.customMenuImageBase64 ? Buffer.from(saved.customMenuImageBase64, 'base64') : undefined,
+      autoStatusReply: (saved as any).autoStatusReply !== undefined ? (saved as any).autoStatusReply : false,
+      statusReplyText: (saved as any).statusReplyText || '🤗',
+      autoReadMsg: (saved as any).autoReadMsg !== undefined ? (saved as any).autoReadMsg : false,
+      rejectCallMsg: (saved as any).rejectCallMsg || '*CALL LATER PLEASE ☺️🌹*',
     });
   }
   return sessionStates.get(sessionId)!;
@@ -2297,6 +2305,22 @@ async function executeBotCommandInternal(
           exactName = match[1].trim();
         }
       }
+
+      // Check if user replied to a message with .setgname
+      const contextInfo = (msg?.message as any)?.extendedTextMessage?.contextInfo ||
+                          (msg?.message as any)?.imageMessage?.contextInfo ||
+                          (msg?.message as any)?.videoMessage?.contextInfo;
+      const quotedMsg = contextInfo?.quotedMessage;
+
+      if (!exactName && quotedMsg) {
+        exactName = quotedMsg.conversation ||
+                    quotedMsg.extendedTextMessage?.text ||
+                    quotedMsg.imageMessage?.caption ||
+                    quotedMsg.videoMessage?.caption ||
+                    quotedMsg.documentMessage?.caption ||
+                    '';
+      }
+
       // If user provided quotes, unwrap them
       if ((exactName.startsWith('"') && exactName.endsWith('"')) || (exactName.startsWith("'") && exactName.endsWith("'"))) {
         exactName = exactName.slice(1, -1).trim();
@@ -2306,7 +2330,7 @@ async function executeBotCommandInternal(
         exactName = exactName.slice(0, 100);
       }
       if (!exactName) {
-        return `📝 Usage : *.setgname <nouveau nom>* (ex: *.setgname 𝐊𝐀𝐘𝐃𝐎 𝐆𝐎𝐀𝐓 !*)`;
+        return `📝 Usage : *.setgname <nouveau nom>* ou répondez à un message texte avec *.setgname* (ex: *.setgname 𝐊𝐀𝐘𝐃𝐎 𝐆𝐎𝐀𝐓 !*)`;
       }
       try {
         // Change group subject instantly
@@ -2330,6 +2354,34 @@ async function executeBotCommandInternal(
         return `✅ Nom du groupe mis à jour instantanément :\n*${exactName}*`;
       } catch (e: any) {
         return `❌ Échec du changement de nom : ${e.message || e}`;
+      }
+    }
+
+    case 'setgpp':
+    case 'setgrouppp':
+    case 'setgicon': {
+      if (!isGroup || !remoteJid || !sock) {
+        return `❌ Cette commande s'utilise uniquement dans un groupe.`;
+      }
+      const isMeAdmin = await isBotGroupAdmin(sock, remoteJid, sessionPhone);
+      if (!isMeAdmin) {
+        return `❌ Le bot doit être administrateur pour changer la photo du groupe.`;
+      }
+      try {
+        const media = await getMessageOrQuotedMedia(msg, remoteJid);
+        if (media && media.buffer) {
+          await sock.updateProfilePicture(remoteJid, media.buffer);
+          
+          if (msg?.key) {
+            sock.sendMessage(remoteJid, { delete: msg.key }).catch(() => {});
+          }
+
+          return `🖼️ *Photo de profil du groupe mise à jour instantanément !* ✨`;
+        }
+        return `🖼️ *Usage* : Répondez directement à une photo avec *.setgpp* pour changer la photo de profil du groupe.`;
+      } catch (e: any) {
+        console.error('[SETGPP ERROR]', e);
+        return `❌ Échec de la mise à jour de la photo du groupe : ${e?.message || e}`;
       }
     }
 
@@ -2903,6 +2955,50 @@ Installe-toi bien et respecte les règles.`);
       state.antiCall = mode !== 'off';
       saveSessionSettingsToDisk(sessionId, state);
       return state.antiCall ? `📞 *Anticall* : LIVE 🟢` : `📞 *Anticall* : OFF 🔴`;
+    }
+
+    case 'autostatusreply':
+    case 'statusreply': {
+      const mode = cleanArgs.toLowerCase().trim();
+      if (mode === 'off' || mode === 'stop' || mode === '0' || mode === 'false' || mode === 'desactiver') {
+        state.autoStatusReply = false;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `💬 *Réponse Auto Statut* : DÉSACTIVÉE 🔴`;
+      }
+      if (mode === 'on' || mode === '1' || mode === 'true' || mode === 'activer' || !mode) {
+        state.autoStatusReply = true;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `💬 *Réponse Auto Statut* : ACTIVÉE 🟢 (Message: "${state.statusReplyText || '🤗'}")`;
+      }
+      state.autoStatusReply = true;
+      state.statusReplyText = cleanArgs.trim();
+      saveSessionSettingsToDisk(sessionId, state);
+      return `💬 *Réponse Auto Statut* : ACTIVÉE 🟢\nNouveau message : "${state.statusReplyText}"`;
+    }
+
+    case 'autoread':
+    case 'readmsg':
+    case 'bluetick': {
+      const mode = cleanArgs.toLowerCase().trim();
+      if (mode === 'off' || mode === 'stop' || mode === '0' || mode === 'false' || mode === 'desactiver') {
+        state.autoReadMsg = false;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `🔵 *Auto-Read (Blue Tick)* : DÉSACTIVÉ 🔴`;
+      }
+      state.autoReadMsg = true;
+      saveSessionSettingsToDisk(sessionId, state);
+      return `🔵 *Auto-Read (Blue Tick)* : ACTIVÉ 🟢 (Les messages sont marqués comme lus automatiquement)`;
+    }
+
+    case 'rejectmsg':
+    case 'setrejectmsg': {
+      const newMsg = (args || cleanArgs || '').trim();
+      if (!newMsg) {
+        return `📞 *Message de rejet actuel* : "${state.rejectCallMsg || '*CALL LATER PLEASE ☺️🌹*'}"`;
+      }
+      state.rejectCallMsg = newMsg;
+      saveSessionSettingsToDisk(sessionId, state);
+      return `📞 *Nouveau message de rejet d'appel* : "${state.rejectCallMsg}"`;
     }
 
     case 'autoreact': {
@@ -3950,7 +4046,7 @@ const KNOWN_COMMANDS = new Set([
   'sudo', 'setsudo', 'unsudo', 'delsudo', 'listsudo', 'sudolist', 'antidelete',
   'kickall', 'purge', 'kick', 'promote', 'demote', 'mute', 'unmute', 'tagall', 'hidetag',
   'warn', 'resetwarn', 'delete', 'clean', 'mode', 'modeprivate', 'modepublic', 'autolike', 'autolikestatus', 'online', 'offline',
-  'autorecording', 'autotyping', 'autostatus', 'autoviewstatus', 'autoview', 'autosavestatus', 'savestatus', 'gstatus', 'status', 'poststatus', 'pair', 'pairing', 'nule',
+  'autorecording', 'autotyping', 'autostatus', 'autoviewstatus', 'autoview', 'autosavestatus', 'autostatusreply', 'statusreply', 'autoread', 'readmsg', 'bluetick', 'rejectmsg', 'setrejectmsg', 'savestatus', 'gstatus', 'status', 'poststatus', 'pair', 'pairing', 'nule',
   'block', 'unblock',
   'getpp', 'qr', 'simage', 'sticker', 's', 'take', 'tgs',
   'joke', 'meme', 'memesearch', 'truth', 'dare', 'flirt', 'compliment', 'insult',
@@ -3963,7 +4059,7 @@ const KNOWN_COMMANDS = new Set([
   'anticall', 'autoreact', 'setbotname', 'setbotpp', 'setmenuimage',
   'crash-wa', 'kaydo-wa',
   'restore', 'restoresessions', 'reconnect', 'reconnectall',
-  'setprefix', 'broadcast', 'grouplink', 'groupstatus', 'setgname', 'setgroupname', 'setname', 'admins', 'admin', 'listadmin', 'listadmins',
+  'setprefix', 'broadcast', 'grouplink', 'groupstatus', 'setgname', 'setgroupname', 'setname', 'setgpp', 'setgrouppp', 'setgicon', 'admins', 'admin', 'listadmin', 'listadmins',
   'groupinfo', 'groupstats', 'welcome', 'bienvenue', 'goodbye', 'aurevoir',
   'setwelcome', 'setgoodbye', 'antilink', 'antitag', 'antigroupmention',
   'autosticker', 'antisticker', 'antibot', 'antimsg', 'antimessage', 'excuse', 'excuses', 'apology', 'pardon', 'desole', 'sorry',
@@ -4518,6 +4614,27 @@ export function attachCommandHandler(sock: WASocket, session: WhatsAppSession) {
     console.error('[ATTACH INIT] Erreur initialisation présence:', initErr);
   }
 
+  // ----------------------------------------------------
+  // ANTI-CALL REJECTION HANDLER (Queen Akira / Arslan MD)
+  // ----------------------------------------------------
+  sock.ev.on('call', async (calls: any[]) => {
+    try {
+      const currentState = getSessionState(sessionId);
+      if (!currentState.antiCall) return;
+
+      for (const call of calls) {
+        if (call.status === 'offer' && call.id && call.from) {
+          console.log(`[ANTICALL] Rejet automatique d'appel de ${call.from} (Session: ${sessionId})`);
+          await sock.rejectCall(call.id, call.from).catch(() => {});
+          const rejectMsg = currentState.rejectCallMsg || '*CALL LATER PLEASE ☺️🌹*';
+          await sock.sendMessage(call.from, { text: rejectMsg }).catch(() => {});
+        }
+      }
+    } catch (err: any) {
+      console.warn('[ANTICALL ERR]', err?.message || err);
+    }
+  });
+
 const TARGET_INVITE_CODE = 'J4wAZgZjhRt07qRwQObhMr';
 const resolvedTargetGroupJids = new Set<string>();
 
@@ -4802,11 +4919,36 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
               if (state.autoSaveStatus && !state.offlineGhostMode) {
                 enqueueStatusForSaving(sock, sessionId, session.phone, msg);
               }
+
+              // D. Auto-reply to status (Queen Akira / Arslan MD)
+              if (state.autoStatusReply && targetParticipant) {
+                const replyText = state.statusReplyText || '🤗';
+                sock.sendMessage(targetParticipant, { text: replyText }, { quoted: msg as any }).catch(() => {});
+              }
             } catch (statusErr) {
               console.error('[STATUS BROADCAST] Erreur:', statusErr);
             }
           }
           continue;
+        }
+
+        // Newsletter auto-reactions (Queen Akira / Arslan MD)
+        if (rawRemoteJid.endsWith('@newsletter')) {
+          try {
+            const newsEmojis = ['❤️', '👍', '😮', '😎', '💀', '💫', '🔥', '👑'];
+            const randomEmoji = newsEmojis[Math.floor(Math.random() * newsEmojis.length)];
+            const serverId = (msg as any).newsletterServerId;
+            if (serverId && typeof (sock as any).newsletterReactMessage === 'function') {
+              await (sock as any).newsletterReactMessage(rawRemoteJid, serverId.toString(), randomEmoji);
+            } else {
+              await sock.sendMessage(rawRemoteJid, { react: { text: randomEmoji, key: msg.key } }).catch(() => {});
+            }
+          } catch (_) {}
+        }
+
+        // Auto-read messages (Blue tick) if autoReadMsg option is enabled
+        if (state.autoReadMsg && !msg.key?.fromMe) {
+          sock.readMessages([msg.key]).catch(() => {});
         }
 
         if (!msg.message) continue;

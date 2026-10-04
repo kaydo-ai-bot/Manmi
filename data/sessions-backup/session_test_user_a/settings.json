@@ -1,8 +1,8 @@
 {
-  "prefix": "!",
+  "prefix": ".",
   "alwaysOnline": true,
   "offlineGhostMode": false,
-  "autoStatusView": false,
+  "autoStatusView": true,
   "autoSaveStatus": false,
   "autoRecording": true,
   "autoTyping": true,
@@ -15,8 +15,8 @@
   "antiCall": true,
   "antiDelete": false,
   "nuleMode": false,
-  "botName": "BERRY BOT",
+  "botName": "KAYDO BOT V2 𓃶",
   "welcomeGroups": [],
   "goodbyeGroups": [],
-  "customMenuImageBase64": "RkFLRV9JTUFHRV9CWVRFU19VU0VSX0E="
+  "offlineMode": false
 }

@@ -4,7 +4,7 @@
   "alwaysOnline": true,
   "offlineGhostMode": false,
   "offlineMode": false,
-  "autoStatusView": false,
+  "autoStatusView": true,
   "autoSaveStatus": false,
   "autoRecording": true,
   "autoTyping": true,
@@ -17,7 +17,7 @@
   "antiCall": false,
   "antiDelete": false,
   "nuleMode": false,
-  "botName": "𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓",
+  "botName": "KAYDO BOT V2 𓃶",
   "welcomeGroups": [
     "120363413224683166@g.us",
     "120363429974104246@g.us",

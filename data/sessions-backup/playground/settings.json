@@ -15,7 +15,7 @@
   "antiGroupMention": false,
   "botMode": "public",
   "antiCall": true,
-  "antiDelete": true,
+  "antiDelete": false,
   "nuleMode": false,
   "botName": "KAYDO BOT V2 𓃶",
   "welcomeGroups": [],
