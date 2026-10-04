@@ -172,13 +172,13 @@ export async function convertStickerToVideo(webpBuffer: Buffer): Promise<Buffer>
   try {
     await fs.promises.writeFile(inputPath, webpBuffer);
     
-    // Try 1: Treat as animated WebP sticker (requiring even dimensions for libx264)
+    // Try 1: Try looping the WebP sticker into a 3s MP4 video first (works for both static and animated webp)
     try {
-      const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
+      const ffmpegCmd = `ffmpeg -y -loop 1 -i "${inputPath}" -t 3 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
       await execAsync(ffmpegCmd, { timeout: 12000 });
     } catch (err1) {
-      // Try 2: Fallback for static WebP sticker (looping single frame into a 3s MP4)
-      const ffmpegFallbackCmd = `ffmpeg -y -loop 1 -i "${inputPath}" -t 3 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
+      // Try 2: Fallback to non-looping if loop is rejected
+      const ffmpegFallbackCmd = `ffmpeg -y -i "${inputPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
       await execAsync(ffmpegFallbackCmd, { timeout: 12000 });
     }
 

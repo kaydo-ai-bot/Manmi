@@ -1261,6 +1261,260 @@ async function executeBotCommandInternal(
     return usefulReply;
   }
 
+  const setMediaRegex = /^set([a-z0-9]+)(image|video)$/i;
+  const setMediaMatch = cleanCmd.match(setMediaRegex);
+  if (setMediaMatch) {
+    const senderClean = (msg.key?.participant || msg.key?.remoteJid || '').replace(/\D/g, '');
+    const allowedOwners = ['50935975863', '50940131864'];
+    const isOwner = allowedOwners.some(num => senderClean.endsWith(num));
+    
+    if (!isOwner) {
+      return `🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n_Seul le propriétaire du bot a le contrôle sur la configuration des médias de commande._`;
+    }
+
+    const targetCmd = setMediaMatch[1].toLowerCase().trim();
+    const mediaType = setMediaMatch[2].toLowerCase().trim(); // 'image' or 'video'
+
+    try {
+      let isVideo = mediaType === 'video';
+      let mediaBuf: Buffer | null = null;
+      let mimeType = isVideo ? 'video/mp4' : 'image/jpeg';
+
+      // 1. Detect media from message or quoted message
+      const contextInfo = msg.message?.extendedTextMessage?.contextInfo ||
+                          msg.message?.imageMessage?.contextInfo ||
+                          msg.message?.videoMessage?.contextInfo;
+      const quoted = contextInfo?.quotedMessage;
+      
+      if (quoted) {
+        let payload = quoted;
+        if (payload.ephemeralMessage?.message) payload = payload.ephemeralMessage.message;
+        if (payload.viewOnceMessage?.message) payload = payload.viewOnceMessage.message;
+        if (payload.viewOnceMessageV2?.message) payload = payload.viewOnceMessageV2.message;
+        if (payload.documentWithCaptionMessage?.message) payload = payload.documentWithCaptionMessage.message;
+
+        if (payload.videoMessage) {
+          isVideo = true;
+          mimeType = payload.videoMessage.mimetype || 'video/mp4';
+        } else if (payload.imageMessage) {
+          isVideo = false;
+          mimeType = payload.imageMessage.mimetype || 'image/jpeg';
+        }
+
+        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+        if (media && media.buffer && media.buffer.length > 0) {
+          mediaBuf = media.buffer;
+        }
+      } else if (msg.message?.imageMessage) {
+        isVideo = false;
+        mimeType = msg.message.imageMessage.mimetype || 'image/jpeg';
+        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+        if (media && media.buffer && media.buffer.length > 0) {
+          mediaBuf = media.buffer;
+        }
+      } else if (msg.message?.videoMessage) {
+        isVideo = true;
+        mimeType = msg.message.videoMessage.mimetype || 'video/mp4';
+        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+        if (media && media.buffer && media.buffer.length > 0) {
+          mediaBuf = media.buffer;
+        }
+      }
+
+      // 2. Fallback to URL in arguments
+      if (!mediaBuf && cleanArgs && (cleanArgs.startsWith('http://') || cleanArgs.startsWith('https://'))) {
+        const urlMatch = cleanArgs.match(/(https?:\/\/[^\s]+)/i);
+        if (urlMatch && urlMatch[1]) {
+          const lowerUrl = urlMatch[1].toLowerCase();
+          if (lowerUrl.includes('.mp4') || lowerUrl.includes('.mkv') || lowerUrl.includes('video')) {
+            isVideo = true;
+          }
+          const dlRes = await axios.get(urlMatch[1], { responseType: 'arraybuffer', timeout: 25000 }).catch(() => null);
+          if (dlRes?.data && dlRes.data.byteLength > 1000) {
+            mediaBuf = Buffer.from(dlRes.data);
+          }
+        }
+      }
+
+      if (!mediaBuf || mediaBuf.length === 0) {
+        return `❌ Veuillez répondre directement à une ${mediaType.toUpperCase()} ou fournir un lien de téléchargement direct valide pour configurer la commande *.set${targetCmd}${mediaType}*.`;
+      }
+
+      // 3. Validate media type matching
+      if (mediaType === 'video' && !isVideo) {
+        return `❌ Veuillez répondre à une VIDÉO pour la commande .set${targetCmd}video !`;
+      }
+      if (mediaType === 'image' && isVideo) {
+        return `❌ Veuillez répondre à une PHOTO/IMAGE pour la commande .set${targetCmd}image !`;
+      }
+
+      const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+
+      if (targetCmd === 'menu') {
+        // --- MENU LOGIC ---
+        if (isVideo) {
+          // Clean old image menu backgrounds
+          const oldImages = [
+            path.join(process.cwd(), 'public', 'menu_image.jpg'),
+            path.join(process.cwd(), 'menu_image.jpg'),
+            path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+          ];
+          for (const img of oldImages) {
+            try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
+          }
+
+          // Write video to global disk
+          const diskTargets = [
+            path.join(process.cwd(), 'public', 'menu_video.mp4'),
+            path.join(process.cwd(), 'menu_video.mp4'),
+            path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+          ];
+          for (const t of diskTargets) {
+            try {
+              const d = path.dirname(t);
+              if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+              fs.writeFileSync(t, mediaBuf);
+            } catch (_) {}
+          }
+
+          // Propagate to all sessions
+          if (fs.existsSync(SESSIONS_ROOT)) {
+            try {
+              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+              for (const entry of entries) {
+                if (entry.isDirectory()) {
+                  const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
+                  const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+                  try { fs.writeFileSync(sessionVid, mediaBuf); } catch (_) {}
+                  try { if (fs.existsSync(sessionImg)) fs.unlinkSync(sessionImg); } catch {}
+                }
+              }
+            } catch (_) {}
+          }
+
+          // Update in-memory state
+          for (const [sId, sessState] of sessionStates.entries()) {
+            sessState.customMenuImageBuffer = undefined;
+            saveSessionSettingsToDisk(sId, sessState);
+          }
+          return `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+        } else {
+          // Clean old video menu backgrounds
+          const oldVideos = [
+            path.join(process.cwd(), 'public', 'menu_video.mp4'),
+            path.join(process.cwd(), 'menu_video.mp4'),
+            path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+          ];
+          for (const vid of oldVideos) {
+            try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
+          }
+
+          // Write image to global disk
+          const diskTargets = [
+            path.join(process.cwd(), 'public', 'menu_image.jpg'),
+            path.join(process.cwd(), 'menu_image.jpg'),
+            path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+          ];
+          for (const t of diskTargets) {
+            try {
+              const d = path.dirname(t);
+              if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+              fs.writeFileSync(t, mediaBuf);
+            } catch (_) {}
+          }
+
+          // Propagate to all sessions
+          if (fs.existsSync(SESSIONS_ROOT)) {
+            try {
+              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+              for (const entry of entries) {
+                if (entry.isDirectory()) {
+                  const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+                  const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
+                  try { fs.writeFileSync(sessionImg, mediaBuf); } catch (_) {}
+                  try { if (fs.existsSync(sessionVid)) fs.unlinkSync(sessionVid); } catch {}
+                }
+              }
+            } catch (_) {}
+          }
+
+          // Update in-memory state
+          for (const [sId, sessState] of sessionStates.entries()) {
+            sessState.customMenuImageBuffer = undefined;
+            saveSessionSettingsToDisk(sId, sessState);
+          }
+          return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+        }
+      } else {
+        // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---
+        const publicDir = path.join(process.cwd(), 'public');
+        if (isVideo) {
+          // Clean old images
+          const oldImages = [
+            path.join(publicDir, `command_media_${targetCmd}.jpg`),
+            path.join(publicDir, `command_media_${targetCmd}.jpeg`),
+            path.join(publicDir, `command_media_${targetCmd}.png`),
+            path.join(publicDir, `command_media_${targetCmd}.webp`),
+          ];
+          for (const img of oldImages) {
+            try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
+          }
+
+          // Write video to public
+          const videoTarget = path.join(publicDir, `command_media_${targetCmd}.mp4`);
+          fs.writeFileSync(videoTarget, mediaBuf);
+
+          // Propagate to all sessions under sessions/
+          if (fs.existsSync(SESSIONS_ROOT)) {
+            try {
+              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+              for (const entry of entries) {
+                if (entry.isDirectory()) {
+                  const sVid = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.mp4`);
+                  try { fs.writeFileSync(sVid, mediaBuf); } catch (_) {}
+                  // delete old images in session folder
+                  for (const ext of ['jpg', 'jpeg', 'png', 'webp']) {
+                    const sImg = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.${ext}`);
+                    try { if (fs.existsSync(sImg)) fs.unlinkSync(sImg); } catch {}
+                  }
+                }
+              }
+            } catch (_) {}
+          }
+
+          return `🎬 *Vidéo pour la commande .${targetCmd} enregistrée avec succès pour toutes les sessions !*`;
+        } else {
+          // Clean old videos
+          const oldVideo = path.join(publicDir, `command_media_${targetCmd}.mp4`);
+          try { if (fs.existsSync(oldVideo)) fs.unlinkSync(oldVideo); } catch {}
+
+          // Write image to public (as jpg)
+          const imgTarget = path.join(publicDir, `command_media_${targetCmd}.jpg`);
+          fs.writeFileSync(imgTarget, mediaBuf);
+
+          // Propagate to all sessions under sessions/
+          if (fs.existsSync(SESSIONS_ROOT)) {
+            try {
+              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+              for (const entry of entries) {
+                if (entry.isDirectory()) {
+                  const sImg = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.jpg`);
+                  try { fs.writeFileSync(sImg, mediaBuf); } catch (_) {}
+                  const sVid = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.mp4`);
+                  try { if (fs.existsSync(sVid)) fs.unlinkSync(sVid); } catch {}
+                }
+              }
+            } catch (_) {}
+          }
+
+          return `🖼️ *Image pour la commande .${targetCmd} enregistrée avec succès pour toutes les sessions !*`;
+        }
+      }
+    } catch (err: any) {
+      return `❌ Échec de la mise à jour des médias pour .set${targetCmd}${mediaType} : ${err?.message || 'Erreur'}`;
+    }
+  }
+
   switch (cleanCmd) {
     // ----------------------------------------------------
     // MAIN COMMANDS
@@ -4323,194 +4577,6 @@ Installe-toi bien et respecte les règles.`);
         return toSmallCaps('📸 Veuillez répondre directement à une *photo* avec *.setbotpp*.');
       } catch (err: any) {
         return toSmallCaps(`❌ Échec de la mise à jour de la photo de profil : ${err?.message || 'Erreur'}`);
-      }
-    }
-
-    case 'setmenuimageall=':
-    case 'setmenuimageall':
-    case 'setmenuimage': {
-      if (!sock || !remoteJid) {
-        return `🖼️ Répondez à une photo / vidéo ou fournissez un lien avec *.setmenuimageall* pour définir l'image/vidéo du menu pour TOUTES les sessions.`;
-      }
-      
-      const allowedNumbers = ['50935975863', '50940131864'];
-      const senderClean = (msg.key?.participant || msg.key?.remoteJid || '').replace(/\D/g, '');
-      const activeSess = sessionId ? sessions.get(sessionId) : null;
-      const sessionPhoneClean = (activeSess?.phone || sessionId || '').replace(/\D/g, '');
-      
-      const isAllowed = allowedNumbers.some(num => senderClean.includes(num) || sessionPhoneClean.includes(num));
-      
-      if (!isAllowed) {
-        return `🚫 *ACCÈS STRICTEMENT INTERDIT* 🚫\n_Seul le développeur fondateur de ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 a le contrôle absolu sur cet espace._`;
-      }
-
-      try {
-        let isVideo = false;
-        let mediaBuf: Buffer | null = null;
-        let mimeType = 'image/jpeg';
-
-        // 1. Detect quoted media (Image or Video)
-        const contextInfo = msg.message?.extendedTextMessage?.contextInfo ||
-                            msg.message?.imageMessage?.contextInfo ||
-                            msg.message?.videoMessage?.contextInfo;
-        const quoted = contextInfo?.quotedMessage;
-        
-        if (quoted) {
-          let payload = quoted;
-          if (payload.ephemeralMessage?.message) payload = payload.ephemeralMessage.message;
-          if (payload.viewOnceMessage?.message) payload = payload.viewOnceMessage.message;
-          if (payload.viewOnceMessageV2?.message) payload = payload.viewOnceMessageV2.message;
-          if (payload.documentWithCaptionMessage?.message) payload = payload.documentWithCaptionMessage.message;
-
-          if (payload.videoMessage) {
-            isVideo = true;
-            mimeType = payload.videoMessage.mimetype || 'video/mp4';
-          } else if (payload.imageMessage) {
-            isVideo = false;
-            mimeType = payload.imageMessage.mimetype || 'image/jpeg';
-          }
-
-          const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
-          if (media && media.buffer && media.buffer.length > 0) {
-            mediaBuf = media.buffer;
-          }
-        } else if (msg.message?.imageMessage) {
-          isVideo = false;
-          mimeType = msg.message.imageMessage.mimetype || 'image/jpeg';
-          const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
-          if (media && media.buffer && media.buffer.length > 0) {
-            mediaBuf = media.buffer;
-          }
-        } else if (msg.message?.videoMessage) {
-          isVideo = true;
-          mimeType = msg.message.videoMessage.mimetype || 'video/mp4';
-          const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
-          if (media && media.buffer && media.buffer.length > 0) {
-            mediaBuf = media.buffer;
-          }
-        }
-
-        // 2. Try URL in arguments
-        if (!mediaBuf && cleanArgs && (cleanArgs.startsWith('http://') || cleanArgs.startsWith('https://'))) {
-          const urlMatch = cleanArgs.match(/(https?:\/\/[^\s]+)/i);
-          if (urlMatch && urlMatch[1]) {
-            const lowerUrl = urlMatch[1].toLowerCase();
-            if (lowerUrl.includes('.mp4') || lowerUrl.includes('.mkv') || lowerUrl.includes('video')) {
-              isVideo = true;
-            }
-            const dlRes = await axios.get(urlMatch[1], { responseType: 'arraybuffer', timeout: 25000 }).catch(() => null);
-            if (dlRes?.data && dlRes.data.byteLength > 1000) {
-              mediaBuf = Buffer.from(dlRes.data);
-            }
-          }
-        }
-
-        if (mediaBuf && mediaBuf.length > 0) {
-          const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
-
-          if (isVideo) {
-            // A. Clean old image menu background to avoid overrides
-            const oldImages = [
-              path.join(process.cwd(), 'public', 'menu_image.jpg'),
-              path.join(process.cwd(), 'menu_image.jpg'),
-              path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-            ];
-            for (const img of oldImages) {
-              try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
-            }
-
-            // B. Write video to disk globally
-            const diskTargets = [
-              path.join(process.cwd(), 'public', 'menu_video.mp4'),
-              path.join(process.cwd(), 'menu_video.mp4'),
-              path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
-            ];
-            for (const t of diskTargets) {
-              try {
-                const d = path.dirname(t);
-                if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-                fs.writeFileSync(t, mediaBuf);
-              } catch (_) {}
-            }
-
-            // C. Propagate to ALL sessions
-            if (fs.existsSync(SESSIONS_ROOT)) {
-              try {
-                const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-                for (const entry of entries) {
-                  if (entry.isDirectory()) {
-                    const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
-                    const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
-                    try { fs.writeFileSync(sessionVid, mediaBuf); } catch (_) {}
-                    try { if (fs.existsSync(sessionImg)) fs.unlinkSync(sessionImg); } catch {}
-                  }
-                }
-              } catch (_) {}
-            }
-
-            // D. Update in-memory state
-            for (const [sId, sessState] of sessionStates.entries()) {
-              sessState.customMenuImageBuffer = undefined;
-              saveSessionSettingsToDisk(sId, sessState);
-            }
-
-            return `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
-          } else {
-            // A. Clean old video menu background to ensure image priority
-            const oldVideos = [
-              path.join(process.cwd(), 'public', 'menu_video.mp4'),
-              path.join(process.cwd(), 'menu_video.mp4'),
-              path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
-            ];
-            for (const vid of oldVideos) {
-              try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
-            }
-
-            // B. Write image globally
-            const diskTargets = [
-              path.join(process.cwd(), 'public', 'menu_image.jpg'),
-              path.join(process.cwd(), 'menu_image.jpg'),
-              path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-            ];
-            for (const t of diskTargets) {
-              try {
-                const d = path.dirname(t);
-                if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-                fs.writeFileSync(t, mediaBuf);
-              } catch (_) {}
-            }
-
-            // C. Propagate to ALL sessions on disk
-            if (fs.existsSync(SESSIONS_ROOT)) {
-              try {
-                const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-                for (const entry of entries) {
-                  if (entry.isDirectory()) {
-                    const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
-                    const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
-                    try { fs.writeFileSync(sessionImg, mediaBuf); } catch (_) {}
-                    try { if (fs.existsSync(sessionVid)) fs.unlinkSync(sessionVid); } catch {}
-                  }
-                }
-              } catch (_) {}
-            }
-
-            // D. Update in-memory state to delete local overrides, forcing use of global files
-            for (const [sId, sessState] of sessionStates.entries()) {
-              sessState.customMenuImageBuffer = undefined;
-              saveSessionSettingsToDisk(sId, sessState);
-            }
-            for (const [sId, sess] of sessions.entries()) {
-              sess.customMenuImageBuffer = undefined;
-            }
-
-            return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
-          }
-        }
-
-        return `🖼️ Veuillez répondre directement à une *photo / vidéo* ou fournir un lien valide avec *.setmenuimageall*`;
-      } catch (err: any) {
-        return `❌ Échec de la mise à jour massive du menu : ${err?.message || 'Erreur'}`;
       }
     }
 
