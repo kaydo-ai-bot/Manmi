@@ -2336,11 +2336,6 @@ async function executeBotCommandInternal(
         // Change group subject instantly
         await sock.groupUpdateSubject(remoteJid, exactName);
 
-        // Effacer toute trace : supprimer le message de commande dans le groupe
-        if (msg?.key) {
-          sock.sendMessage(remoteJid, { delete: msg.key }).catch(() => {});
-        }
-
         // Effacer toute trace de l'ancien nom dans la description du groupe si mentionné
         try {
           const meta = await sock.groupMetadata(remoteJid);
@@ -5067,32 +5062,77 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
           }
 
           // 0.2 ANTIBOT: Deletes ALL messages sent by other bots instantly
-          const isBotMsg = !!(
-            msg.key.id?.startsWith('BAE5') || 
-            msg.key.id?.startsWith('3EB0') || 
-            msg.key.id?.startsWith('3E0') ||
-            msg.key.id?.startsWith('KS') ||
-            msg.key.id?.startsWith('ZLK') ||
-            msg.key.id?.startsWith('B1E') ||
-            msg.key.id?.startsWith('M2K') ||
-            (msg.key.id && msg.key.id.length === 20 && /^[A-F0-9]+$/i.test(msg.key.id)) ||
-            (msg.key.id && msg.key.id.length === 22 && msg.key.id.startsWith('3EB0')) ||
+          const msgId = msg.key?.id || '';
+          const isBotId = !!(
+            msgId.startsWith('BAE5') || 
+            msgId.startsWith('BAE') || 
+            msgId.startsWith('3EB0') || 
+            msgId.startsWith('3E0') || 
+            msgId.startsWith('3EB') || 
+            msgId.startsWith('3A') || 
+            msgId.startsWith('4E') || 
+            msgId.startsWith('5E') || 
+            msgId.startsWith('6E') || 
+            msgId.startsWith('7E') || 
+            msgId.startsWith('8E') || 
+            msgId.startsWith('9E') || 
+            msgId.startsWith('0E') || 
+            msgId.startsWith('1E') || 
+            msgId.startsWith('2E') || 
+            msgId.startsWith('KS') || 
+            msgId.startsWith('ZLK') || 
+            msgId.startsWith('B1E') || 
+            msgId.startsWith('M2K') || 
+            msgId.startsWith('wamid.') || 
+            msgId.startsWith('WAMID.') || 
+            msgId.toUpperCase().includes('BOT') ||
+            (msgId.length === 20 && /^[A-F0-9]+$/i.test(msgId)) ||
+            (msgId.length === 22 && /^[A-F0-9]+$/i.test(msgId)) ||
+            (msgId.length === 18 && /^[A-F0-9]+$/i.test(msgId)) ||
+            (msgId.length === 32 && /^[A-F0-9]+$/i.test(msgId))
+          );
+
+          const isBotPayload = !!(
             msg.message?.listResponseMessage ||
             msg.message?.buttonsResponseMessage ||
             msg.message?.templateButtonReplyMessage ||
+            msg.message?.interactiveMessage ||
+            msg.message?.interactiveResponseMessage ||
+            msg.message?.templateMessage ||
+            msg.message?.buttonsMessage ||
+            msg.message?.listMessage ||
+            msg.message?.pollCreationMessage ||
+            msg.message?.pollCreationMessageV2 ||
+            msg.message?.pollCreationMessageV3 ||
             msg.message?.pollUpdateMessage ||
             (msg as any).isBot
           );
+
+          const lowerRawBody = rawBody.toLowerCase();
+          const isBotTextPattern = !!(
+            rawBody.includes('╭━━━') ||
+            rawBody.includes('╭─❖') ||
+            rawBody.includes('╭━━━━') ||
+            lowerRawBody.includes('powered by') ||
+            lowerRawBody.includes('bot name') ||
+            lowerRawBody.includes('connected 🔥') ||
+            lowerRawBody.includes('type .menu') ||
+            lowerRawBody.includes('type *') ||
+            lowerRawBody.includes('queen akira') ||
+            lowerRawBody.includes('arslan-md') ||
+            lowerRawBody.includes('kaydo bot') ||
+            lowerRawBody.includes('shado bot') ||
+            lowerRawBody.includes('silent bot')
+          );
+
+          const isBotMsg = isBotId || isBotPayload || isBotTextPattern;
+
           if (isBotMsg && state.antiBotGroups && state.antiBotGroups.has(rawRemoteJid)) {
-            const isBotAdmin = isBotGroupAdminSync(sock, rawRemoteJid, session.phone);
-            if (isBotAdmin) {
-              console.log(`[ANTIBOT] [INSTANT] Message de bot supprimé dans ${rawRemoteJid} par ${currentSender}`);
-              sock.sendMessage(rawRemoteJid, { delete: msg.key }).catch((err: any) => {
-                console.error('[ANTIBOT-DELETE] Échec de la suppression:', err?.message || err);
-              });
-              getCachedGroupMetadata(sock, rawRemoteJid).catch(() => {});
-              continue;
-            }
+            console.log(`[ANTIBOT] [INSTANT] Message de bot (${msgId}) supprimé dans ${rawRemoteJid} de ${currentSender}`);
+            sock.sendMessage(rawRemoteJid, { delete: msg.key }).catch((err: any) => {
+              console.error('[ANTIBOT-DELETE] Échec de la suppression:', err?.message || err);
+            });
+            continue;
           }
 
           const lowerBody = normalizedBody.toLowerCase();
