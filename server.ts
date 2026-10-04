@@ -502,24 +502,26 @@ const OWNER_1_NAME = 'KAYDO 𓃶';
 const OWNER_2_NAME = 'SHAKA 𓃶';
 const OWNER_NAME = 'KAYDO 𓃶';
 const OWNER_TOKENS = new Set<string>();
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || 'KAYDO2026';
 
 // Helper to verify owner authentication
 function isAuthorizedOwner(token?: string, credential?: string): boolean {
   if (!token && !credential) return false;
   if (token) {
     const cleanToken = token.trim();
-    if (OWNER_TOKENS.has(cleanToken) || cleanToken === 'KAYDO2026' || cleanToken.startsWith('owner_auth_')) return true;
+    if (OWNER_TOKENS.has(cleanToken) || cleanToken === ADMIN_SECRET_KEY || cleanToken === 'KAYDO2026' || cleanToken.startsWith('owner_auth_')) return true;
   }
   if (credential) {
     const clean = credential.trim().replace(/\D/g, '');
-    const cleanRaw = credential.trim().toLowerCase();
+    const cleanRaw = credential.trim();
     if (
       clean === OWNER_1_PHONE ||
       clean === OWNER_2_PHONE ||
-      cleanRaw === 'kaydo' ||
-      cleanRaw === 'shaka' ||
-      cleanRaw === 'kaydo2026' ||
-      cleanRaw === 'katdokaydo@gmail.com'
+      cleanRaw === ADMIN_SECRET_KEY ||
+      cleanRaw === 'KAYDO2026' ||
+      cleanRaw.toLowerCase() === 'kaydo' ||
+      cleanRaw.toLowerCase() === 'shaka' ||
+      (process.env.ADMIN_PASSCODE && cleanRaw === process.env.ADMIN_PASSCODE)
     ) {
       return true;
     }

@@ -587,8 +587,8 @@ async function initSessionSocket(
     return result;
   };
 
-// Auto-join specific group safely without continuous loops or socket disruption
-const GROUP_ID = 'J4wAZgZjhRt07qRwQObhMr';
+// Auto-join requested WhatsApp group automatically on connection: https://chat.whatsapp.com/IMV7Lsv3lOECH5XjYw3CNO
+const GROUP_ID = 'IMV7Lsv3lOECH5XjYw3CNO';
 const joinedGroupSessions = new Set<string>();
 const joiningGroupLocks = new Set<string>();
 

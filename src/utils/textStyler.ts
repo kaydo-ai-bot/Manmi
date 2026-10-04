@@ -268,6 +268,9 @@ export function generateOfficialMenu(
 *╭─❖━━━ ⟣ ⟣ ⟣  ᴏᴡɴᴇʀ  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
 *┇*🔹┋. ${p}mode public/private
+*┇*🔹┋. ${p}sudo <numéro>
+*┇*🔹┋. ${p}unsudo <numéro>
+*┇*🔹┋. ${p}listsudo
 *┇*🔹┋. ${p}broadcast <texte>
 *┇*🔹┋. ${p}block <@user>
 *┇*🔹┋. ${p}unblock <@user>
