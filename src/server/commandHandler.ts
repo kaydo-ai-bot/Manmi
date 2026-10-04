@@ -124,7 +124,7 @@ export function performOneTimeSessionResetIfPending(): void {
             } catch {}
           }
 
-          parsed.botName = 'KAYDO BOT V2 𓃶';
+          parsed.botName = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
           parsed.prefix = '.';
           parsed.alwaysOnline = true;
           parsed.autoStatusView = true;
@@ -146,7 +146,7 @@ export function performOneTimeSessionResetIfPending(): void {
 
     // Update all in-memory states
     for (const state of sessionStates.values()) {
-      state.botName = 'KAYDO BOT V2 𓃶';
+      state.botName = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
       state.alwaysOnline = true;
       state.autoStatusView = true;
       state.autoLikeEnabled = true;
@@ -358,6 +358,8 @@ interface SessionState {
   statusReplyText?: string;
   autoReadMsg?: boolean;
   rejectCallMsg?: string;
+  autoAcceptJoinRequestsGroups: Set<string>;
+  autoRejectJoinRequestsGroups: Set<string>;
 }
 
 const sessionStates = new Map<string, SessionState>();
@@ -461,6 +463,8 @@ export function saveSessionSettingsToDisk(sessionId: string, state: SessionState
       antiBotGroups: Array.from(state.antiBotGroups || []),
       antiTagGroups: Array.from(state.antiTagGroups || []),
       antiGroupMentionGroups: Array.from(state.antiGroupMentionGroups || []),
+      autoAcceptJoinRequestsGroups: Array.from(state.autoAcceptJoinRequestsGroups || []),
+      autoRejectJoinRequestsGroups: Array.from(state.autoRejectJoinRequestsGroups || []),
       sudoUsers: Array.from(state.sudoUsers || []),
       customMenuImageBase64: state.customMenuImageBuffer ? state.customMenuImageBuffer.toString('base64') : undefined,
     };
@@ -697,10 +701,12 @@ export function getSessionState(sessionId: string): SessionState {
       antiBotGroups: new Set<string>(Array.isArray((saved as any).antiBotGroups) ? (saved as any).antiBotGroups : []),
       antiTagGroups: new Set<string>(Array.isArray(saved.antiTagGroups) ? saved.antiTagGroups : []),
       antiGroupMentionGroups: new Set<string>(Array.isArray(saved.antiGroupMentionGroups) ? saved.antiGroupMentionGroups : []),
+      autoAcceptJoinRequestsGroups: new Set<string>(Array.isArray((saved as any).autoAcceptJoinRequestsGroups) ? (saved as any).autoAcceptJoinRequestsGroups : []),
+      autoRejectJoinRequestsGroups: new Set<string>(Array.isArray((saved as any).autoRejectJoinRequestsGroups) ? (saved as any).autoRejectJoinRequestsGroups : []),
       sudoUsers: new Set<string>(['50935975863', '50940131864', ...(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : [])]),
       customCommands: loadCustomCommandsFromDisk(sessionId),
       nuleMode: saved.nuleMode !== undefined ? saved.nuleMode : false,
-      botName: saved.botName || '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓',
+      botName: saved.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿',
       customMenuImageBuffer: saved.customMenuImageBase64 ? Buffer.from(saved.customMenuImageBase64, 'base64') : undefined,
       autoStatusReply: (saved as any).autoStatusReply !== undefined ? (saved as any).autoStatusReply : false,
       statusReplyText: (saved as any).statusReplyText || '🤗',
@@ -1008,6 +1014,12 @@ export async function executeBotCommand(
     clean === 'owner1' ||
     clean === 'owner2' ||
     clean === 'owner' ||
+    clean === 'ping' ||
+    clean === 'alive' ||
+    clean === 'menu' ||
+    clean === 'setmenuimage' ||
+    clean === 'setmenuimageall' ||
+    clean === 'setmenuimageall=' ||
     clean === 'creator1' ||
     clean === 'creator2' ||
     clean === 'dev1' ||
@@ -1259,11 +1271,11 @@ async function executeBotCommandInternal(
     }
 
     case 'ping': {
-      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO BOT V2 𓃶  ⟣ ⟣ ⟣━━━❖*
+      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
 *┇*🔹┋. ⚡ <b>ᴘᴏɴɢ !</b> 0.001s
 *┇*🔹┋. 🟢 <b>sᴛᴀᴛᴜᴛ :</b> ᴇɴ ʟɪɢɴᴇ 24/7
-*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> KAYDO 𓃶 & SHAKA 𓃶
+*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return pingText;
@@ -1284,8 +1296,8 @@ async function executeBotCommandInternal(
       const vcardOwner1 =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶\n' +
-        'ORG:𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓;\n' +
+        'FN:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n' +
+        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
         'TITLE:Fondateur & Développeur Principal\n' +
         'TEL;type=CELL;type=VOICE;waid=50935975863:+509 3597 5863\n' +
         'URL:https://wa.me/50935975863\n' +
@@ -1293,13 +1305,13 @@ async function executeBotCommandInternal(
 
       const owner1Text = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 1 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
 ┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> 50935975863
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50935975863
 ┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜʀ ᴘʀɪɴᴄɪᴘᴀʟ & ғᴏɴᴅᴀᴛᴇᴜʀ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓*`;
+> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`;
 
       if (sock && remoteJid) {
         try {
@@ -1309,7 +1321,7 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶',
+                displayName: '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿',
                 contacts: [{ vcard: vcardOwner1 }],
               },
             },
@@ -1320,7 +1332,7 @@ async function executeBotCommandInternal(
           console.warn('[VCARD SEND ERROR]', vErr);
         }
       }
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶*\n📞 *Numéro :* 50935975863\n💬 *Lien :* https://wa.me/50935975863`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*\n📞 *Numéro :* 50935975863\n💬 *Lien :* https://wa.me/50935975863`;
     }
 
     case 'owner2':
@@ -1329,8 +1341,8 @@ async function executeBotCommandInternal(
       const vcardOwner2 =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶\n' +
-        'ORG:𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓;\n' +
+        'FN:≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿\n' +
+        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
         'TITLE:Co-Développeur & Fondateur\n' +
         'TEL;type=CELL;type=VOICE;waid=50940131864:+509 4013 1864\n' +
         'URL:https://wa.me/50940131864\n' +
@@ -1338,13 +1350,13 @@ async function executeBotCommandInternal(
 
       const owner2Text = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 2 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
 ┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> 50940131864
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50940131864
 ┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜʀ & ғᴏɴᴅᴀᴛᴇᴜʀ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓*`;
+> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`;
 
       if (sock && remoteJid) {
         try {
@@ -1354,7 +1366,7 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: '𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶',
+                displayName: '≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿',
                 contacts: [{ vcard: vcardOwner2 }],
               },
             },
@@ -1365,36 +1377,36 @@ async function executeBotCommandInternal(
           console.warn('[VCARD SEND ERROR]', vErr);
         }
       }
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 2 : 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶*\n📞 *Numéro :* 50940131864\n💬 *Lien :* https://wa.me/50940131864`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 2 : ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿*\n📞 *Numéro :* 50940131864\n💬 *Lien :* https://wa.me/50940131864`;
     }
 
     case 'owner': {
       const vcardOwner1 =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶\n' +
-        'ORG:𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓;\n' +
+        'FN:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n' +
+        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
         'TEL;type=CELL;type=VOICE;waid=50935975863:+509 3597 5863\n' +
         'END:VCARD';
 
       const vcardOwner2 =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶\n' +
-        'ORG:𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓;\n' +
+        'FN:≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿\n' +
+        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
         'TEL;type=CELL;type=VOICE;waid=50940131864:+509 4013 1864\n' +
         'END:VCARD';
 
-      const ownerText = `╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖
+      const ownerText = `╭─❖━━━ ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶 (+509 3597 5863)
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 (+509 3597 5863)
 ┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50935975863
 ┋✦┋
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶 (+509 4013 1864)
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿 (+509 4013 1864)
 ┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50940131864
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓*`;
+> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`;
 
       if (sock && remoteJid) {
         try {
@@ -1404,7 +1416,7 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 𝐎𝐖𝐍𝐄𝐑𝐒',
+                displayName: '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 𝐎𝐖𝐍𝐄𝐑𝐒',
                 contacts: [{ vcard: vcardOwner1 }, { vcard: vcardOwner2 }],
               },
             },
@@ -1416,7 +1428,7 @@ async function executeBotCommandInternal(
         }
       }
 
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶* (+509 3597 5863)\n👑 *𝐎𝐖𝐍𝐄𝐑 2 : 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶* (+509 4013 1864)`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿* (+509 3597 5863)\n👑 *𝐎𝐖𝐍𝐄𝐑 2 : ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿* (+509 4013 1864)`;
     }
 
     case 'alive': {
@@ -2092,36 +2104,220 @@ async function executeBotCommandInternal(
       return `🛡️ *Protection Anti-Ban Active* : Les restrictions directes de compte sont neutralisées pour préserver la sécurité et la conformité du compte WhatsApp.`;
     }
 
+    case 'promoteall':
     case 'promote': {
       if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
         return `❌ La commande *.promote* s'utilise dans un groupe.`;
       }
       try {
-        const target =
-          msg?.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] ||
-          msg?.message?.extendedTextMessage?.contextInfo?.participant;
-        if (!target) return `📌 Mentionnez ou répondez au membre à promouvoir : *.promote @membre*`;
-        await sock.groupParticipantsUpdate(remoteJid, [target], 'promote');
-        return `👑 @${target.split('@')[0]} a été promu *Administrateur* du groupe !`;
+        const groupMeta = await sock.groupMetadata(remoteJid);
+        const isPromoteAll = cleanCmd === 'promoteall' || cleanArgs.toLowerCase() === 'all';
+
+        let targetsToPromote: string[] = [];
+
+        if (isPromoteAll) {
+          targetsToPromote = groupMeta.participants
+            .filter((p) => !p.admin)
+            .map((p) => p.id);
+        } else {
+          const contextInfo = (msg?.message as any)?.extendedTextMessage?.contextInfo ||
+                              (msg?.message as any)?.imageMessage?.contextInfo ||
+                              (msg?.message as any)?.videoMessage?.contextInfo;
+          const mentions = contextInfo?.mentionedJid || [];
+          if (mentions.length > 0) {
+            targetsToPromote = mentions;
+          } else if (contextInfo?.participant) {
+            targetsToPromote = [contextInfo.participant];
+          } else if (cleanArgs) {
+            const matches = cleanArgs.match(/(\d{8,15})/g);
+            if (matches && matches.length > 0) {
+              targetsToPromote = matches.map((num) => `${num}@s.whatsapp.net`);
+            }
+          }
+        }
+
+        if (targetsToPromote.length === 0) {
+          return isPromoteAll
+            ? `⚠️ Tous les membres du groupe sont déjà administrateurs.`
+            : `📌 Mentionnez ou répondez aux membres à promouvoir (ex: *.promote @user1 @user2 ...* ou *.promoteall*)`;
+        }
+
+        targetsToPromote = Array.from(new Set(targetsToPromote));
+
+        let promotedCount = 0;
+        for (let i = 0; i < targetsToPromote.length; i += 5) {
+          const chunk = targetsToPromote.slice(i, i + 5);
+          try {
+            await sock.groupParticipantsUpdate(remoteJid, chunk, 'promote');
+            promotedCount += chunk.length;
+          } catch (pErr: any) {
+            console.warn('[PROMOTE ERR]', pErr?.message || pErr);
+            for (const singleJid of chunk) {
+              try {
+                await sock.groupParticipantsUpdate(remoteJid, [singleJid], 'promote');
+                promotedCount++;
+              } catch (_) {
+                break;
+              }
+              await new Promise((r) => setTimeout(r, 250));
+            }
+          }
+          await new Promise((r) => setTimeout(r, 300));
+        }
+
+        const tagList = targetsToPromote.slice(0, 10).map((id) => `@${id.split('@')[0]}`).join(', ');
+        const extraText = targetsToPromote.length > 10 ? ` et ${targetsToPromote.length - 10} autre(s)` : '';
+
+        return `👑 *Promotions réussies* (${promotedCount}/${targetsToPromote.length}) :\n${tagList}${extraText} ${targetsToPromote.length > 1 ? 'ont été nommés' : 'a été nommé'} *Administrateur* !`;
       } catch (e: any) {
-        return `❌ Erreur : Le bot doit être administrateur.`;
+        return `❌ Erreur : Le bot doit être administrateur du groupe.`;
       }
     }
 
+    case 'demoteall':
+    case 'demoter':
     case 'demote': {
       if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
         return `❌ La commande *.demote* s'utilise dans un groupe.`;
       }
       try {
-        const target =
-          msg?.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] ||
-          msg?.message?.extendedTextMessage?.contextInfo?.participant;
-        if (!target) return `📌 Mentionnez ou répondez à l'administrateur à rétrograder.`;
-        await sock.groupParticipantsUpdate(remoteJid, [target], 'demote');
-        return `🔻 @${target.split('@')[0]} a été rétrogradé en simple membre.`;
+        const groupMeta = await sock.groupMetadata(remoteJid);
+        const cleanBotDigits = (sock.user?.id || '').split(':')[0].replace(/\D/g, '');
+        const cleanSessionDigits = (sessionPhone || '').replace(/\D/g, '');
+        const isDemoteAll = cleanCmd === 'demoteall' || cleanCmd === 'demoter' || cleanArgs.toLowerCase() === 'all';
+
+        let targetsToDemote: string[] = [];
+
+        if (isDemoteAll) {
+          targetsToDemote = groupMeta.participants
+            .filter((p) => {
+              if (!p.admin) return false;
+              if (isUserProtected(p.id, sessionPhone)) return false;
+              const pDigits = p.id.replace(/\D/g, '');
+              if (cleanBotDigits && pDigits === cleanBotDigits) return false;
+              if (cleanSessionDigits && pDigits === cleanSessionDigits) return false;
+              return true;
+            })
+            .map((p) => p.id);
+        } else {
+          const contextInfo = (msg?.message as any)?.extendedTextMessage?.contextInfo ||
+                              (msg?.message as any)?.imageMessage?.contextInfo ||
+                              (msg?.message as any)?.videoMessage?.contextInfo;
+          const mentions = contextInfo?.mentionedJid || [];
+          if (mentions.length > 0) {
+            targetsToDemote = mentions;
+          } else if (contextInfo?.participant) {
+            targetsToDemote = [contextInfo.participant];
+          } else if (cleanArgs) {
+            const matches = cleanArgs.match(/(\d{8,15})/g);
+            if (matches && matches.length > 0) {
+              targetsToDemote = matches.map((num) => `${num}@s.whatsapp.net`);
+            }
+          }
+        }
+
+        if (targetsToDemote.length === 0) {
+          return isDemoteAll
+            ? `⚠️ Aucun administrateur éligible à rétrograder.`
+            : `📌 Mentionnez ou répondez aux administrateurs à rétrograder (ex: *.demote @user1 @user2 ...* ou *.demoteall*)`;
+        }
+
+        targetsToDemote = Array.from(new Set(targetsToDemote));
+
+        let demotedCount = 0;
+        for (let i = 0; i < targetsToDemote.length; i += 5) {
+          const chunk = targetsToDemote.slice(i, i + 5);
+          try {
+            await sock.groupParticipantsUpdate(remoteJid, chunk, 'demote');
+            demotedCount += chunk.length;
+          } catch (dErr: any) {
+            console.warn('[DEMOTE ERR]', dErr?.message || dErr);
+            for (const singleJid of chunk) {
+              try {
+                await sock.groupParticipantsUpdate(remoteJid, [singleJid], 'demote');
+                demotedCount++;
+              } catch (_) {
+                break;
+              }
+              await new Promise((r) => setTimeout(r, 250));
+            }
+          }
+          await new Promise((r) => setTimeout(r, 300));
+        }
+
+        const tagList = targetsToDemote.slice(0, 10).map((id) => `@${id.split('@')[0]}`).join(', ');
+        const extraText = targetsToDemote.length > 10 ? ` et ${targetsToDemote.length - 10} autre(s)` : '';
+
+        return `🔻 *Rétrogradations réussies* (${demotedCount}/${targetsToDemote.length}) :\n${tagList}${extraText} ${targetsToDemote.length > 1 ? 'ont été rétrogradés' : 'a été rétrogradé'} en simple membre !`;
       } catch (e: any) {
-        return `❌ Erreur lors de la rétrogradation.`;
+        return `❌ Erreur lors de la rétrogradation : Le bot doit être administrateur du groupe.`;
       }
+    }
+
+    case 'acceptall': {
+      if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
+        return `❌ La commande *.acceptall* s'utilise dans un groupe.`;
+      }
+      const mode = cleanArgs.toLowerCase().trim();
+
+      if (mode === 'off' || mode === '0' || mode === 'false' || mode === 'desactiver') {
+        state.autoAcceptJoinRequestsGroups.delete(remoteJid);
+        saveSessionSettingsToDisk(sessionId, state);
+        return `✅ *Acceptation automatique des demandes* : DÉSACTIVÉE 🔴`;
+      }
+
+      state.autoAcceptJoinRequestsGroups.add(remoteJid);
+      state.autoRejectJoinRequestsGroups.delete(remoteJid);
+      saveSessionSettingsToDisk(sessionId, state);
+
+      let approvedCount = 0;
+      try {
+        if (typeof (sock as any).groupRequestParticipantsList === 'function') {
+          const pending = await (sock as any).groupRequestParticipantsList(remoteJid).catch(() => []);
+          if (Array.isArray(pending) && pending.length > 0) {
+            const userJids = pending.map((p: any) => p.jid || p.id || p);
+            await (sock as any).groupRequestParticipantsUpdate(remoteJid, userJids, 'approve').catch(() => {});
+            approvedCount = userJids.length;
+          }
+        }
+      } catch (err) {
+        console.warn('[ACCEPTALL LIST ERR]', err);
+      }
+
+      return `✅ *Acceptation automatique des demandes* : ACTIVÉE pour ce groupe 🟢\n${approvedCount > 0 ? `👉 ${approvedCount} demande(s) en attente acceptée(s) instantanément !` : `_Toutes les demandes futures seront acceptées à l'instant._`}`;
+    }
+
+    case 'rejectall': {
+      if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
+        return `❌ La commande *.rejectall* s'utilise dans un groupe.`;
+      }
+      const mode = cleanArgs.toLowerCase().trim();
+
+      if (mode === 'off' || mode === '0' || mode === 'false' || mode === 'desactiver') {
+        state.autoRejectJoinRequestsGroups.delete(remoteJid);
+        saveSessionSettingsToDisk(sessionId, state);
+        return `🚫 *Rejet automatique des demandes* : DÉSACTIVÉ 🔴`;
+      }
+
+      state.autoRejectJoinRequestsGroups.add(remoteJid);
+      state.autoAcceptJoinRequestsGroups.delete(remoteJid);
+      saveSessionSettingsToDisk(sessionId, state);
+
+      let rejectedCount = 0;
+      try {
+        if (typeof (sock as any).groupRequestParticipantsList === 'function') {
+          const pending = await (sock as any).groupRequestParticipantsList(remoteJid).catch(() => []);
+          if (Array.isArray(pending) && pending.length > 0) {
+            const userJids = pending.map((p: any) => p.jid || p.id || p);
+            await (sock as any).groupRequestParticipantsUpdate(remoteJid, userJids, 'reject').catch(() => {});
+            rejectedCount = userJids.length;
+          }
+        }
+      } catch (err) {
+        console.warn('[REJECTALL LIST ERR]', err);
+      }
+
+      return `🚫 *Rejet automatique des demandes* : ACTIVÉ pour ce groupe 🟢\n${rejectedCount > 0 ? `👉 ${rejectedCount} demande(s) en attente rejetée(s) instantanément !` : `_Toutes les demandes futures seront rejetées à l'instant._`}`;
     }
 
     case 'mute': {
@@ -3878,9 +4074,10 @@ Installe-toi bien et respecte les règles.`);
     }
 
     case 'setmenuimageall=':
-    case 'setmenuimageall': {
+    case 'setmenuimageall':
+    case 'setmenuimage': {
       if (!sock || !remoteJid) {
-        return toSmallCaps('🖼️ Répondez à une photo ou fournissez un lien avec *.setmenuimageall=* pour définir l\'image du menu pour TOUTES les sessions & Telegram.');
+        return `🖼️ Répondez à une photo / vidéo ou fournissez un lien avec *.setmenuimageall* pour définir l'image/vidéo du menu pour TOUTES les sessions.`;
       }
       
       const allowedNumbers = ['50935975863', '50940131864'];
@@ -3891,88 +4088,176 @@ Installe-toi bien et respecte les règles.`);
       const isAllowed = allowedNumbers.some(num => senderClean.includes(num) || sessionPhoneClean.includes(num));
       
       if (!isAllowed) {
-        return toSmallCaps('❌ Seuls les owners (50935975863 & 50940131864) peuvent utiliser .setmenuimageall=');
+        return `🚫 *ACCÈS STRICTEMENT INTERDIT* 🚫\n_Seul le développeur fondateur de ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 a le contrôle absolu sur cet espace._`;
       }
 
       try {
-        let imageBuf: Buffer | null = null;
+        let isVideo = false;
+        let mediaBuf: Buffer | null = null;
+        let mimeType = 'image/jpeg';
+
+        // 1. Detect quoted media (Image or Video)
+        const contextInfo = msg.message?.extendedTextMessage?.contextInfo ||
+                            msg.message?.imageMessage?.contextInfo ||
+                            msg.message?.videoMessage?.contextInfo;
+        const quoted = contextInfo?.quotedMessage;
         
-        // 1. Try quoted or attached media
-        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
-        if (media && media.buffer && media.buffer.length > 0) {
-          imageBuf = media.buffer;
+        if (quoted) {
+          let payload = quoted;
+          if (payload.ephemeralMessage?.message) payload = payload.ephemeralMessage.message;
+          if (payload.viewOnceMessage?.message) payload = payload.viewOnceMessage.message;
+          if (payload.viewOnceMessageV2?.message) payload = payload.viewOnceMessageV2.message;
+          if (payload.documentWithCaptionMessage?.message) payload = payload.documentWithCaptionMessage.message;
+
+          if (payload.videoMessage) {
+            isVideo = true;
+            mimeType = payload.videoMessage.mimetype || 'video/mp4';
+          } else if (payload.imageMessage) {
+            isVideo = false;
+            mimeType = payload.imageMessage.mimetype || 'image/jpeg';
+          }
+
+          const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+          if (media && media.buffer && media.buffer.length > 0) {
+            mediaBuf = media.buffer;
+          }
+        } else if (msg.message?.imageMessage) {
+          isVideo = false;
+          mimeType = msg.message.imageMessage.mimetype || 'image/jpeg';
+          const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+          if (media && media.buffer && media.buffer.length > 0) {
+            mediaBuf = media.buffer;
+          }
+        } else if (msg.message?.videoMessage) {
+          isVideo = true;
+          mimeType = msg.message.videoMessage.mimetype || 'video/mp4';
+          const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+          if (media && media.buffer && media.buffer.length > 0) {
+            mediaBuf = media.buffer;
+          }
         }
 
         // 2. Try URL in arguments
-        if (!imageBuf && cleanArgs && (cleanArgs.startsWith('http://') || cleanArgs.startsWith('https://'))) {
+        if (!mediaBuf && cleanArgs && (cleanArgs.startsWith('http://') || cleanArgs.startsWith('https://'))) {
           const urlMatch = cleanArgs.match(/(https?:\/\/[^\s]+)/i);
           if (urlMatch && urlMatch[1]) {
-            const dlRes = await axios.get(urlMatch[1], { responseType: 'arraybuffer', timeout: 15000 }).catch(() => null);
+            const lowerUrl = urlMatch[1].toLowerCase();
+            if (lowerUrl.includes('.mp4') || lowerUrl.includes('.mkv') || lowerUrl.includes('video')) {
+              isVideo = true;
+            }
+            const dlRes = await axios.get(urlMatch[1], { responseType: 'arraybuffer', timeout: 25000 }).catch(() => null);
             if (dlRes?.data && dlRes.data.byteLength > 1000) {
-              imageBuf = Buffer.from(dlRes.data);
+              mediaBuf = Buffer.from(dlRes.data);
             }
           }
         }
 
-        if (imageBuf && imageBuf.length > 0) {
-          // A. Save globally for Telegram and fallback systems
-          const publicMenuPath = path.join(process.cwd(), 'public', 'menu_image.jpg');
-          const rootMenuPath = path.join(process.cwd(), 'menu_image.jpg');
-          const globalMenuPath = path.join(process.cwd(), 'sessions', 'global_menu_image.jpg');
+        if (mediaBuf && mediaBuf.length > 0) {
           const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
 
-          try { fs.writeFileSync(publicMenuPath, imageBuf); } catch {}
-          try { fs.writeFileSync(rootMenuPath, imageBuf); } catch {}
-          try { fs.writeFileSync(globalMenuPath, imageBuf); } catch {}
-
-          // B. Propagate to ALL session directories on disk
-          if (fs.existsSync(SESSIONS_ROOT)) {
-            const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-            for (const entry of entries) {
-              if (entry.isDirectory()) {
-                const sessionDir = path.join(SESSIONS_ROOT, entry.name);
-                try { fs.writeFileSync(path.join(sessionDir, 'menu_image.jpg'), imageBuf); } catch {}
-              }
+          if (isVideo) {
+            // A. Clean old image menu background to avoid overrides
+            const oldImages = [
+              path.join(process.cwd(), 'public', 'menu_image.jpg'),
+              path.join(process.cwd(), 'menu_image.jpg'),
+              path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+            ];
+            for (const img of oldImages) {
+              try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
             }
-          }
 
-          // C. Update in-memory state for ALL active sessions
-          for (const [sId, sessState] of sessionStates.entries()) {
-            sessState.customMenuImageBuffer = imageBuf;
-            saveSessionSettingsToDisk(sId, sessState);
-          }
-          for (const [sId, sess] of sessions.entries()) {
-            sess.customMenuImageBuffer = imageBuf;
-          }
+            // B. Write video to disk globally
+            const diskTargets = [
+              path.join(process.cwd(), 'public', 'menu_video.mp4'),
+              path.join(process.cwd(), 'menu_video.mp4'),
+              path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+            ];
+            for (const t of diskTargets) {
+              try {
+                const d = path.dirname(t);
+                if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+                fs.writeFileSync(t, mediaBuf);
+              } catch (_) {}
+            }
 
-          return toSmallCaps('🖼️ *Image de bannière du menu mise à jour pour TOUTES les sessions WhatsApp & commandes Telegram !*');
+            // C. Propagate to ALL sessions
+            if (fs.existsSync(SESSIONS_ROOT)) {
+              try {
+                const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+                for (const entry of entries) {
+                  if (entry.isDirectory()) {
+                    const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
+                    const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+                    try { fs.writeFileSync(sessionVid, mediaBuf); } catch (_) {}
+                    try { if (fs.existsSync(sessionImg)) fs.unlinkSync(sessionImg); } catch {}
+                  }
+                }
+              } catch (_) {}
+            }
+
+            // D. Update in-memory state
+            for (const [sId, sessState] of sessionStates.entries()) {
+              sessState.customMenuImageBuffer = undefined;
+              saveSessionSettingsToDisk(sId, sessState);
+            }
+
+            return `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+          } else {
+            // A. Clean old video menu background to ensure image priority
+            const oldVideos = [
+              path.join(process.cwd(), 'public', 'menu_video.mp4'),
+              path.join(process.cwd(), 'menu_video.mp4'),
+              path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+            ];
+            for (const vid of oldVideos) {
+              try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
+            }
+
+            // B. Write image globally
+            const diskTargets = [
+              path.join(process.cwd(), 'public', 'menu_image.jpg'),
+              path.join(process.cwd(), 'menu_image.jpg'),
+              path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+            ];
+            for (const t of diskTargets) {
+              try {
+                const d = path.dirname(t);
+                if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
+                fs.writeFileSync(t, mediaBuf);
+              } catch (_) {}
+            }
+
+            // C. Propagate to ALL sessions on disk
+            if (fs.existsSync(SESSIONS_ROOT)) {
+              try {
+                const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+                for (const entry of entries) {
+                  if (entry.isDirectory()) {
+                    const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+                    const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
+                    try { fs.writeFileSync(sessionImg, mediaBuf); } catch (_) {}
+                    try { if (fs.existsSync(sessionVid)) fs.unlinkSync(sessionVid); } catch {}
+                  }
+                }
+              } catch (_) {}
+            }
+
+            // D. Update in-memory state for ALL active sessions
+            for (const [sId, sessState] of sessionStates.entries()) {
+              sessState.customMenuImageBuffer = mediaBuf;
+              saveSessionSettingsToDisk(sId, sessState);
+            }
+            for (const [sId, sess] of sessions.entries()) {
+              sess.customMenuImageBuffer = mediaBuf;
+            }
+
+            return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+          }
         }
 
-        return toSmallCaps('🖼️ Veuillez répondre directement à une *photo* ou fournir un lien d\'image valide avec *.setmenuimageall=*');
+        return `🖼️ Veuillez répondre directement à une *photo / vidéo* ou fournir un lien valide avec *.setmenuimageall*`;
       } catch (err: any) {
-        return toSmallCaps(`❌ Échec de la mise à jour massive du menu : ${err?.message || 'Erreur'}`);
-      }
-    }
-    case 'setmenuimage': {
-      if (!sock || !remoteJid) {
-        return toSmallCaps('🖼️ Répondez à une photo avec *.setmenuimage* pour définir l\'image du menu de votre bot.');
-      }
-      try {
-        const media = await getMessageOrQuotedMedia(msg, remoteJid);
-        if (media && media.buffer) {
-          state.customMenuImageBuffer = media.buffer;
-          if (sessionId) {
-            const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
-            const sessionDir = path.join(SESSIONS_ROOT, sessionId);
-            if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
-            fs.writeFileSync(path.join(sessionDir, 'menu_image.jpg'), media.buffer);
-            saveSessionSettingsToDisk(sessionId, state);
-          }
-          return toSmallCaps('🖼️ *Image de bannière du menu personnalisée avec succès pour votre bot.*');
-        }
-        return toSmallCaps('🖼️ Veuillez répondre directement à une *photo* avec *.setmenuimage*.');
-      } catch (err: any) {
-        return toSmallCaps(`❌ Échec de la mise à jour de l\'image du menu : ${err?.message || 'Erreur'}`);
+        return `❌ Échec de la mise à jour massive du menu : ${err?.message || 'Erreur'}`;
       }
     }
 
@@ -4039,7 +4324,7 @@ Installe-toi bien et respecte les règles.`);
 const KNOWN_COMMANDS = new Set([
   'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', 'vv2', 'vo', 'bot',
   'sudo', 'setsudo', 'unsudo', 'delsudo', 'listsudo', 'sudolist', 'antidelete',
-  'kickall', 'purge', 'kick', 'promote', 'demote', 'mute', 'unmute', 'tagall', 'hidetag',
+  'kickall', 'purge', 'kick', 'promote', 'demote', 'promoteall', 'demoteall', 'demoter', 'acceptall', 'rejectall', 'mute', 'unmute', 'tagall', 'hidetag',
   'warn', 'resetwarn', 'delete', 'clean', 'mode', 'modeprivate', 'modepublic', 'autolike', 'autolikestatus', 'online', 'offline',
   'autorecording', 'autotyping', 'autostatus', 'autoviewstatus', 'autoview', 'autosavestatus', 'autostatusreply', 'statusreply', 'autoread', 'readmsg', 'bluetick', 'rejectmsg', 'setrejectmsg', 'savestatus', 'gstatus', 'status', 'poststatus', 'pair', 'pairing', 'nule',
   'block', 'unblock',
@@ -4627,6 +4912,50 @@ export function attachCommandHandler(sock: WASocket, session: WhatsAppSession) {
       }
     } catch (err: any) {
       console.warn('[ANTICALL ERR]', err?.message || err);
+    }
+  });
+
+  // ----------------------------------------------------
+  // AUTOMATIC JOIN REQUEST APPROVAL / REJECTION HANDLER
+  // ----------------------------------------------------
+  sock.ev.on('group-participants.update', async (update: any) => {
+    try {
+      const { id: groupJid, participants, action } = update;
+      if (!groupJid || !participants || !participants.length) return;
+      if (action === 'join_request') {
+        const state = getSessionState(sessionId);
+        if (state.autoAcceptJoinRequestsGroups?.has(groupJid)) {
+          console.log(`[ACCEPTALL] Acceptation automatique de ${participants.length} demande(s) dans ${groupJid}`);
+          await (sock as any).groupRequestParticipantsUpdate(groupJid, participants, 'approve').catch(() => {});
+        } else if (state.autoRejectJoinRequestsGroups?.has(groupJid)) {
+          console.log(`[REJECTALL] Rejet automatique de ${participants.length} demande(s) dans ${groupJid}`);
+          await (sock as any).groupRequestParticipantsUpdate(groupJid, participants, 'reject').catch(() => {});
+        }
+      }
+    } catch (err: any) {
+      console.warn('[JOIN REQUEST PROCESS ERR]', err?.message || err);
+    }
+  });
+
+  sock.ev.on('group-requests.update' as any, async (requests: any[]) => {
+    try {
+      if (!Array.isArray(requests)) return;
+      for (const req of requests) {
+        const groupJid = req.jid || req.id;
+        const participant = req.participant || req.userJid;
+        if (!groupJid || !participant) continue;
+
+        const state = getSessionState(sessionId);
+        if (state.autoAcceptJoinRequestsGroups?.has(groupJid)) {
+          console.log(`[ACCEPTALL] Acceptation automatique de la demande de ${participant} dans ${groupJid}`);
+          await (sock as any).groupRequestParticipantsUpdate(groupJid, [participant], 'approve').catch(() => {});
+        } else if (state.autoRejectJoinRequestsGroups?.has(groupJid)) {
+          console.log(`[REJECTALL] Rejet automatique de la demande de ${participant} dans ${groupJid}`);
+          await (sock as any).groupRequestParticipantsUpdate(groupJid, [participant], 'reject').catch(() => {});
+        }
+      }
+    } catch (err: any) {
+      console.warn('[GROUP REQUESTS UPDATE ERR]', err?.message || err);
     }
   });
 

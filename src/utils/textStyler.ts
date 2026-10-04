@@ -177,15 +177,15 @@ export function generateOfficialMenu(
   mode: string = 'PUBLIC 🟢',
   memory: string = getDynamicMemoryUsage(),
   prefix: string = '.',
-  botName: string = 'KAYDO BOT V2 𓃶'
+  botName: string = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'
 ): string {
   const p = prefix || '';
 
   return `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${botName || 'KAYDO BOT V2 𓃶'}
-┋🔹┋. ᴄᴏᴍᴍᴀɴᴅs: 295+ ᴄᴍᴅs
-┋🔹┋. ᴏᴡɴᴇʀ: KAYDO 𓃶
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'}
+┋🔹┋. ᴄᴏᴍᴍᴀɴᴅs: 300+ ᴄᴍᴅs
+┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway / Linux
 ┋🔹┋. ᴍᴏᴅᴇ: ${mode}
 *┇🔹╰───────────────╯*
@@ -194,14 +194,19 @@ export function generateOfficialMenu(
 *╭─❖━━━ ⟣ ⟣ ⟣  ɢʀᴏᴜᴘ  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
 *┇*🔹┋. ${p}setgname <nom>
+*┇*🔹┋. ${p}setgpp [répondre à une photo]
 *┇*🔹┋. ${p}admins
+*┇*🔹┋. ${p}promoteall
+*┇*🔹┋. ${p}demoteall
+*┇*🔹┋. ${p}promote <@user1> <@user2> ...
+*┇*🔹┋. ${p}demote <@user1> <@user2> ...
+*┇*🔹┋. ${p}acceptall [on/off]
+*┇*🔹┋. ${p}rejectall [on/off]
 *┇*🔹┋. ${p}kickall
 *┇*🔹┋. ${p}purge
 *┇*🔹┋. ${p}left
 *┇*🔹┋. ${p}add <numéro>
 *┇*🔹┋. ${p}kick <@mention>
-*┇*🔹┋. ${p}promote <@mention>
-*┇*🔹┋. ${p}demote <@mention>
 *┇*🔹┋. ${p}mute
 *┇*🔹┋. ${p}unmute
 *┇*🔹┋. ${p}tagall
