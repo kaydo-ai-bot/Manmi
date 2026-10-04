@@ -5,6 +5,7 @@ import { Navbar, NavTab } from './components/Navbar';
 import { PairPage } from './pages/PairPage';
 import { OwnerPage } from './pages/OwnerPage';
 import { CommandsCatalogue } from './components/CommandsCatalogue';
+import { CommandImagesManager } from './components/CommandImagesManager';
 import { TerminalPlayground } from './components/TerminalPlayground';
 import { SecurityNotificationPanel } from './components/SecurityNotificationPanel';
 import { NotificationModal } from './components/NotificationModal';
@@ -16,6 +17,7 @@ function MainApp() {
   // Resolve initial tab from window location
   const getInitialTab = (): NavTab => {
     const path = window.location.pathname.toLowerCase().replace(/^\//, '');
+    if (path === 'images' || path === 'photos' || path === 'variables') return 'images';
     if (path === 'owner' || path === 'login') return 'owner';
     if (path === 'commands') return 'commands';
     if (path === 'terminal') return 'terminal';
@@ -153,6 +155,13 @@ function MainApp() {
             onNotificationTrigger={fetchNotifications}
             onGoToOwner={() => setActiveTab('owner')}
           />
+        )}
+
+        {/* TAB: PHOTOS & VARIABLES MANAGER */}
+        {activeTab === 'images' && (
+          <div className="space-y-4 animate-in fade-in-50 duration-200">
+            <CommandImagesManager />
+          </div>
         )}
 
         {/* TAB: OWNER DASHBOARD (Securely verified server-side) */}

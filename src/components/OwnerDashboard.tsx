@@ -14,10 +14,13 @@ import {
   AlertTriangle,
   Server,
   Activity,
+  Image as ImageIcon,
+  Layers,
 } from 'lucide-react';
 import { DetailedSessionInfo, OwnerBroadcastRecord } from '../types';
 import { StatsCard } from './StatsCard';
 import { SessionTable } from './SessionTable';
+import { CommandImagesManager } from './CommandImagesManager';
 import { useTheme } from '../context/ThemeContext';
 
 interface OwnerDashboardProps {
@@ -35,6 +38,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
 }) => {
   const { currentTheme } = useTheme();
 
+  const [activeTab, setActiveTab] = useState<'sessions' | 'images' | 'broadcast'>('sessions');
   const [sessions, setSessions] = useState<DetailedSessionInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -223,7 +227,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         </div>
       )}
 
-      {/* Header : SHADO BOT 𓃶 / OWNER PANEL */}
+      {/* Header : KAYDO BOT V2 𓃶 / OWNER PANEL */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[#0a0b16]/90 border border-slate-800/90 backdrop-blur-2xl">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-purple-400">
@@ -231,7 +235,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             <span>ACCÈS EXCLUSIF SÉCURISÉ</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white flex items-center gap-2">
-            <span>SHADO BOT 𓃶</span>
+            <span>KAYDO BOT V2 𓃶</span>
             <span className="text-slate-500 text-lg font-normal">/</span>
             <span style={{ color: currentTheme.colorHex }}>OWNER PANEL</span>
           </h1>
@@ -310,24 +314,66 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         />
       </div>
 
-      {/* Broadcast Drawer */}
-      {showBroadcastDrawer && (
+      {/* Tabs Selector Navigation */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#090b16] border border-slate-800/80 overflow-x-auto scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setActiveTab('sessions')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer shrink-0 ${
+            activeTab === 'sessions'
+              ? 'bg-purple-600/30 border border-purple-500/80 text-purple-200 shadow-lg'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
+          }`}
+        >
+          <Server className="w-4 h-4" />
+          <span>Sessions Connectées ({activeSessionsCount})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('images')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer shrink-0 ${
+            activeTab === 'images'
+              ? 'bg-purple-600/30 border border-purple-500/80 text-purple-200 shadow-lg'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
+          }`}
+        >
+          <ImageIcon className="w-4 h-4" />
+          <span>Images des Commandes Bot</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('broadcast')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer shrink-0 ${
+            activeTab === 'broadcast'
+              ? 'bg-purple-600/30 border border-purple-500/80 text-purple-200 shadow-lg'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
+          }`}
+        >
+          <Radio className="w-4 h-4" />
+          <span>Diffusion Collective</span>
+        </button>
+      </div>
+
+      {/* TAB CONTENT: Command Images Manager */}
+      {activeTab === 'images' && (
+        <div className="animate-in fade-in-50 duration-200">
+          <CommandImagesManager />
+        </div>
+      )}
+
+      {/* TAB CONTENT: Broadcast Section */}
+      {activeTab === 'broadcast' && (
         <form
           onSubmit={handleSendBroadcast}
-          className="p-5 sm:p-6 rounded-3xl bg-[#0d0e1d] border border-purple-500/40 shadow-2xl space-y-4 animate-in slide-in-from-top-4"
+          className="p-6 rounded-3xl bg-[#0d0e1d] border border-purple-500/40 shadow-2xl space-y-4 animate-in fade-in-50 duration-200"
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-sm sm:text-base font-bold text-white font-mono flex items-center gap-2">
-              <Radio className="w-4 h-4 text-purple-400" />
+            <h3 className="text-base font-bold text-white font-mono flex items-center gap-2">
+              <Radio className="w-5 h-5 text-purple-400" />
               <span>Diffusion Collective à TOUTES les Sessions WhatsApp</span>
             </h3>
-            <button
-              type="button"
-              onClick={() => setShowBroadcastDrawer(false)}
-              className="text-xs text-slate-500 hover:text-slate-300 font-mono"
-            >
-              Fermer ✕
-            </button>
           </div>
 
           <div className="space-y-3">
@@ -352,7 +398,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 value={broadcastMessage}
                 onChange={(e) => setBroadcastMessage(e.target.value)}
                 placeholder="Écrivez le message officiel ici..."
-                rows={3}
+                rows={4}
                 className="w-full bg-black/60 border border-slate-700 text-white font-mono text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500"
               />
             </div>
@@ -378,40 +424,92 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         </form>
       )}
 
-      {/* Main Section: Session Management Table */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-white font-mono tracking-tight">
-              Liste des Sessions Connectées ({sessions.length})
-            </h2>
-          </div>
-
-          {onNavigateToPairing && (
-            <button
-              type="button"
-              onClick={onNavigateToPairing}
-              className="text-xs font-mono text-purple-400 hover:text-purple-300 font-semibold"
+      {/* TAB CONTENT: Sessions List */}
+      {activeTab === 'sessions' && (
+        <div className="space-y-6 animate-in fade-in-50 duration-200">
+          {/* Broadcast Quick Drawer */}
+          {showBroadcastDrawer && (
+            <form
+              onSubmit={handleSendBroadcast}
+              className="p-5 sm:p-6 rounded-3xl bg-[#0d0e1d] border border-purple-500/40 shadow-2xl space-y-4 animate-in slide-in-from-top-4"
             >
-              + Jumeler un nouveau compte
-            </button>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm sm:text-base font-bold text-white font-mono flex items-center gap-2">
+                  <Radio className="w-4 h-4 text-purple-400" />
+                  <span>Diffusion Rapide aux Sessions</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowBroadcastDrawer(false)}
+                  className="text-xs text-slate-500 hover:text-slate-300 font-mono"
+                >
+                  Fermer ✕
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={broadcastTitle}
+                  onChange={(e) => setBroadcastTitle(e.target.value)}
+                  placeholder="COMMUNIQUÉ DU CRÉATEUR"
+                  className="w-full bg-black/60 border border-slate-700 text-white font-mono text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500"
+                />
+                <textarea
+                  value={broadcastMessage}
+                  onChange={(e) => setBroadcastMessage(e.target.value)}
+                  placeholder="Écrivez le message officiel ici..."
+                  rows={3}
+                  className="w-full bg-black/60 border border-slate-700 text-white font-mono text-xs rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingBroadcast || !broadcastMessage.trim()}
+                  className="w-full py-3 rounded-xl font-bold font-mono text-xs sm:text-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Diffuser</span>
+                </button>
+              </div>
+            </form>
           )}
-        </div>
 
-        {error && (
-          <div className="p-4 rounded-xl bg-rose-950/50 border border-rose-500/30 text-rose-300 text-xs">
-            {error}
+          {/* Main Section: Session Management Table */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-bold text-white font-mono tracking-tight">
+                  Liste des Sessions Connectées ({sessions.length})
+                </h2>
+              </div>
+
+              {onNavigateToPairing && (
+                <button
+                  type="button"
+                  onClick={onNavigateToPairing}
+                  className="text-xs font-mono text-purple-400 hover:text-purple-300 font-semibold"
+                >
+                  + Jumeler un nouveau compte
+                </button>
+              )}
+            </div>
+
+            {error && (
+              <div className="p-4 rounded-xl bg-rose-950/50 border border-rose-500/30 text-rose-300 text-xs">
+                {error}
+              </div>
+            )}
+
+            <SessionTable
+              sessions={sessions}
+              onDisconnect={handleDisconnect}
+              onPing={handlePing}
+              onRestart={handleRestart}
+              actionLoading={actionLoading}
+            />
           </div>
-        )}
-
-        <SessionTable
-          sessions={sessions}
-          onDisconnect={handleDisconnect}
-          onPing={handlePing}
-          onRestart={handleRestart}
-          actionLoading={actionLoading}
-        />
-      </div>
+        </div>
+      )}
     </div>
   );
 };

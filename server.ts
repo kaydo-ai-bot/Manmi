@@ -58,6 +58,18 @@ import {
   getSessionsSummary,
 } from './src/server/sessionManager';
 import { executeBotCommand, getSessionState, saveSessionSettingsToDisk } from './src/server/commandHandler';
+import {
+  getAllCommandImageUrls,
+  setCommandImageUrl,
+  setMultipleCommandImageUrls,
+  setDefaultImageUrl,
+  setAppPhotoUrl,
+  getAppPhotoUrl,
+  applyUrlToAllCommands,
+  resetToDefaultCommandImages,
+  DEFAULT_GLOBAL_IMAGE_URL,
+} from './src/server/commandImageManager';
+import axios from 'axios';
 import { getNextBotPhoto } from './src/server/botPhotoManager';
 import { initTelegramBot } from './telegramBot';
 
@@ -89,7 +101,7 @@ const notifications: SecurityAlert[] = [
     timestamp: new Date(Date.now() - 3600000).toISOString().replace('T', ' ').substring(0, 19),
     type: 'SYSTEM_INFO',
     level: 'info',
-    title: 'Noyau SHADO BOT 𓃶 Démarré',
+    title: 'Noyau KAYDO BOT V2 𓃶 Démarré',
     message: 'Passerelle WhatsApp Baileys MD activée. Architecture multi-device synchronisée.',
     read: false,
   },
@@ -844,6 +856,105 @@ app.get('/api/system/public-url', (req: Request, res: Response) => {
     success: true,
     publicUrl: getPublicPortalUrl(),
   });
+});
+
+// 14c. Command Images Manager Endpoints (GET, POST update, POST reset, POST validate)
+app.get('/api/command-images', (_req: Request, res: Response) => {
+  try {
+    const data = getAllCommandImageUrls();
+    res.json({
+      success: true,
+      ...data,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
+
+app.post('/api/command-images', (req: Request, res: Response) => {
+  try {
+    const { defaultUrl, appPhotoUrl, urls, single, applyAllUrl } = req.body || {};
+
+    if (applyAllUrl && typeof applyAllUrl === 'string') {
+      applyUrlToAllCommands(applyAllUrl);
+    } else {
+      if (defaultUrl && typeof defaultUrl === 'string') {
+        setDefaultImageUrl(defaultUrl);
+      }
+
+      if (appPhotoUrl && typeof appPhotoUrl === 'string') {
+        setAppPhotoUrl(appPhotoUrl);
+      }
+
+      if (urls && typeof urls === 'object') {
+        setMultipleCommandImageUrls(urls);
+      }
+
+      if (single && single.cmd && typeof single.url === 'string') {
+        setCommandImageUrl(single.cmd, single.url);
+      }
+    }
+
+    const updated = getAllCommandImageUrls();
+    res.json({
+      success: true,
+      message: 'Configuration des images et photos mise à jour avec succès !',
+      ...updated,
+    });
+  } catch (err: any) {
+    console.error('[API /api/command-images] Erreur:', err);
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
+
+app.post('/api/command-images/reset', (_req: Request, res: Response) => {
+  try {
+    resetToDefaultCommandImages();
+    const updated = getAllCommandImageUrls();
+    res.json({
+      success: true,
+      message: 'Images des commandes réinitialisées avec succès au modèle standard !',
+      ...updated,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
+
+app.post('/api/command-images/validate', async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body || {};
+    if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+      return res.status(400).json({ success: false, valid: false, message: 'URL invalide' });
+    }
+
+    const response = await axios.get(url, {
+      timeout: 4000,
+      responseType: 'arraybuffer',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'image/*',
+      },
+    });
+
+    const contentType = String(response.headers['content-type'] || '');
+    const isImage = contentType.startsWith('image/') || response.data?.length > 100;
+
+    res.json({
+      success: true,
+      valid: isImage,
+      status: response.status,
+      contentType,
+      sizeBytes: response.data?.length || 0,
+      message: isImage ? 'Image accessible et valide !' : 'URL valide mais format non-image.',
+    });
+  } catch (err: any) {
+    res.json({
+      success: false,
+      valid: false,
+      error: err?.message || 'Impossible d\'accéder à l\'image',
+    });
+  }
 });
 
 // 15. Delete Session Endpoint

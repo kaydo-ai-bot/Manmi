@@ -226,19 +226,14 @@ export const PairingCard: React.FC<PairingCardProps> = ({
             style={{ borderColor: currentTheme.colorHex }}
           >
             <img
-              src="/shado_bot_avatar.jpg"
-              alt="SHADO BOT Avatar"
+              src="https://files.catbox.moe/9u2j5v.png"
+              alt="KAYDO BOT V2"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover rounded-full"
               onError={(e) => {
-                // High-fidelity fallback container
-                (e.target as HTMLElement).style.display = 'none';
+                (e.target as HTMLImageElement).src = 'https://files.catbox.moe/9u2j5v.png';
               }}
             />
-            {/* Fallback ram icon if image loading fails */}
-            <div className="w-full h-full flex items-center justify-center text-3xl font-black select-none">
-              𓃶
-            </div>
           </div>
         </div>
 
@@ -253,7 +248,7 @@ export const PairingCard: React.FC<PairingCardProps> = ({
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
-            SHADO BOT 𓃶
+            KAYDO BOT V2 <span style={{ color: currentTheme.colorHex }}>𓃶</span>
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 font-medium">

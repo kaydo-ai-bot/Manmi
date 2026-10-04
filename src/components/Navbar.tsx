@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Smartphone,
   Crown,
@@ -9,13 +9,14 @@ import {
   Menu,
   X,
   Sparkles,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { StatusBadge } from './StatusBadge';
 import { ThemeSelector } from './ThemeSelector';
 import { BotStats } from '../types';
 
-export type NavTab = 'pair' | 'owner' | 'commands' | 'terminal' | 'security';
+export type NavTab = 'pair' | 'images' | 'owner' | 'commands' | 'terminal' | 'security';
 
 interface NavbarProps {
   activeTab: NavTab;
@@ -34,9 +35,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { currentTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [appPhotoUrl, setAppPhotoUrl] = useState('https://files.catbox.moe/9u2j5v.png');
+
+  useEffect(() => {
+    fetch('/api/command-images')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.appPhotoUrl) {
+          setAppPhotoUrl(data.appPhotoUrl);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const navItems: Array<{ id: NavTab; label: string; icon: React.ReactNode }> = [
     { id: 'pair', label: 'Jumelage', icon: <Smartphone className="w-4 h-4" /> },
+    { id: 'images', label: 'Photos & Variables', icon: <ImageIcon className="w-4 h-4" /> },
     { id: 'owner', label: 'Owner Panel', icon: <Crown className="w-4 h-4" /> },
     { id: 'commands', label: 'Commandes', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'terminal', label: 'Terminal', icon: <Terminal className="w-4 h-4" /> },
@@ -47,39 +61,28 @@ export const Navbar: React.FC<NavbarProps> = ({
     <nav className="sticky top-0 z-40 bg-[#06070e]/90 backdrop-blur-xl border-b border-slate-850/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo & Name */}
+          {/* Brand Logo Only - Clean Header without text name as requested */}
           <button
             type="button"
             onClick={() => setActiveTab('pair')}
-            className="flex items-center space-x-3 cursor-pointer group text-left"
+            className="flex items-center cursor-pointer group"
+            title="KAYDO BOT V2"
           >
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center p-0.5 border shadow-md transition-all group-hover:scale-105"
+              className="w-11 h-11 rounded-xl flex items-center justify-center p-0.5 border shadow-md transition-all group-hover:scale-105 overflow-hidden"
               style={{
                 borderColor: currentTheme.colorHex,
                 backgroundColor: '#0c0d1b',
               }}
             >
               <img
-                src="/shado_bot_avatar.jpg"
-                alt="SHADO BOT"
+                src={appPhotoUrl}
+                alt="Logo"
                 className="w-full h-full object-cover rounded-lg"
                 onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
+                  (e.target as HTMLImageElement).src = 'https://files.catbox.moe/9u2j5v.png';
                 }}
               />
-              <span className="font-black text-sm select-none">𓃶</span>
-            </div>
-
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-white font-mono uppercase">
-                  SHADO BOT <span style={{ color: currentTheme.colorHex }}>𓃶</span>
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-mono hidden sm:block">
-                KAYDO 𓃶 • CLOUD 24/7
-              </p>
             </div>
           </button>
 

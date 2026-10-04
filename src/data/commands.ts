@@ -163,7 +163,7 @@ export const INITIAL_NOTIFICATIONS = [
 
 export const BOT_HEADER_ASCII = `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* SHADO BOT 𓃶
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* KAYDO BOT V2 𓃶
 *┋✦┋. ᴏᴡɴᴇʀ:* KAYDO 𓃶
 *┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Railway / Cloud
 *┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒 / ᴘᴜʙʟɪᴄ 🟢
@@ -172,7 +172,7 @@ export const BOT_HEADER_ASCII = `*╭─━━━━━━━━━━━━━�
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
 
-export const BOT_FOOTER_ASCII = `╭─❖━━━ SHADO BOT 𓃶 ━━━❖
+export const BOT_FOOTER_ASCII = `╭─❖━━━ KAYDO BOT V2 𓃶 ━━━❖
 ┇✦╭───────────────
 ┇✦┋. ®2026 © CREATED FOR KAYDO 𓃶
 ┇✦╰───────────────⊷

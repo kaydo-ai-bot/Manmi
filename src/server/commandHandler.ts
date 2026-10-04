@@ -58,54 +58,102 @@ import {
   loadSessionMenuImageFromPostgres,
   loadAllSessionSettingsFromPostgres,
 } from './postgresStore';
+import {
+  getCommandImageBuffer,
+  getCommandImageUrl,
+} from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
 
 export function performOneTimeSessionResetIfPending(): void {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
-  const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.zlk_bot_v5_one_time_reset');
+  const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_reset');
 
   if (fs.existsSync(RESET_FLAG_FILE)) {
     return;
   }
 
   try {
-    if (!fs.existsSync(SESSIONS_ROOT)) {
-      fs.mkdirSync(SESSIONS_ROOT, { recursive: true });
+    const allDirs = [
+      SESSIONS_ROOT,
+      path.join(process.cwd(), 'data', 'sessions-backup'),
+      path.join(process.cwd(), 'sessions_backup'),
+    ];
+
+    for (const d of allDirs) {
+      if (!fs.existsSync(d)) {
+        try { fs.mkdirSync(d, { recursive: true }); } catch (_) {}
+      }
     }
 
-    const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const sessionDir = path.join(SESSIONS_ROOT, entry.name);
-        const customImg = path.join(sessionDir, 'menu_image.jpg');
-        const settingsFile = path.join(sessionDir, 'settings.json');
+    // Update settings in all directories
+    for (const rootDir of allDirs) {
+      if (!fs.existsSync(rootDir)) continue;
+      const entries = fs.readdirSync(rootDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const sessionDir = path.join(rootDir, entry.name);
+          const customImg = path.join(sessionDir, 'menu_image.jpg');
+          const settingsFile = path.join(sessionDir, 'settings.json');
 
-        if (fs.existsSync(customImg)) {
-          try { fs.unlinkSync(customImg); } catch {}
-        }
+          if (fs.existsSync(customImg)) {
+            try { fs.unlinkSync(customImg); } catch {}
+          }
 
-        if (fs.existsSync(settingsFile)) {
+          let parsed: any = {};
+          if (fs.existsSync(settingsFile)) {
+            try {
+              const raw = fs.readFileSync(settingsFile, 'utf8');
+              parsed = JSON.parse(raw) || {};
+            } catch {}
+          }
+
+          parsed.botName = 'KAYDO BOT V2 𓃶';
+          parsed.prefix = '.';
+          parsed.alwaysOnline = true;
+          parsed.autoStatusView = true;
+          parsed.autoLikeEnabled = true;
+          parsed.autoLikeEmoji = '🥷🏿';
+          parsed.botMode = 'public';
+          parsed.offlineMode = false;
+          parsed.offlineGhostMode = false;
+          delete parsed.customMenuImageBase64;
+
           try {
-            const raw = fs.readFileSync(settingsFile, 'utf8');
-            const parsed = JSON.parse(raw);
-            parsed.botName = '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓';
-            delete parsed.customMenuImageBase64;
             fs.writeFileSync(settingsFile, JSON.stringify(parsed, null, 2));
           } catch {}
+
+          saveSessionSettingsToPostgres(entry.name, parsed).catch(() => {});
         }
       }
     }
 
+    // Update all in-memory states
     for (const state of sessionStates.values()) {
-      state.botName = '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓';
+      state.botName = 'KAYDO BOT V2 𓃶';
+      state.alwaysOnline = true;
+      state.autoStatusView = true;
+      state.autoLikeEnabled = true;
+      state.autoLikeEmoji = '🥷🏿';
+      state.botMode = 'public';
+      state.offlineMode = false;
+      state.offlineGhostMode = false;
       state.customMenuImageBuffer = undefined;
     }
 
     fs.writeFileSync(RESET_FLAG_FILE, `done at ${new Date().toISOString()}`);
-    console.log('[RESET V5] ✅ Reset unique effectué : Les sessions voient désormais le nouveau nom 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 et la nouvelle photo officielle.');
+    console.log('[RESET V2] ✅ Reset unique effectué : Toutes les sessions ont été réinitialisées avec accès complet à toutes les nouveautés de KAYDO BOT V2 𓃶 et réactivées 24/7.');
+
+    // Automatically reactivate and reconnect all sessions
+    setTimeout(() => {
+      restoreAllSessions().then((count) => {
+        console.log(`[RESET V2] 🚀 ${count} session(s) WhatsApp réactivée(s) et synchronisée(s) avec succès !`);
+      }).catch((e) => {
+        console.warn('[RESET V2] Erreur réactivation:', e?.message);
+      });
+    }, 1500);
   } catch (err: any) {
-    console.warn('[RESET V5] Erreur reset unique:', err?.message || err);
+    console.warn('[RESET V2] Erreur reset unique:', err?.message || err);
   }
 }
 
@@ -1308,16 +1356,16 @@ async function executeBotCommandInternal(
     case 'alive': {
       const aliveText = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${state.botName || '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓'}
-*┋✦┋. ᴏᴡɴᴇʀ 1:* 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶
-*┋✦┋. ᴏᴡɴᴇʀ 2:* 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${state.botName || 'KAYDO BOT V2 𓃶'}
+*┋✦┋. ᴏᴡɴᴇʀ 1:* 𝐊𝐀𝐘𝐃𝐎 𓃶
+*┋✦┋. ᴏᴡɴᴇʀ 2:* 𝐒𝐇𝐀𝐊𝐀 𓃶
 *┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Railway Cloud
 *┋✦┋. ᴍᴏᴅᴇ:* ᴘᴜʙʟɪᴄ 🟢
 *┋✦┋. ᴜᴘᴛɪᴍᴇ:* 24/7 ᴄʟᴏᴜᴅ ᴅᴀᴇᴍᴏɴ
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-⚡ ${state.botName || '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓'} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
-> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓*`);
+⚡ ${state.botName || 'KAYDO BOT V2 𓃶'} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
+> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 KAYDO BOT V2*`);
 
       return aliveText;
     }
@@ -1338,7 +1386,13 @@ async function executeBotCommandInternal(
         state.botName
       );
 
-      const menuImg = getBotMenuImageBuffer(sessionId);
+      let menuImg = getBotMenuImageBuffer(sessionId);
+      if (!menuImg) {
+        const cmdImg = await getCommandImageBuffer('menu');
+        if (cmdImg?.buffer && cmdImg.buffer.length > 0) {
+          menuImg = cmdImg.buffer;
+        }
+      }
       if (sock && remoteJid && menuImg) {
         const sent = await sendSafeMediaOrText(sock, remoteJid, { image: menuImg, caption: menuText }, msg);
         if (sent) return '';
@@ -5215,7 +5269,27 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
 
         if (reply) {
           const formattedReply = formatCommandCard(reply);
-          await sendSafeMediaOrText(sock, chatJid, { text: formattedReply }, msg);
+          
+          let sentWithImage = false;
+          try {
+            const imgResult = await getCommandImageBuffer(cmd);
+            if (imgResult?.buffer && imgResult.buffer.length > 0) {
+              const sent = await sendSafeMediaOrText(sock, chatJid, {
+                image: imgResult.buffer,
+                caption: formattedReply,
+                mimetype: imgResult.mimeType || 'image/png',
+              }, msg).catch(() => null);
+              if (sent) {
+                sentWithImage = true;
+              }
+            }
+          } catch (imgErr) {
+            console.warn(`[CMD IMAGE SEND] Erreur envoi image pour .${cmd}, repli sur texte:`, imgErr);
+          }
+
+          if (!sentWithImage) {
+            await sendSafeMediaOrText(sock, chatJid, { text: formattedReply }, msg);
+          }
         }
       } catch (err: any) {
         console.error(`[WHATSAPP CMD] Erreur lors du traitement de ${cmd}:`, err);

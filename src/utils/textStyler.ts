@@ -177,170 +177,177 @@ export function generateOfficialMenu(
   mode: string = 'PRIVÉ',
   memory: string = getDynamicMemoryUsage(),
   prefix: string = '.',
-  botName: string = 'SHADO BOT 𓃶'
+  botName: string = 'KAYDO BOT V2 𓃶'
 ): string {
   const p = prefix || '';
 
-  return `*╭─━━━━━━━━━━━━━━━⊷❖*
-*┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${botName || 'SHADO BOT 𓃶'}
-*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO 𓃶
-*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Railway
-*┋✦┋. ᴍᴏᴅᴇ:* ${mode}
-*┋✦┋. ᴜᴘᴛɪᴍᴇ:* ${uptime}
-*┋✦┋. ᴘʀᴇғɪx:* [ ${p || '.'} ]
-*┋✦┋. ʀᴀᴍ:* ${memory}
-*┇✦╰───────────────╯*
-*╰━━━━━━━━━━━━━━━━━❖*
+  return `*╭─◇──────────────◇─╮*
+*│* 🔹 ʙᴏᴛ ɴᴀᴍᴇ : ${botName || 'KAYDO BOT V2 𓃶'}
+*│* 🔹 ᴄᴏᴍᴍᴀɴᴅs : 295+ ᴄᴍᴅs
+*│* 🔹 ᴏᴡɴᴇʀ : KAYDO 𓃶
+*│* 🔹 ᴘʟᴀᴛғᴏʀᴍ : Railway / Linux
+*│*  🔹ᴍᴏᴅᴇ : ${mode}
+*│* 🔹 ᴜᴘᴛɪᴍᴇ : ${uptime}
+*│* 🔹 ᴘʀᴇғɪx : [ ${p || '.'} ]
+*│* 🔹 ʀᴀᴍ : ${memory}
+*╰─◇──────────────◇─╯*
 
-╭─❖━━━ ɢʀᴏᴜᴘ ━━━❖
-┇✦╭───────────────
-┇✦┋. ${p}setgname <nom>
-┇✦┋. ${p}admins
-┇✦┋. ${p}kickall
-┇✦┋. ${p}purge
-┇✦┋. ${p}left
-┇✦┋. ${p}add <numéro>
-┇✦┋. ${p}kick <@mention>
-┇✦┋. ${p}promote <@mention>
-┇✦┋. ${p}demote <@mention>
-┇✦┋. ${p}mute
-┇✦┋. ${p}unmute
-┇✦┋. ${p}tagall
-┇✦┋. ${p}hidetag
-┇✦┋. ${p}warn
-┇✦┋. ${p}resetwarn
-┇✦┋. ${p}delete
-┇✦┋. ${p}clean
-┇✦┋. ${p}welcome [@user]
-┇✦┋. ${p}goodbye [@user]
-┇✦┋. ${p}setwelcome
-┇✦┋. ${p}setgoodbye
-┇✦┋. ${p}grouplink
-┇✦┋. ${p}setgname <nom>
-┇✦┋. ${p}admins
-┇✦┋. ${p}groupinfo
-┇✦┋. ${p}groupstats
-┇✦┋. ${p}antilink
-┇✦┋. ${p}antitag
-┇✦┋. ${p}antigroupmention
-┇✦┋. ${p}antisticker
-┇✦┋. ${p}antimessage
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
+╭━━〔 ɢʀᴏᴜᴘ 〕━━┈⊷
+┃🔹 ${p}setgname <nom>
+┃🔹 ${p}admins
+┃🔹 ${p}kickall
+┃🔹 ${p}purge
+┃🔹 ${p}left
+┃🔹 ${p}add <numéro>
+┃🔹 ${p}kick <@mention>
+┃🔹 ${p}promote <@mention>
+┃🔹 ${p}demote <@mention>
+┃🔹 ${p}mute
+┃🔹 ${p}unmute
+┃🔹 ${p}tagall
+┃🔹 ${p}hidetag
+┃🔹 ${p}warn
+┃🔹 ${p}resetwarn
+┃🔹 ${p}delete
+┃🔹 ${p}clean
+┃🔹 ${p}welcome [@user]
+┃🔹 ${p}goodbye [@user]
+┃🔹 ${p}setwelcome
+┃🔹 ${p}setgoodbye
+┃🔹 ${p}grouplink
+┃🔹 ${p}groupinfo
+┃🔹 ${p}groupstats
+┃🔹 ${p}antilink
+┃🔹 ${p}antitag
+┃🔹 ${p}antigroupmention
+┃🔹 ${p}antisticker
+┃🔹 ${p}antimessage
+╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-╭─❖━━━ ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ ━━━❖
-┇✦╭───────────────
-┇✦┋. ${p}autolike 🥷🏿
-┇✦┋. ${p}autolikestatus
-┇✦┋. ${p}autostatus
-┇✦┋. ${p}autoviewstatus
-┇✦┋. ${p}autosavestatus
-┇✦┋. ${p}autotyping
-┇✦┋. ${p}autorecording
-┇✦┋. ${p}autosticker
-┇✦┋. ${p}online
-┇✦┋. ${p}offline= (1 tick ✓)
-┇✦┋. ${p}vv
-┇✦┋. ${p}vv2
-┇✦┋. ${p}gstatus
-┇✦┋. ${p}restore
-┇✦┋. ${p}pair
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
+╭━━〔 ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ 〕━━┈⊷
+┃🔹 ${p}autolike 🥷🏿
+┃🔹 ${p}autolikestatus
+┃🔹 ${p}autostatus
+┃🔹 ${p}autoviewstatus
+┃🔹 ${p}autosavestatus
+┃🔹 ${p}autotyping
+┃🔹 ${p}autorecording
+┃🔹 ${p}autosticker
+┃🔹 ${p}online
+┃🔹 ${p}offline= (1 tick ✓)
+┃🔹 ${p}vv
+┃🔹 ${p}vv2
+┃🔹 ${p}gstatus
+┃🔹 ${p}restore
+┃🔹 ${p}pair
+╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-╭─❖━━━ ᴍᴀɪɴ ━━━❖
-┇✦╭───────────────
-┇✦┋. ${p}ping
-┇✦┋. ${p}uptime
-┇✦┋. ${p}runtime
-┇✦┋. ${p}menu
-┇✦┋. ${p}owner1
-┇✦┋. ${p}owner2
-┇✦┋. ${p}owner
-┇✦┋. ${p}alive
-┇✦┋. ${p}list
-┇✦┋. ${p}getpp
-┇✦┋. ${p}qr
-┇✦┋. ${p}simage
-┇✦┋. ${p}sticker
-┇✦┋. ${p}take
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
+╭━━〔 ᴍᴀɪɴ 〕━━┈⊷
+┃🔹 ${p}ping
+┃🔹 ${p}uptime
+┃🔹 ${p}runtime
+┃🔹 ${p}menu
+┃🔹 ${p}help
+┃🔹 ${p}owner1
+┃🔹 ${p}owner2
+┃🔹 ${p}owner
+┃🔹 ${p}alive
+┃🔹 ${p}list
+┃🔹 ${p}getpp
+┃🔹 ${p}qr
+┃🔹 ${p}simage
+┃🔹 ${p}sticker
+┃🔹 ${p}take
+╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-╭─❖━━━ ᴏᴡɴᴇʀ ━━━❖
-┇✦╭───────────────
-┇✦┋. ${p}mode
-┇✦┋. ${p}broadcast
-┇✦┋. ${p}block
-┇✦┋. ${p}unblock
-┇✦┋. ${p}anticall
-┇✦┋. ${p}autoreact
-┇✦┋. ${p}setbotname
-┇✦┋. ${p}setbotpp
-┇✦┋. ${p}setmenuimage
-┇✦┋. ${p}setprefix
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
+╭━━〔 ᴏᴡɴᴇʀ 〕━━┈⊷
+┃🔹 ${p}mode public/private
+┃🔹 ${p}broadcast <texte>
+┃🔹 ${p}block <@user>
+┃🔹 ${p}unblock <@user>
+┃🔹 ${p}anticall
+┃🔹 ${p}antidelete
+┃🔹 ${p}autoreact
+┃🔹 ${p}setbotname <nom>
+┃🔹 ${p}setbotpp [répondre]
+┃🔹 ${p}setmenuimage [répondre]
+┃🔹 ${p}setprefix <symbole>
+┃🔹 ${p}mycommands
+┃🔹 ${p}newcommand
+╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-╭─❖━━━ ᴍᴇᴅɪᴀ ━━━❖
-┇✦╭───────────────
-┇✦┋. ${p}dl <url>
-┇✦┋. ${p}song <titre>
-┇✦┋. ${p}ytvideo <titre>
-┇✦┋. ${p}tiktok <url>
-┇✦┋. ${p}shorts <url>
-┇✦┋. ${p}instagram <url>
-┇✦┋. ${p}facebook <url>
-┇✦┋. ${p}twitter <url>
-┇✦┋. ${p}pinterest <url>
-┇✦┋. ${p}snapchat <url>
-┇✦┋. ${p}threads <url>
-┇✦┋. ${p}reddit <url>
-┇✦┋. ${p}twitch <url>
-┇✦┋. ${p}soundcloud <url>
-┇✦┋. ${p}spotify <url>
-┇✦┋. ${p}linkedin <url>
-┇✦┋. ${p}vimeo <url>
-┇✦┋. ${p}dailymotion <url>
-┇✦┋. ${p}tumblr <url>
-┇✦┋. ${p}likee <url>
-┇✦┋. ${p}kwai <url>
-┇✦┋. ${p}capcut <url>
-┇✦┋. ${p}telegram <url>
-┇✦┋. ${p}direct <url>
-┇✦┋. ${p}lyrics
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
+╭━━〔 ᴍᴇᴅɪᴀ & ᴛᴇ́ʟᴇ́ᴄʜᴀʀɢᴇᴍᴇɴᴛ 〕━━┈⊷
+┃🔹 ${p}dl <url>
+┃🔹 ${p}song <titre>
+┃🔹 ${p}ytvideo <titre>
+┃🔹 ${p}tiktok <url>
+┃🔹 ${p}shorts <url>
+┃🔹 ${p}instagram <url>
+┃🔹 ${p}facebook <url>
+┃🔹 ${p}twitter <url>
+┃🔹 ${p}pinterest <url>
+┃🔹 ${p}snapchat <url>
+┃🔹 ${p}threads <url>
+┃🔹 ${p}reddit <url>
+┃🔹 ${p}twitch <url>
+┃🔹 ${p}soundcloud <url>
+┃🔹 ${p}spotify <url>
+┃🔹 ${p}linkedin <url>
+┃🔹 ${p}vimeo <url>
+┃🔹 ${p}dailymotion <url>
+┃🔹 ${p}tumblr <url>
+┃🔹 ${p}likee <url>
+┃🔹 ${p}kwai <url>
+┃🔹 ${p}capcut <url>
+┃🔹 ${p}telegram <url>
+┃🔹 ${p}direct <url>
+┃🔹 ${p}lyrics <titre>
+╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-╭─❖━━━ ғᴜɴ & ᴀɴɪᴍᴇ ━━━❖
-┇✦╭───────────────
-┇✦┋. ${p}joke
-┇✦┋. ${p}meme
-┇✦┋. ${p}memesearch
-┇✦┋. ${p}truth
-┇✦┋. ${p}dare
-┇✦┋. ${p}flirt
-┇✦┋. ${p}compliment
-┇✦┋. ${p}insult
-┇✦┋. ${p}bomb
-┇✦┋. ${p}ship
-┇✦┋. ${p}tictactoe
-┇✦┋. ${p}gayrate
-┇✦┋. ${p}pies
-┇✦┋. ${p}waifu
-┇✦┋. ${p}neko
-┇✦┋. ${p}random
-┇✦┋. ${p}konachan
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
+╭━━〔 ғᴜɴ & ᴀɴɪᴍᴇ 〕━━┈⊷
+┃🔹 ${p}joke
+┃🔹 ${p}meme
+┃🔹 ${p}memesearch
+┃🔹 ${p}truth
+┃🔹 ${p}dare
+┃🔹 ${p}flirt
+┃🔹 ${p}compliment
+┃🔹 ${p}insult
+┃🔹 ${p}bomb
+┃🔹 ${p}ship
+┃🔹 ${p}tictactoe
+┃🔹 ${p}gayrate
+┃🔹 ${p}pies
+┃🔹 ${p}waifu
+┃🔹 ${p}neko
+┃🔹 ${p}random
+┃🔹 ${p}konachan
+┃🔹 ${p}loli
+┃🔹 ${p}megumin
+┃🔹 ${p}milf
+┃🔹 ${p}hneko
+┃🔹 ${p}hwaifu
+╰━━━━━━━━━━━━━━━━━━━┈⊷
 
-> *© SHADO BOT 𓃶 • CREATED FOR KAYDO 𓃶*`;
+╭━━〔 ᴜᴛɪʟɪᴛᴀɪʀᴇs 〕━━┈⊷
+┃🔹 ${p}time
+┃🔹 ${p}date
+┃🔹 ${p}calendar
+┃🔹 ${p}countdown
+┃🔹 ${p}age
+┃🔹 ${p}moon
+┃🔹 ${p}sun
+┃🔹 ${p}leapyear
+┃🔹 ${p}horoscope
+┃🔹 ${p}tarot
+╰━━━━━━━━━━━━━━━━━━━┈⊷
+
+> *© KAYDO BOT V2 𓃶 • CREATED FOR KAYDO 𓃶*`;
 }
 
 /**
  * Formats any bot command text response in the user's requested card style:
- * ╭─❖━━━ SHADO BOT 𓃶 ━━━❖
+ * ╭─❖━━━ KAYDO BOT V2 𓃶 ━━━❖
  * ┇✦╭───────────────
  * ┇✦┋. line1
  * ┇✦┋  line2
@@ -369,12 +376,12 @@ export function formatCommandCard(content: string): string {
     return `┇✦┋  ${line}`;
   });
 
-  return `╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖\n┇✦╭───────────────\n${formattedLines.join('\n')}\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
+  return `╭─❖━━━ KAYDO BOT V2 𓃶 ━━━❖\n┇✦╭───────────────\n${formattedLines.join('\n')}\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
 }
 
 /**
  * Returns the exact loading box requested by the user:
- * ╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖
+ * ╭─❖━━━ KAYDO BOT V2 𓃶 ━━━❖
  * ┇✦╭───────────────
  * ┇✦┋. {command} ʟᴏᴀᴅᴅɪɴɢ...
  * ┇✦╰───────────────⊷
@@ -386,12 +393,12 @@ export function formatLoadingBox(cmdName: string): string {
   if (clean === 'ping') {
     displayName = 'ᴘᴏɴɢ';
   }
-  return `╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖\n┇✦╭───────────────\n┇✦┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
+  return `╭─❖━━━ KAYDO BOT V2 𓃶 ━━━❖\n┇✦╭───────────────\n┇✦┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
 }
 
 /**
  * Returns a success box formatted with the requested borders
  */
 export function formatSuccessBox(message: string): string {
-  return `╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖\n┇✦╭───────────────\n┇✦┋. ${message}\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
+  return `╭─❖━━━ KAYDO BOT V2 𓃶 ━━━❖\n┇✦╭───────────────\n┇✦┋. ${message}\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
 }

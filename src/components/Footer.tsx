@@ -24,10 +24,10 @@ export const Footer: React.FC<FooterProps> = ({ activeSessionsCount = 0 }) => {
         {/* Brand & Owner Signature */}
         <div className="space-y-1">
           <div className="text-sm font-black font-mono tracking-wider text-white uppercase">
-            SHADO BOT <span style={{ color: currentTheme.colorHex }}>𓃶</span>
+            KAYDO BOT V2 <span style={{ color: currentTheme.colorHex }}>𓃶</span>
           </div>
           <p className="text-xs font-mono tracking-widest text-slate-400 uppercase">
-            &quot;CREATED FOR KAYDO&quot;
+            &quot;CREATED FOR KAYDO 𓃶&quot;
           </p>
         </div>
 
