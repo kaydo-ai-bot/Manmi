@@ -63,6 +63,7 @@ import {
   getCommandImageUrl,
   getDefaultImageBufferSync,
   preloadDefaultImageBuffer,
+  getBotMenuVideoBuffer,
 } from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
@@ -4600,6 +4601,12 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
 ┇✧╰───────────────╯
 ╰━━━━━━━━━━━━━━━━━❖\n\n📝 *Contenu supprimé :*`);
 
+    // Target user PM and Group if applicable
+    const targets = [rawOwnerJid];
+    if (isGroup && rawRemoteJid && rawRemoteJid !== rawOwnerJid) {
+      targets.push(rawRemoteJid);
+    }
+
     const msgObj = cachedMsg.message;
     if (!msgObj) return;
 
@@ -4619,57 +4626,59 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       msgObj.documentMessage ||
       msgObj.stickerMessage;
 
-    if (mediaMsg) {
-      try {
-        const mediaBuffer = await downloadMediaMessage(cachedMsg, 'buffer', {});
-        if (mediaBuffer && mediaBuffer.length > 0) {
-          if (msgObj.imageMessage) {
-            await sock.sendMessage(rawOwnerJid, {
-              image: mediaBuffer,
-              caption: `${header}\n${textContent || ''}`.trim(),
-            });
-          } else if (msgObj.videoMessage) {
-            await sock.sendMessage(rawOwnerJid, {
-              video: mediaBuffer,
-              caption: `${header}\n${textContent || ''}`.trim(),
-              mimetype: msgObj.videoMessage.mimetype || 'video/mp4',
-            });
-          } else if (msgObj.audioMessage) {
-            await sock.sendMessage(rawOwnerJid, {
-              text: `${header}\n🎵 *Note Vocale / Audio Supprimé :*`,
-            });
-            await sock.sendMessage(rawOwnerJid, {
-              audio: mediaBuffer,
-              mimetype: msgObj.audioMessage.mimetype || 'audio/mp4',
-              ptt: !!msgObj.audioMessage.ptt,
-            });
-          } else if (msgObj.stickerMessage) {
-            await sock.sendMessage(rawOwnerJid, {
-              text: `${header}\n🎨 *Sticker Supprimé :*`,
-            });
-            await sock.sendMessage(rawOwnerJid, {
-              sticker: mediaBuffer,
-            });
-          } else if (msgObj.documentMessage) {
-            await sock.sendMessage(rawOwnerJid, {
-              document: mediaBuffer,
-              fileName: msgObj.documentMessage.fileName || 'document.pdf',
-              mimetype: msgObj.documentMessage.mimetype || 'application/octet-stream',
-              caption: `${header}\n${textContent || ''}`.trim(),
-            });
+    for (const targetJid of targets) {
+      if (mediaMsg) {
+        try {
+          const mediaBuffer = await downloadMediaMessage(cachedMsg, 'buffer', {});
+          if (mediaBuffer && mediaBuffer.length > 0) {
+            if (msgObj.imageMessage) {
+              await sock.sendMessage(targetJid, {
+                image: mediaBuffer,
+                caption: `${header}\n${textContent || ''}`.trim(),
+              });
+            } else if (msgObj.videoMessage) {
+              await sock.sendMessage(targetJid, {
+                video: mediaBuffer,
+                caption: `${header}\n${textContent || ''}`.trim(),
+                mimetype: msgObj.videoMessage.mimetype || 'video/mp4',
+              });
+            } else if (msgObj.audioMessage) {
+              await sock.sendMessage(targetJid, {
+                text: `${header}\n🎵 *Note Vocale / Audio Supprimé :*`,
+              });
+              await sock.sendMessage(targetJid, {
+                audio: mediaBuffer,
+                mimetype: msgObj.audioMessage.mimetype || 'audio/mp4',
+                ptt: !!msgObj.audioMessage.ptt,
+              });
+            } else if (msgObj.stickerMessage) {
+              await sock.sendMessage(targetJid, {
+                text: `${header}\n🎨 *Sticker Supprimé :*`,
+              });
+              await sock.sendMessage(targetJid, {
+                sticker: mediaBuffer,
+              });
+            } else if (msgObj.documentMessage) {
+              await sock.sendMessage(targetJid, {
+                document: mediaBuffer,
+                fileName: msgObj.documentMessage.fileName || 'document.pdf',
+                mimetype: msgObj.documentMessage.mimetype || 'application/octet-stream',
+                caption: `${header}\n${textContent || ''}`.trim(),
+              });
+            }
+            continue;
           }
-          return;
+        } catch (dlErr) {
+          console.warn('[ANTI-DELETE MEDIA DL ERR]', dlErr);
         }
-      } catch (dlErr) {
-        console.warn('[ANTI-DELETE MEDIA DL ERR]', dlErr);
       }
-    }
 
-    // Default text notification
-    if (textContent || header) {
-      await sock.sendMessage(rawOwnerJid, {
-        text: `${header}\n${textContent || '*(Message multimédia)*'}`,
-      });
+      // Default text notification
+      if (textContent || header) {
+        await sock.sendMessage(targetJid, {
+          text: `${header}\n${textContent || '*(Message multimédia)*'}`,
+        });
+      }
     }
   } catch (err: any) {
     console.error('[ANTI-DELETE PROCESS ERR]', err?.message || err);
@@ -5335,24 +5344,38 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         if (reply) {
           const formattedReply = formatCommandCard(reply);
           
-          let sentWithImage = false;
+          let sentWithMedia = false;
           try {
-            const imgResult = await getCommandImageBuffer(cmd);
-            if (imgResult?.buffer && imgResult.buffer.length > 0) {
+            const videoBuf = getBotMenuVideoBuffer();
+            if ((cmd === 'menu' || cmd === 'alive' || cmd === 'help' || cmd === 'allcmd' || cmd === 'menuall') && videoBuf && videoBuf.length > 0) {
               const sent = await sendSafeMediaOrText(sock, chatJid, {
-                image: imgResult.buffer,
+                video: videoBuf,
                 caption: formattedReply,
-                mimetype: imgResult.mimeType || 'image/png',
+                mimetype: 'video/mp4',
               }, msg).catch(() => null);
               if (sent) {
-                sentWithImage = true;
+                sentWithMedia = true;
               }
             }
-          } catch (imgErr) {
-            console.warn(`[CMD IMAGE SEND] Erreur envoi image pour .${cmd}, repli sur texte:`, imgErr);
+
+            if (!sentWithMedia) {
+              const imgResult = await getCommandImageBuffer(cmd);
+              if (imgResult?.buffer && imgResult.buffer.length > 0) {
+                const sent = await sendSafeMediaOrText(sock, chatJid, {
+                  image: imgResult.buffer,
+                  caption: formattedReply,
+                  mimetype: imgResult.mimeType || 'image/png',
+                }, msg).catch(() => null);
+                if (sent) {
+                  sentWithMedia = true;
+                }
+              }
+            }
+          } catch (mediaErr) {
+            console.warn(`[CMD MEDIA SEND] Erreur envoi média pour .${cmd}:`, mediaErr);
           }
 
-          if (!sentWithImage) {
+          if (!sentWithMedia) {
             await sendSafeMediaOrText(sock, chatJid, { text: formattedReply }, msg);
           }
         }

@@ -69,6 +69,8 @@ import {
   resetToDefaultCommandImages,
   DEFAULT_GLOBAL_IMAGE_URL,
   setGlobalMenuPhotoFromUrlOrBuffer,
+  setGlobalMenuVideoFromUrlOrBuffer,
+  getMenuVideoUrl,
 } from './src/server/commandImageManager';
 import axios from 'axios';
 import { getNextBotPhoto } from './src/server/botPhotoManager';
@@ -587,6 +589,25 @@ app.get('/api/sessions/list', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/owner/sessions', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization?.replace('Bearer ', '') || (req.query.token as string);
+    if (!isAuthorizedOwner(authHeader)) {
+      return res.status(401).json({ success: false, error: 'Accès non autorisé' });
+    }
+    const all = await getAllSessionsDetails();
+    res.json({
+      success: true,
+      isOwner: true,
+      sessions: all,
+      totalCount: all.length,
+      activeCount: all.filter((s) => s.botFunctional).length,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
+
 // 10b. Search & attach existing session by phone number for users switching devices
 app.get('/api/sessions/lookup', async (req: Request, res: Response) => {
   try {
@@ -862,12 +883,25 @@ app.get('/api/system/public-url', (req: Request, res: Response) => {
   });
 });
 
-// 14c. Command Images Manager Endpoints (GET, POST update, POST reset, POST validate)
+// 14c. Command Images & Video Manager Endpoints (GET, POST update, POST reset, POST validate)
+function checkOwnerAuth(req: Request, res: Response): boolean {
+  const authHeader = req.headers.authorization?.replace('Bearer ', '') || (req.body?.ownerToken as string) || (req.query?.token as string);
+  if (!isAuthorizedOwner(authHeader)) {
+    res.status(401).json({
+      success: false,
+      error: 'Accès refusé : Seul le propriétaire (Owner) est autorisé à modifier la photo ou la vidéo du menu.',
+    });
+    return false;
+  }
+  return true;
+}
+
 app.get('/api/command-images', (_req: Request, res: Response) => {
   try {
     const data = getAllCommandImageUrls();
     res.json({
       success: true,
+      menuVideoUrl: getMenuVideoUrl(),
       ...data,
     });
   } catch (err: any) {
@@ -876,6 +910,7 @@ app.get('/api/command-images', (_req: Request, res: Response) => {
 });
 
 app.post('/api/command-images', (req: Request, res: Response) => {
+  if (!checkOwnerAuth(req, res)) return;
   try {
     const { defaultUrl, appPhotoUrl, urls, single, applyAllUrl } = req.body || {};
 
@@ -912,6 +947,7 @@ app.post('/api/command-images', (req: Request, res: Response) => {
 });
 
 app.post('/api/command-images/set-menu-photo', async (req: Request, res: Response) => {
+  if (!checkOwnerAuth(req, res)) return;
   try {
     const { url, base64Image } = req.body || {};
     const target = url || base64Image;
@@ -932,7 +968,31 @@ app.post('/api/command-images/set-menu-photo', async (req: Request, res: Respons
     res.status(500).json({ success: false, error: err?.message });
   }
 });
-app.post('/api/command-images/reset', (_req: Request, res: Response) => {
+
+app.post('/api/command-images/set-menu-video', async (req: Request, res: Response) => {
+  if (!checkOwnerAuth(req, res)) return;
+  try {
+    const { url, base64Video } = req.body || {};
+    const target = url || base64Video;
+    if (!target) {
+      return res.status(400).json({ success: false, message: 'URL ou vidéo en base64 requise.' });
+    }
+    const success = await setGlobalMenuVideoFromUrlOrBuffer(target);
+    if (success) {
+      return res.json({
+        success: true,
+        message: '✅ Vidéo du menu configurée et exportée avec succès sur toutes les sessions !',
+        menuVideoUrl: getMenuVideoUrl(),
+      });
+    }
+    return res.status(400).json({ success: false, message: 'Impossible de télécharger ou décoder cette vidéo.' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
+
+app.post('/api/command-images/reset', (req: Request, res: Response) => {
+  if (!checkOwnerAuth(req, res)) return;
   try {
     resetToDefaultCommandImages();
     const updated = getAllCommandImageUrls();

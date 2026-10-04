@@ -551,6 +551,96 @@ export function getAllCommandImageUrls(): {
   };
 }
 
+let menuVideoUrl = '';
+
+export function getMenuVideoUrl(): string {
+  return menuVideoUrl;
+}
+
+export function setMenuVideoUrl(url: string): void {
+  menuVideoUrl = url.trim();
+}
+
+export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Promise<boolean> {
+  let buffer: Buffer | null = null;
+  if (!urlOrBase64) return false;
+
+  try {
+    if (urlOrBase64.startsWith('data:video/') || urlOrBase64.startsWith('data:application/')) {
+      const matches = urlOrBase64.match(/^data:([a-zA-Z0-9\/\-+]+);base64,(.+)$/);
+      if (matches && matches[2]) {
+        buffer = Buffer.from(matches[2], 'base64');
+      }
+    } else if (urlOrBase64.startsWith('http')) {
+      const res = await axios.get(urlOrBase64, {
+        responseType: 'arraybuffer',
+        timeout: 25000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'video/*',
+        },
+      });
+      if (res.status === 200 && res.data) {
+        buffer = Buffer.from(res.data);
+      }
+    }
+
+    if (!buffer || buffer.length === 0) return false;
+
+    menuVideoUrl = urlOrBase64.startsWith('http') ? urlOrBase64 : '';
+
+    const diskTargets = [
+      path.join(process.cwd(), 'public', 'menu_video.mp4'),
+      path.join(process.cwd(), 'menu_video.mp4'),
+      path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+    ];
+
+    for (const t of diskTargets) {
+      try {
+        const dir = path.dirname(t);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(t, buffer);
+      } catch (_) {}
+    }
+
+    const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+    if (fs.existsSync(SESSIONS_ROOT)) {
+      try {
+        const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
+            try { fs.writeFileSync(sessionVid, buffer); } catch (_) {}
+          }
+        }
+      } catch (_) {}
+    }
+
+    console.log(`[CMD VIDEO] ✅ Nouvelle vidéo du menu configurée et exportée sur ${diskTargets.length} emplacements !`);
+    return true;
+  } catch (err: any) {
+    console.error('[CMD VIDEO] Erreur setGlobalMenuVideoFromUrlOrBuffer:', err?.message || err);
+    return false;
+  }
+}
+
+export function getBotMenuVideoBuffer(): Buffer | null {
+  const possiblePaths = [
+    path.join(process.cwd(), 'public', 'menu_video.mp4'),
+    path.join(process.cwd(), 'menu_video.mp4'),
+    path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        const buf = fs.readFileSync(p);
+        if (buf.length > 0) return buf;
+      } catch {}
+    }
+  }
+  return null;
+}
+
 /**
  * Resets all command images to the initial preset
  */
