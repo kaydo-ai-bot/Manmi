@@ -603,14 +603,52 @@ export function getBotMenuVideoBuffer(): Buffer | null {
   return null;
 }
 
-export function getBotMenuVideoPayload(): { video: Buffer | { url: string }; mimetype: string } | null {
-  const localBuf = getBotMenuVideoBuffer();
-  if (localBuf && localBuf.length > 0) {
-    return { video: localBuf, mimetype: 'video/mp4' };
+export function getBotMenuVideoPayload(): { video: { url: string }; mimetype: string } | null {
+  const possiblePaths = [
+    path.join(process.cwd(), 'public', 'menu_video.mp4'),
+    path.join(process.cwd(), 'menu_video.mp4'),
+    path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return { video: { url: p }, mimetype: 'video/mp4' };
+    }
   }
   if (menuVideoUrl && menuVideoUrl.startsWith('http')) {
     return { video: { url: menuVideoUrl }, mimetype: 'video/mp4' };
   }
+  return null;
+}
+
+export function getCommandMediaPayload(cmd: string): { video?: { url: string }; image?: { url: string }; mimeType: string } | null {
+  const clean = cmd.toLowerCase().trim().replace(/^[.!\/#$]/, '');
+  
+  // 1. Check local public disk files first
+  const publicDir = path.join(process.cwd(), 'public');
+  const possibleVideoPath = path.join(publicDir, `command_media_${clean}.mp4`);
+  if (fs.existsSync(possibleVideoPath)) {
+    return { video: { url: possibleVideoPath }, mimeType: 'video/mp4' };
+  }
+
+  const possibleImgExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+  for (const ext of possibleImgExtensions) {
+    const possibleImgPath = path.join(publicDir, `command_media_${clean}.${ext}`);
+    if (fs.existsSync(possibleImgPath)) {
+      return { image: { url: possibleImgPath }, mimeType: `image/${ext}` };
+    }
+  }
+
+  // 2. Check configured URLs
+  const url = getCommandImageUrl(clean);
+  if (url && url.startsWith('http')) {
+    const isVid = url.toLowerCase().includes('.mp4') || url.toLowerCase().includes('.mkv') || url.toLowerCase().includes('video');
+    if (isVid) {
+      return { video: { url }, mimeType: 'video/mp4' };
+    } else {
+      return { image: { url }, mimeType: 'image/jpeg' };
+    }
+  }
+
   return null;
 }
 

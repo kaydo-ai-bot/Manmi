@@ -65,6 +65,7 @@ import {
   preloadDefaultImageBuffer,
   getBotMenuVideoBuffer,
   getBotMenuVideoPayload,
+  getCommandMediaPayload,
 } from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
@@ -363,6 +364,32 @@ interface SessionState {
 }
 
 export const sessionStates = new Map<string, SessionState>();
+
+// Persistent group warnings store: JID of group -> JID of member -> warning count
+const groupWarningsFile = path.join(process.cwd(), 'sessions', 'group_warnings.json');
+let groupWarnings: Record<string, Record<string, number>> = {};
+
+function loadGroupWarnings() {
+  try {
+    if (fs.existsSync(groupWarningsFile)) {
+      groupWarnings = JSON.parse(fs.readFileSync(groupWarningsFile, 'utf8'));
+    }
+  } catch (err) {
+    console.warn('[WARNINGS] Erreur lecture fichier avertissements:', err);
+  }
+}
+
+function saveGroupWarnings() {
+  try {
+    const dir = path.dirname(groupWarningsFile);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(groupWarningsFile, JSON.stringify(groupWarnings, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('[WARNINGS] Erreur écriture fichier avertissements:', err);
+  }
+}
+
+loadGroupWarnings();
 
 function getCustomCommandsFilePath(sessionId: string): string {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
@@ -1532,6 +1559,148 @@ async function executeBotCommandInternal(
     // ----------------------------------------------------
     // EXCLUSIVE & MULTI-DEVICE FEATURES
     // ----------------------------------------------------
+    case 'send':
+    case 'save':
+    case 'send2':
+    case 'save2': {
+      const isPrivateSend = cleanCmd === 'send2' || cleanCmd === 'save2';
+
+      const contextInfo =
+        msg?.message?.extendedTextMessage?.contextInfo ||
+        msg?.message?.imageMessage?.contextInfo ||
+        msg?.message?.videoMessage?.contextInfo ||
+        msg?.message?.audioMessage?.contextInfo ||
+        msg?.message?.documentMessage?.contextInfo ||
+        msg?.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo ||
+        msg?.message?.ephemeralMessage?.message?.imageMessage?.contextInfo;
+
+      const quoted = contextInfo?.quotedMessage;
+
+      if (!sock || !remoteJid || !quoted) {
+        return `⚠️ *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 • STATUS SAVER*\nVeuillez citer directement un statut ou un média (photo, vidéo ou note vocale) avec *.${cleanCmd}* pour le récupérer.`;
+      }
+
+      try {
+        let mediaPayload: any = quoted;
+        if (mediaPayload?.ephemeralMessage?.message) {
+          mediaPayload = mediaPayload.ephemeralMessage.message;
+        }
+        if (mediaPayload?.documentWithCaptionMessage?.message) {
+          mediaPayload = mediaPayload.documentWithCaptionMessage.message;
+        }
+        if (mediaPayload?.viewOnceMessage?.message) {
+          mediaPayload = mediaPayload.viewOnceMessage.message;
+        } else if (mediaPayload?.viewOnceMessageV2?.message) {
+          mediaPayload = mediaPayload.viewOnceMessageV2.message;
+        } else if (mediaPayload?.viewOnceMessageV2Extension?.message) {
+          mediaPayload = mediaPayload.viewOnceMessageV2Extension.message;
+        }
+
+        const isImage = !!mediaPayload?.imageMessage;
+        const isVideo = !!mediaPayload?.videoMessage;
+        const isAudio = !!mediaPayload?.audioMessage;
+        const isDocument = !!mediaPayload?.documentMessage;
+        const isSticker = !!mediaPayload?.stickerMessage;
+
+        if (!isImage && !isVideo && !isAudio && !isDocument && !isSticker) {
+          return `⚠️ *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 • STATUS SAVER*\nAucun média (photo, vidéo, sticker ou note vocale) n'a été détecté dans le message cité. Citez directement un statut avec *.${cleanCmd}*.`;
+        }
+
+        const messageToDownload = {
+          key: {
+            remoteJid,
+            id: contextInfo?.stanzaId,
+            participant: contextInfo?.participant,
+          },
+          message: mediaPayload,
+        };
+
+        const buffer = await downloadMediaMessage(
+          messageToDownload as any,
+          'buffer',
+          {},
+          {
+            logger: console as any,
+            reuploadRequest: sock.updateMediaMessage,
+          }
+        );
+
+        if (!buffer || buffer.length === 0) {
+          return `❌ *Échec du téléchargement* : Impossible de récupérer les données du statut (peut-être expiré sur les serveurs WhatsApp).`;
+        }
+
+        let targetPrivateJid = remoteJid;
+        if (msg?.key.fromMe) {
+          const myNum = sock.user?.id?.split(':')[0] || '';
+          targetPrivateJid = myNum ? `${myNum}@s.whatsapp.net` : remoteJid;
+        } else {
+          const senderRaw = contextInfo?.participant || senderJid || msg?.key.participant || remoteJid;
+          const senderNum = senderRaw.split(':')[0].replace(/[^0-9]/g, '');
+          targetPrivateJid = senderNum ? `${senderNum}@s.whatsapp.net` : remoteJid;
+        }
+
+        const destinationJid = isPrivateSend ? targetPrivateJid : remoteJid;
+
+        console.log(`[STATUS-SAVE] Extraction réussie pour ${cleanCmd}. Envoi vers ${destinationJid} (${buffer.length} octets)`);
+
+        if (isImage) {
+          await sock.sendMessage(
+            destinationJid,
+            {
+              image: buffer,
+              caption: isPrivateSend
+                ? undefined
+                : `📥 *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • STATUT RÉCUPÉRÉ*\nPhoto de statut récupérée avec succès.`,
+            },
+            destinationJid === remoteJid ? { quoted: msg as any } : {}
+          );
+        } else if (isVideo) {
+          await sock.sendMessage(
+            destinationJid,
+            {
+              video: buffer,
+              caption: isPrivateSend
+                ? undefined
+                : `📥 *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • STATUT RÉCUPÉRÉ*\nVidéo de statut récupérée avec succès.`,
+            },
+            destinationJid === remoteJid ? { quoted: msg as any } : {}
+          );
+        } else if (isAudio) {
+          await sock.sendMessage(
+            destinationJid,
+            {
+              audio: buffer,
+              mimetype: mediaPayload.audioMessage?.mimetype || 'audio/mp4',
+              ptt: true,
+            },
+            destinationJid === remoteJid ? { quoted: msg as any } : {}
+          );
+        } else if (isSticker) {
+          await sock.sendMessage(
+            destinationJid,
+            {
+              sticker: buffer,
+            },
+            destinationJid === remoteJid ? { quoted: msg as any } : {}
+          );
+        } else if (isDocument) {
+          await sock.sendMessage(
+            destinationJid,
+            {
+              document: buffer,
+              mimetype: mediaPayload.documentMessage?.mimetype || 'application/octet-stream',
+              fileName: mediaPayload.documentMessage?.fileName || 'media_status',
+            },
+            destinationJid === remoteJid ? { quoted: msg as any } : {}
+          );
+        }
+
+        return '';
+      } catch (err: any) {
+        return `❌ *Erreur lors de la récupération* : ${err?.message || err}`;
+      }
+    }
+
     case 'vv':
     case 'vv2':
     case 'vo': {
@@ -2654,11 +2823,93 @@ async function executeBotCommandInternal(
     }
 
     case 'warn': {
-      return `⚠️ *AVERTISSEMENT ATTRIBUÉ*\nLe membre a reçu un avertissement officiel. (3 avertissements = expulsion automatique).`;
+      if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
+        return `❌ La commande *.warn* s'utilise exclusivement dans un groupe en mentionnant, répondant ou fournissant le numéro d'un membre.`;
+      }
+      try {
+        let target =
+          msg?.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] ||
+          msg?.message?.extendedTextMessage?.contextInfo?.participant;
+        
+        if (!target && cleanArgs) {
+          const num = cleanArgs.replace(/\D/g, '');
+          if (num.length >= 8) {
+            target = `${num}@s.whatsapp.net`;
+          }
+        }
+
+        if (!target) {
+          return `📌 *Usage* : Répondez au message d'un membre, mentionnez-le ou tapez son numéro après *.warn @membre*`;
+        }
+
+        if (isUserProtected(target, sessionPhone)) {
+          return `🛡️ *Protection Active* : Ce membre / propriétaire est protégé et ne peut pas être averti.`;
+        }
+
+        // Initialize group warnings map if needed
+        if (!groupWarnings[remoteJid]) {
+          groupWarnings[remoteJid] = {};
+        }
+
+        const currentCount = (groupWarnings[remoteJid][target] || 0) + 1;
+        groupWarnings[remoteJid][target] = currentCount;
+        saveGroupWarnings();
+
+        const memberTag = `@${target.split('@')[0]}`;
+
+        if (currentCount >= 3) {
+          // Exceed warning limit -> Kick!
+          try {
+            await sock.groupParticipantsUpdate(remoteJid, [target], 'remove');
+            // Reset warning count upon eviction
+            delete groupWarnings[remoteJid][target];
+            saveGroupWarnings();
+            return `👢 *Expulsion Automatique* : ${memberTag} a atteint les 3/3 avertissements et a été expulsé du groupe !`;
+          } catch (kickErr) {
+            return `⚠️ ${memberTag} a atteint les *3/3 avertissements*, mais l'expulsion a échoué (assurez-vous que le bot est administrateur du groupe).`;
+          }
+        }
+
+        return `⚠️ *AVERTISSEMENT ATTRIBUÉ* ⚠️\n\n👤 *Membre* : ${memberTag}\n🔢 *Avertissements* : *${currentCount}/3*\n\n_(Arrivé à 3 avertissements, le membre sera automatiquement expulsé du groupe)_`;
+      } catch (err: any) {
+        return `❌ Erreur lors du warn : ${err?.message || err}`;
+      }
     }
 
     case 'resetwarn': {
-      return `✅ *AVERTISSEMENTS RÉINITIALISÉS*\nTous les avertissements ont été remis à zéro.`;
+      if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
+        return `❌ La commande *.resetwarn* s'utilise exclusivement dans un groupe.`;
+      }
+      try {
+        let target =
+          msg?.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] ||
+          msg?.message?.extendedTextMessage?.contextInfo?.participant;
+
+        if (!target && cleanArgs) {
+          const num = cleanArgs.replace(/\D/g, '');
+          if (num.length >= 8) {
+            target = `${num}@s.whatsapp.net`;
+          }
+        }
+
+        if (target) {
+          // Reset warning for this specific member
+          if (groupWarnings[remoteJid] && groupWarnings[remoteJid][target] !== undefined) {
+            delete groupWarnings[remoteJid][target];
+            saveGroupWarnings();
+          }
+          return `✅ *Avertissements Réinitialisés* : Le membre @${target.split('@')[0]} a été remis à 0/3 avertissement.`;
+        } else {
+          // Reset all warnings in this group
+          if (groupWarnings[remoteJid]) {
+            delete groupWarnings[remoteJid];
+            saveGroupWarnings();
+          }
+          return `✅ *Tous les Avertissements Réinitialisés* : Les avertissements de tous les membres de ce groupe ont été remis à zéro.`;
+        }
+      } catch (err: any) {
+        return `❌ Erreur lors du resetwarn : ${err?.message || err}`;
+      }
     }
 
     case 'antilink': {
@@ -4323,6 +4574,7 @@ Installe-toi bien et respecte les règles.`);
 
 const KNOWN_COMMANDS = new Set([
   'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', 'vv2', 'vo', 'bot',
+  'send', 'save', 'send2', 'save2',
   'sudo', 'setsudo', 'unsudo', 'delsudo', 'listsudo', 'sudolist', 'antidelete',
   'kickall', 'purge', 'kick', 'promote', 'demote', 'promoteall', 'demoteall', 'demoter', 'acceptall', 'rejectall', 'mute', 'unmute', 'tagall', 'hidetag',
   'warn', 'resetwarn', 'delete', 'clean', 'mode', 'modeprivate', 'modepublic', 'autolike', 'autolikestatus', 'online', 'offline',
@@ -5891,19 +6143,18 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
             }
 
             if (!sentWithMedia) {
-              const imgResult = await getCommandImageBuffer(cmd);
-              if (imgResult?.buffer && imgResult.buffer.length > 0) {
-                const isCmdVideo = imgResult.mimeType && (imgResult.mimeType.startsWith('video/') || imgResult.mimeType.includes('mp4'));
-                const mediaPayload = isCmdVideo ? {
-                  video: imgResult.buffer,
+              const mediaPayload = getCommandMediaPayload(cmd);
+              if (mediaPayload) {
+                const finalPayload = mediaPayload.video ? {
+                  video: mediaPayload.video,
                   caption: formattedReply,
-                  mimetype: imgResult.mimeType || 'video/mp4',
+                  mimetype: mediaPayload.mimeType || 'video/mp4',
                 } : {
-                  image: imgResult.buffer,
+                  image: mediaPayload.image,
                   caption: formattedReply,
-                  mimetype: imgResult.mimeType || 'image/png',
+                  mimetype: mediaPayload.mimeType || 'image/png',
                 };
-                const sent = await sendSafeMediaOrText(sock, chatJid, mediaPayload, msg).catch(() => null);
+                const sent = await sendSafeMediaOrText(sock, chatJid, finalPayload, msg).catch(() => null);
                 if (sent) {
                   sentWithMedia = true;
                 }
