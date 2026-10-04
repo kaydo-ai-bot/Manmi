@@ -349,19 +349,8 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
       try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
     }
 
-    try {
-      const { sessionStates, saveSessionSettingsToDisk } = await import('./commandHandler');
-      const { sessions } = await import('./sessionManager');
-      for (const [sId, sessState] of sessionStates.entries()) {
-        sessState.customMenuImageBuffer = undefined;
-        saveSessionSettingsToDisk(sId, sessState);
-      }
-      for (const [sId, sess] of sessions.entries()) {
-        sess.customMenuImageBuffer = undefined;
-      }
-    } catch (importErr) {
-      console.warn('[CMD IMAGES] Non-fatal import warning during session image overrides cleanup:', importErr);
-    }
+    // Fully clear and override all session-specific custom menu configs/overrides
+    await clearAllSessionCustomMenuOverrides().catch(() => {});
 
     // Remove reset flags so sessions pick up the new photo immediately
     const flagFiles = [
@@ -562,19 +551,8 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
         try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
       }
 
-      try {
-        const { sessionStates, saveSessionSettingsToDisk } = await import('./commandHandler');
-        const { sessions } = await import('./sessionManager');
-        for (const [sId, sessState] of sessionStates.entries()) {
-          sessState.customMenuImageBuffer = undefined;
-          saveSessionSettingsToDisk(sId, sessState);
-        }
-        for (const [sId, sess] of sessions.entries()) {
-          sess.customMenuImageBuffer = undefined;
-        }
-      } catch (importErr) {
-        console.warn('[CMD VIDEO] Non-fatal import warning during session overrides cleanup:', importErr);
-      }
+      // Fully clear and override all session-specific custom menu configs/overrides
+      await clearAllSessionCustomMenuOverrides().catch(() => {});
     }
 
     saveCommandImagesToDisk();
@@ -603,7 +581,7 @@ export function getBotMenuVideoBuffer(): Buffer | null {
   return null;
 }
 
-export function getBotMenuVideoPayload(): { video: { url: string }; mimetype: string } | null {
+export function getBotMenuVideoPayload(): { video: Buffer | { url: string }; mimetype: string } | null {
   const possiblePaths = [
     path.join(process.cwd(), 'public', 'menu_video.mp4'),
     path.join(process.cwd(), 'menu_video.mp4'),
@@ -611,7 +589,14 @@ export function getBotMenuVideoPayload(): { video: { url: string }; mimetype: st
   ];
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
-      return { video: { url: p }, mimetype: 'video/mp4' };
+      try {
+        const buffer = fs.readFileSync(p);
+        if (buffer && buffer.length > 0) {
+          return { video: buffer, mimetype: 'video/mp4' };
+        }
+      } catch (err) {
+        console.warn('[MENU VIDEO PAYLOAD] Error reading file:', err);
+      }
     }
   }
   if (menuVideoUrl && menuVideoUrl.startsWith('http')) {
@@ -620,21 +605,35 @@ export function getBotMenuVideoPayload(): { video: { url: string }; mimetype: st
   return null;
 }
 
-export function getCommandMediaPayload(cmd: string): { video?: { url: string }; image?: { url: string }; mimeType: string } | null {
+export function getCommandMediaPayload(cmd: string): { video?: Buffer | { url: string }; image?: Buffer | { url: string }; mimeType: string } | null {
   const clean = cmd.toLowerCase().trim().replace(/^[.!\/#$]/, '');
   
   // 1. Check local public disk files first
   const publicDir = path.join(process.cwd(), 'public');
   const possibleVideoPath = path.join(publicDir, `command_media_${clean}.mp4`);
   if (fs.existsSync(possibleVideoPath)) {
-    return { video: { url: possibleVideoPath }, mimeType: 'video/mp4' };
+    try {
+      const buffer = fs.readFileSync(possibleVideoPath);
+      if (buffer && buffer.length > 0) {
+        return { video: buffer, mimeType: 'video/mp4' };
+      }
+    } catch (err) {
+      console.warn('[CMD MEDIA PAYLOAD] Error reading video:', err);
+    }
   }
 
-  const possibleImgExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+  const possibleImgExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
   for (const ext of possibleImgExtensions) {
     const possibleImgPath = path.join(publicDir, `command_media_${clean}.${ext}`);
     if (fs.existsSync(possibleImgPath)) {
-      return { image: { url: possibleImgPath }, mimeType: `image/${ext}` };
+      try {
+        const buffer = fs.readFileSync(possibleImgPath);
+        if (buffer && buffer.length > 0) {
+          return { image: buffer, mimeType: `image/${ext}` };
+        }
+      } catch (err) {
+        console.warn('[CMD MEDIA PAYLOAD] Error reading image:', err);
+      }
     }
   }
 
@@ -661,4 +660,63 @@ export function resetToDefaultCommandImages(): void {
   commandImageUrls = { ...INITIAL_COMMAND_IMAGE_URLS };
   bufferCache.clear();
   saveCommandImagesToDisk();
+}
+
+export async function clearAllSessionCustomMenuOverrides(): Promise<void> {
+  const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+  
+  // 1. Clear PostgreSQL overrides & disk files for all found sessions
+  try {
+    const { setMetadataInPostgres } = await import('./postgresStore.js');
+    if (fs.existsSync(SESSIONS_ROOT)) {
+      const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const sId = entry.name;
+          
+          // Delete physical overrides
+          const sessionImg = path.join(SESSIONS_ROOT, sId, 'menu_image.jpg');
+          const sessionVid = path.join(SESSIONS_ROOT, sId, 'menu_video.mp4');
+          try { if (fs.existsSync(sessionImg)) fs.unlinkSync(sessionImg); } catch {}
+          try { if (fs.existsSync(sessionVid)) fs.unlinkSync(sessionVid); } catch {}
+
+          // Remove base64 override from settings.json
+          const settingsFile = path.join(SESSIONS_ROOT, sId, 'settings.json');
+          if (fs.existsSync(settingsFile)) {
+            try {
+              const content = fs.readFileSync(settingsFile, 'utf8');
+              const parsed = JSON.parse(content);
+              if (parsed.customMenuImageBase64) {
+                delete parsed.customMenuImageBase64;
+                fs.writeFileSync(settingsFile, JSON.stringify(parsed, null, 2), 'utf8');
+              }
+            } catch {}
+          }
+
+          // Clear Postgres metadata override
+          try {
+            await setMetadataInPostgres(`session_menu_image_${sId}`, '');
+          } catch {}
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[OVERRIDE CLEANUP] Non-fatal error during Postgres/disk custom menu overrides cleanup:', err);
+  }
+
+  // 2. Clear in-memory buffers
+  try {
+    const { sessionStates, saveSessionSettingsToDisk } = await import('./commandHandler.js');
+    const { sessions } = await import('./sessionManager.js');
+    
+    for (const [sId, sessState] of sessionStates.entries()) {
+      sessState.customMenuImageBuffer = undefined;
+      saveSessionSettingsToDisk(sId, sessState);
+    }
+    for (const [sId, sess] of sessions.entries()) {
+      sess.customMenuImageBuffer = undefined;
+    }
+  } catch (importErr) {
+    console.warn('[OVERRIDE CLEANUP] Non-fatal in-memory session overrides cleanup warning:', importErr);
+  }
 }

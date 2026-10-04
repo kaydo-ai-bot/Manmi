@@ -1049,6 +1049,22 @@ app.post('/api/command-images/upload-command-media', async (req: Request, res: R
       fs.mkdirSync(publicDir, { recursive: true });
     }
 
+    // Delete any old files for this command to avoid cache conflicts or type overrides
+    try {
+      if (fs.existsSync(publicDir)) {
+        const files = fs.readdirSync(publicDir);
+        const prefix = `command_media_${cleanCmd}.`;
+        for (const file of files) {
+          if (file.toLowerCase().startsWith(prefix.toLowerCase())) {
+            const oldPath = path.join(publicDir, file);
+            try { fs.unlinkSync(oldPath); } catch {}
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[UPLOAD CMD MEDIA] Impossible de nettoyer les anciennes photos de la commande:', err);
+    }
+
     const filename = `command_media_${cleanCmd}.${extension}`;
     const filePath = path.join(publicDir, filename);
     fs.writeFileSync(filePath, buffer);
