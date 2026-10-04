@@ -1,0 +1,8 @@
+{
+  "name": "Shado v2",
+  "description": "Portail officiel de déploiement et de jumelage WhatsApp SHADO BOT par KAYDO 𓃶 avec code de pairage direct et dashboard propriétaire sécurisé.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

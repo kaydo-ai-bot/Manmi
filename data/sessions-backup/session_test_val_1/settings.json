@@ -1,0 +1,21 @@
+{
+  "prefix": ".",
+  "alwaysOnline": true,
+  "offlineGhostMode": false,
+  "autoStatusView": false,
+  "autoSaveStatus": false,
+  "autoRecording": false,
+  "autoTyping": false,
+  "autoLikeEmoji": "🥷🏿",
+  "autoLikeEnabled": true,
+  "antiLink": false,
+  "antiTag": false,
+  "antiGroupMention": false,
+  "botMode": "public",
+  "antiCall": true,
+  "antiDelete": false,
+  "nuleMode": false,
+  "botName": "BERRY",
+  "welcomeGroups": [],
+  "goodbyeGroups": []
+}

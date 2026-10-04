@@ -1,0 +1,21 @@
+{
+  "prefix": "#",
+  "alwaysOnline": false,
+  "offlineGhostMode": true,
+  "autoStatusView": false,
+  "autoSaveStatus": false,
+  "autoRecording": false,
+  "autoTyping": false,
+  "autoLikeEmoji": "🥷🏿",
+  "autoLikeEnabled": true,
+  "antiLink": false,
+  "antiTag": false,
+  "antiGroupMention": false,
+  "botMode": "public",
+  "antiCall": true,
+  "antiDelete": false,
+  "nuleMode": false,
+  "botName": "SHADOW BOT",
+  "welcomeGroups": [],
+  "goodbyeGroups": []
+}

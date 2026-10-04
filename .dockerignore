@@ -1,0 +1,9 @@
+node_modules
+dist
+sessions
+sessions_backup
+temp_sessions
+.git
+.gitignore
+.env*
+!*.example

@@ -1,0 +1,38 @@
+{
+  "prefix": "🥷🏿",
+  "prefixResetNoticeSent": true,
+  "alwaysOnline": true,
+  "offlineGhostMode": false,
+  "offlineMode": false,
+  "autoStatusView": false,
+  "autoSaveStatus": false,
+  "autoRecording": false,
+  "autoTyping": true,
+  "autoLikeEmoji": "🥷🏿",
+  "autoLikeEnabled": true,
+  "antiLink": false,
+  "antiTag": false,
+  "antiGroupMention": false,
+  "botMode": "private",
+  "antiCall": true,
+  "antiDelete": false,
+  "nuleMode": true,
+  "botName": "𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓",
+  "welcomeGroups": [
+    "120363413611196986@g.us"
+  ],
+  "goodbyeGroups": [
+    "120363413611196986@g.us"
+  ],
+  "antiStickerGroups": [],
+  "antiMessageGroups": [
+    "120363411742922042@g.us",
+    "120363414632553086@g.us",
+    "120363413611196986@g.us"
+  ],
+  "antiBotGroups": [
+    "120363414632553086@g.us"
+  ],
+  "antiTagGroups": [],
+  "antiGroupMentionGroups": []
+}

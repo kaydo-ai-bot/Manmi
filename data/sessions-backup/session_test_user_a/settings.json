@@ -1,0 +1,22 @@
+{
+  "prefix": "!",
+  "alwaysOnline": true,
+  "offlineGhostMode": false,
+  "autoStatusView": false,
+  "autoSaveStatus": false,
+  "autoRecording": true,
+  "autoTyping": true,
+  "autoLikeEmoji": "🥷🏿",
+  "autoLikeEnabled": true,
+  "antiLink": true,
+  "antiTag": true,
+  "antiGroupMention": false,
+  "botMode": "public",
+  "antiCall": true,
+  "antiDelete": false,
+  "nuleMode": false,
+  "botName": "BERRY BOT",
+  "welcomeGroups": [],
+  "goodbyeGroups": [],
+  "customMenuImageBase64": "RkFLRV9JTUFHRV9CWVRFU19VU0VSX0E="
+}

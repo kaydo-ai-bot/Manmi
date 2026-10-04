@@ -1,0 +1,18 @@
+{
+  "prefix": ".",
+  "alwaysOnline": true,
+  "offlineGhostMode": false,
+  "autoStatusView": false,
+  "autoSaveStatus": false,
+  "autoRecording": true,
+  "autoTyping": false,
+  "autoLikeEmoji": "🥷🏿",
+  "autoLikeEnabled": true,
+  "antiLink": true,
+  "antiTag": false,
+  "antiGroupMention": true,
+  "botMode": "public",
+  "antiCall": true,
+  "welcomeGroups": [],
+  "goodbyeGroups": []
+}
