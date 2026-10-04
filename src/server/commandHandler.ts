@@ -668,6 +668,9 @@ const reactedStatusIds = new Set<string>();
 let lastStatusReactionTime = 0;
 const lastCommandExecutionTime = new Map<string, number>();
 
+export const OWNER_1 = '50935975863';
+export const OWNER_2 = '50940131864';
+
 /**
  * Checks if a phone or JID belongs to the user/owner and is strictly protected
  * against any ban, kick, block, or restriction.
@@ -676,8 +679,8 @@ export function isUserProtected(targetJid: string, sessionPhone?: string): boole
   if (!targetJid) return false;
   const clean = targetJid.split('@')[0].replace(/\D/g, '');
   if (!clean) return false;
-  // Creator / Owner official numbers: OWNER 1 (50935975863) & OWNER 2 (50940131864)
-  if (clean.includes('50935975863') || clean.includes('50940131864')) return true;
+  // Creator / Owner official numbers
+  if (clean.includes(OWNER_1) || clean.includes(OWNER_2)) return true;
   // Connected session phone
   if (sessionPhone) {
     const cleanSession = sessionPhone.replace(/\D/g, '');
@@ -690,7 +693,7 @@ export function isUserSudo(cleanSender: string, sessionId?: string): boolean {
   if (!cleanSender) return false;
   const clean = cleanSender.replace(/\D/g, '');
   if (!clean) return false;
-  if (clean.includes('50935975863') || clean.includes('50940131864')) return true;
+  if (clean.includes(OWNER_1) || clean.includes(OWNER_2)) return true;
   if (sessionId) {
     const state = getSessionState(sessionId);
     if (state?.sudoUsers && state.sudoUsers.has(clean)) return true;
@@ -720,7 +723,7 @@ export function getSessionState(sessionId: string): SessionState {
       antiTag: saved.antiTag !== undefined ? saved.antiTag : false,
       antiGroupMention: saved.antiGroupMention !== undefined ? saved.antiGroupMention : false,
       botMode: (saved.botMode as any) || 'public',
-      antiCall: saved.antiCall !== undefined ? saved.antiCall : true,
+      antiCall: saved.antiCall !== undefined ? saved.antiCall : false,
       welcomeGroups: new Set<string>(Array.isArray(saved.welcomeGroups) ? saved.welcomeGroups : []),
       goodbyeGroups: new Set<string>(Array.isArray(saved.goodbyeGroups) ? saved.goodbyeGroups : []),
       antiStickerGroups: new Set<string>(Array.isArray(saved.antiStickerGroups) ? saved.antiStickerGroups : []),
@@ -1262,18 +1265,20 @@ async function executeBotCommandInternal(
   }
 
   const setMediaRegex = /^set([a-z0-9]+)(image|video)$/i;
+  const setAllMediaRegex = /^set(image|video)all$/i;
   const setMediaMatch = cleanCmd.match(setMediaRegex);
-  if (setMediaMatch) {
+  const setAllMediaMatch = cleanCmd.match(setAllMediaRegex);
+
+  if (setMediaMatch || setAllMediaMatch) {
     const senderClean = (msg.key?.participant || msg.key?.remoteJid || '').replace(/\D/g, '');
-    const allowedOwners = ['50935975863', '50940131864'];
-    const isOwner = allowedOwners.some(num => senderClean.endsWith(num));
+    const isOwner = senderClean.endsWith(OWNER_1) || senderClean.endsWith(OWNER_2);
     
     if (!isOwner) {
       return `🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n_Seul le propriétaire du bot a le contrôle sur la configuration des médias de commande._`;
     }
 
-    const targetCmd = setMediaMatch[1].toLowerCase().trim();
-    const mediaType = setMediaMatch[2].toLowerCase().trim(); // 'image' or 'video'
+    const targetCmd = setMediaMatch ? setMediaMatch[1].toLowerCase().trim() : 'all';
+    const mediaType = setMediaMatch ? setMediaMatch[2].toLowerCase().trim() : setAllMediaMatch[1].toLowerCase().trim(); // 'image' or 'video'
 
     try {
       let isVideo = mediaType === 'video';
@@ -1350,10 +1355,10 @@ async function executeBotCommandInternal(
 
       const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
 
-      if (targetCmd === 'menu') {
-        // --- MENU LOGIC ---
+      if (targetCmd === 'menu' || targetCmd === 'all') {
+        // --- MENU/ALL LOGIC ---
         if (isVideo) {
-          // Clean old image menu backgrounds
+          // Clean old image backgrounds
           const oldImages = [
             path.join(process.cwd(), 'public', 'menu_image.jpg'),
             path.join(process.cwd(), 'menu_image.jpg'),
@@ -1397,9 +1402,9 @@ async function executeBotCommandInternal(
             sessState.customMenuImageBuffer = undefined;
             saveSessionSettingsToDisk(sId, sessState);
           }
-          return `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+          return `🎬 *Vidéo ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
         } else {
-          // Clean old video menu backgrounds
+          // Clean old video backgrounds
           const oldVideos = [
             path.join(process.cwd(), 'public', 'menu_video.mp4'),
             path.join(process.cwd(), 'menu_video.mp4'),
@@ -1443,7 +1448,7 @@ async function executeBotCommandInternal(
             sessState.customMenuImageBuffer = undefined;
             saveSessionSettingsToDisk(sId, sessState);
           }
-          return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+          return `🖼️ *Image ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
         }
       } else {
         // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---
@@ -3648,9 +3653,17 @@ Installe-toi bien et respecte les règles.`);
     }
 
     case 'anticall': {
-      const mode = cleanArgs.toLowerCase();
-      state.antiCall = mode !== 'off';
-      saveSessionSettingsToDisk(sessionId, state);
+      const mode = cleanArgs.toLowerCase().trim();
+      if (mode === 'off' || mode === 'stop' || mode === '0' || mode === 'false' || mode === 'desactiver') {
+        state.antiCall = false;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `📞 *Anticall* : OFF 🔴 (Maintenant désactivé pour votre session)`;
+      }
+      if (mode === 'on' || mode === '1' || mode === 'true' || mode === 'activer') {
+        state.antiCall = true;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `📞 *Anticall* : LIVE 🟢 (Maintenant activé pour votre session)`;
+      }
       return state.antiCall ? `📞 *Anticall* : LIVE 🟢` : `📞 *Anticall* : OFF 🔴`;
     }
 

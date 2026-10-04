@@ -566,6 +566,7 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
 
 export function getBotMenuVideoBuffer(): Buffer | null {
   const possiblePaths = [
+    path.join(process.cwd(), 'data', 'media', 'menu_video.mp4'),
     path.join(process.cwd(), 'public', 'menu_video.mp4'),
     path.join(process.cwd(), 'menu_video.mp4'),
     path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
@@ -583,6 +584,7 @@ export function getBotMenuVideoBuffer(): Buffer | null {
 
 export function getBotMenuVideoPayload(): { video: Buffer | { url: string }; mimetype: string } | null {
   const possiblePaths = [
+    path.join(process.cwd(), 'data', 'media', 'menu_video.mp4'),
     path.join(process.cwd(), 'public', 'menu_video.mp4'),
     path.join(process.cwd(), 'menu_video.mp4'),
     path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
@@ -608,31 +610,37 @@ export function getBotMenuVideoPayload(): { video: Buffer | { url: string }; mim
 export function getCommandMediaPayload(cmd: string): { video?: Buffer | { url: string }; image?: Buffer | { url: string }; mimeType: string } | null {
   const clean = cmd.toLowerCase().trim().replace(/^[.!\/#$]/, '');
   
-  // 1. Check local public disk files first
-  const publicDir = path.join(process.cwd(), 'public');
-  const possibleVideoPath = path.join(publicDir, `command_media_${clean}.mp4`);
-  if (fs.existsSync(possibleVideoPath)) {
-    try {
-      const buffer = fs.readFileSync(possibleVideoPath);
-      if (buffer && buffer.length > 0) {
-        return { video: buffer, mimeType: 'video/mp4' };
-      }
-    } catch (err) {
-      console.warn('[CMD MEDIA PAYLOAD] Error reading video:', err);
-    }
-  }
+  // 1. Check local persistent disk files first, then public disk files
+  const searchDirs = [
+    path.join(process.cwd(), 'data', 'media'),
+    path.join(process.cwd(), 'public')
+  ];
 
-  const possibleImgExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-  for (const ext of possibleImgExtensions) {
-    const possibleImgPath = path.join(publicDir, `command_media_${clean}.${ext}`);
-    if (fs.existsSync(possibleImgPath)) {
+  for (const dir of searchDirs) {
+    const possibleVideoPath = path.join(dir, `command_media_${clean}.mp4`);
+    if (fs.existsSync(possibleVideoPath)) {
       try {
-        const buffer = fs.readFileSync(possibleImgPath);
+        const buffer = fs.readFileSync(possibleVideoPath);
         if (buffer && buffer.length > 0) {
-          return { image: buffer, mimeType: `image/${ext}` };
+          return { video: buffer, mimeType: 'video/mp4' };
         }
       } catch (err) {
-        console.warn('[CMD MEDIA PAYLOAD] Error reading image:', err);
+        console.warn('[CMD MEDIA PAYLOAD] Error reading video:', err);
+      }
+    }
+
+    const possibleImgExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    for (const ext of possibleImgExtensions) {
+      const possibleImgPath = path.join(dir, `command_media_${clean}.${ext}`);
+      if (fs.existsSync(possibleImgPath)) {
+        try {
+          const buffer = fs.readFileSync(possibleImgPath);
+          if (buffer && buffer.length > 0) {
+            return { image: buffer, mimeType: `image/${ext}` };
+          }
+        } catch (err) {
+          console.warn('[CMD MEDIA PAYLOAD] Error reading image:', err);
+        }
       }
     }
   }
