@@ -1169,6 +1169,7 @@ export function getAppropriateEmojiForCommand(cmd: string): string {
   if (c === 'vv' || c === 'vv2' || c === 'vo') return '🔓';
   if (c === 'sticker' || c === 's' || c === 'take' || c === 'autosticker') return '🎨';
   if (c === 'getpp' || c === 'simage' || c === 'image' || c === 'photo' || c === 'wallpaper') return '🖼️';
+  if (c === 'svideo' || c === 'tovideo') return '🎬';
   if (c === 'kick' || c === 'kickall') return '🚪';
   if (c === 'left' || c === 'leave' || c === 'quitter') return '👋';
   if (c === 'add' || c === 'ajouter' || c === 'invite') return '➕';
@@ -3854,9 +3855,10 @@ Installe-toi bien et respecte les règles.`);
       }
     }
 
+    case 'svideo':
     case 'tovideo': {
       if (!sock || !remoteJid) {
-        return '🎬 Répondez à un sticker animé avec *.tovideo* pour le convertir en vidéo MP4.';
+        return '🎬 Répondez à un sticker animé avec *.svideo* pour le convertir en vidéo MP4.';
       }
       try {
         const media = await getMessageOrQuotedMedia(msg, remoteJid);
@@ -3868,7 +3870,7 @@ Installe-toi bien et respecte les règles.`);
           }, msg);
           return '';
         }
-        return '🎬 Répondez à un autocollant animé avec *.tovideo*.';
+        return '🎬 Répondez à un autocollant animé avec *.svideo*.';
       } catch (e: any) {
         return `❌ Erreur conversion sticker vers vidéo : ${e?.message || 'Erreur'}`;
       }
@@ -4580,7 +4582,7 @@ const KNOWN_COMMANDS = new Set([
   'warn', 'resetwarn', 'delete', 'clean', 'mode', 'modeprivate', 'modepublic', 'autolike', 'autolikestatus', 'online', 'offline',
   'autorecording', 'autotyping', 'autostatus', 'autoviewstatus', 'autoview', 'autosavestatus', 'autostatusreply', 'statusreply', 'autoread', 'readmsg', 'bluetick', 'rejectmsg', 'setrejectmsg', 'savestatus', 'gstatus', 'status', 'poststatus', 'pair', 'pairing', 'nule',
   'block', 'unblock',
-  'getpp', 'qr', 'simage', 'sticker', 's', 'take', 'tgs',
+  'getpp', 'qr', 'simage', 'svideo', 'tovideo', 'toimg', 'sticker', 's', 'take', 'tgs',
   'joke', 'meme', 'memesearch', 'truth', 'dare', 'flirt', 'compliment', 'insult',
   'bomb', 'ship', 'tictactoe', 'gayrate', 'pies', 'waifu', 'neko', 'hneko',
   'hwaifu', 'megumin', 'milf', 'loli', 'random', 'konachan', 'song', 'play', 'audio', 'mp3', 'video', 'ytvideo', 'mp4',

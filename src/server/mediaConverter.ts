@@ -171,8 +171,17 @@ export async function convertStickerToVideo(webpBuffer: Buffer): Promise<Buffer>
 
   try {
     await fs.promises.writeFile(inputPath, webpBuffer);
-    const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
-    await execAsync(ffmpegCmd, { timeout: 15000 });
+    
+    // Try 1: Treat as animated WebP sticker (requiring even dimensions for libx264)
+    try {
+      const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
+      await execAsync(ffmpegCmd, { timeout: 12000 });
+    } catch (err1) {
+      // Try 2: Fallback for static WebP sticker (looping single frame into a 3s MP4)
+      const ffmpegFallbackCmd = `ffmpeg -y -loop 1 -i "${inputPath}" -t 3 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -pix_fmt yuv420p -c:v libx264 -movflags +faststart "${outputPath}"`;
+      await execAsync(ffmpegFallbackCmd, { timeout: 12000 });
+    }
+
     if (fs.existsSync(outputPath)) {
       return await fs.promises.readFile(outputPath);
     }
