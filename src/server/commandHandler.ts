@@ -6131,33 +6131,50 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
           let sentWithMedia = false;
           try {
             const videoPayload = getBotMenuVideoPayload();
-            if ((cmd === 'menu' || cmd === 'alive' || cmd === 'help' || cmd === 'allcmd' || cmd === 'menuall') && videoPayload) {
-              const sent = await sendSafeMediaOrText(sock, chatJid, {
+            const mediaPayload = getCommandMediaPayload(cmd);
+
+            // Exclude commands that produce/send their own explicit files/stickers/downloads
+            const isMediaHeavyCommand = [
+              'sticker', 's', 'song', 'play', 'audio', 'mp3', 'video', 'ytvideo', 'mp4',
+              'tiktok', 'instagram', 'facebook', 'pinterest', 'image', 'photo', 'wallpaper',
+              'dl', 'download', 'get', 'shorts', 'ytshorts', 'send', 'save', 'send2', 'save2',
+              'vv', 'vv2', 'vo'
+            ].includes(cmd.toLowerCase());
+
+            if (!isMediaHeavyCommand && videoPayload) {
+              // Priority 1: Specific custom media for this command if set
+              const payloadToSend = mediaPayload ? (mediaPayload.video ? {
+                video: mediaPayload.video,
+                caption: formattedReply,
+                mimetype: mediaPayload.mimeType || 'video/mp4',
+              } : {
+                image: mediaPayload.image,
+                caption: formattedReply,
+                mimetype: mediaPayload.mimeType || 'image/png',
+              }) : {
                 video: videoPayload.video,
                 caption: formattedReply,
                 mimetype: videoPayload.mimetype,
-              }, msg).catch(() => null);
+              };
+
+              const sent = await sendSafeMediaOrText(sock, chatJid, payloadToSend, msg).catch(() => null);
               if (sent) {
                 sentWithMedia = true;
               }
-            }
-
-            if (!sentWithMedia) {
-              const mediaPayload = getCommandMediaPayload(cmd);
-              if (mediaPayload) {
-                const finalPayload = mediaPayload.video ? {
-                  video: mediaPayload.video,
-                  caption: formattedReply,
-                  mimetype: mediaPayload.mimeType || 'video/mp4',
-                } : {
-                  image: mediaPayload.image,
-                  caption: formattedReply,
-                  mimetype: mediaPayload.mimeType || 'image/png',
-                };
-                const sent = await sendSafeMediaOrText(sock, chatJid, finalPayload, msg).catch(() => null);
-                if (sent) {
-                  sentWithMedia = true;
-                }
+            } else if (mediaPayload) {
+              // For media heavy commands that have an explicit custom image/video set
+              const finalPayload = mediaPayload.video ? {
+                video: mediaPayload.video,
+                caption: formattedReply,
+                mimetype: mediaPayload.mimeType || 'video/mp4',
+              } : {
+                image: mediaPayload.image,
+                caption: formattedReply,
+                mimetype: mediaPayload.mimeType || 'image/png',
+              };
+              const sent = await sendSafeMediaOrText(sock, chatJid, finalPayload, msg).catch(() => null);
+              if (sent) {
+                sentWithMedia = true;
               }
             }
           } catch (mediaErr) {

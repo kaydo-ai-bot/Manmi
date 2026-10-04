@@ -350,8 +350,8 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
     }
 
     try {
-      const { sessionStates, saveSessionSettingsToDisk } = require('./commandHandler');
-      const { sessions } = require('./sessionManager');
+      const { sessionStates, saveSessionSettingsToDisk } = await import('./commandHandler');
+      const { sessions } = await import('./sessionManager');
       for (const [sId, sessState] of sessionStates.entries()) {
         sessState.customMenuImageBuffer = undefined;
         saveSessionSettingsToDisk(sId, sessState);
@@ -563,8 +563,8 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
       }
 
       try {
-        const { sessionStates, saveSessionSettingsToDisk } = require('./commandHandler');
-        const { sessions } = require('./sessionManager');
+        const { sessionStates, saveSessionSettingsToDisk } = await import('./commandHandler');
+        const { sessions } = await import('./sessionManager');
         for (const [sId, sessState] of sessionStates.entries()) {
           sessState.customMenuImageBuffer = undefined;
           saveSessionSettingsToDisk(sId, sessState);
