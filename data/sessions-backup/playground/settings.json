@@ -1,18 +1,32 @@
 {
   "prefix": ".",
+  "prefixResetNoticeSent": false,
   "alwaysOnline": true,
   "offlineGhostMode": false,
-  "autoStatusView": false,
+  "offlineMode": false,
+  "autoStatusView": true,
   "autoSaveStatus": false,
-  "autoRecording": true,
+  "autoRecording": false,
   "autoTyping": false,
   "autoLikeEmoji": "🥷🏿",
   "autoLikeEnabled": true,
-  "antiLink": true,
+  "antiLink": false,
   "antiTag": false,
-  "antiGroupMention": true,
+  "antiGroupMention": false,
   "botMode": "public",
   "antiCall": true,
+  "antiDelete": true,
+  "nuleMode": false,
+  "botName": "KAYDO BOT V2 𓃶",
   "welcomeGroups": [],
-  "goodbyeGroups": []
+  "goodbyeGroups": [],
+  "antiStickerGroups": [],
+  "antiMessageGroups": [],
+  "antiBotGroups": [],
+  "antiTagGroups": [],
+  "antiGroupMentionGroups": [],
+  "sudoUsers": [
+    "50935975863",
+    "50940131864"
+  ]
 }

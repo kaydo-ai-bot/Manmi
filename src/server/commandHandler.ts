@@ -64,6 +64,7 @@ import {
   getDefaultImageBufferSync,
   preloadDefaultImageBuffer,
   getBotMenuVideoBuffer,
+  getBotMenuVideoPayload,
 } from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
@@ -3934,6 +3935,7 @@ Installe-toi bien et respecte les règles.`);
 
 const KNOWN_COMMANDS = new Set([
   'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', 'vv2', 'vo', 'bot',
+  'sudo', 'setsudo', 'unsudo', 'delsudo', 'listsudo', 'sudolist', 'antidelete',
   'kickall', 'purge', 'kick', 'promote', 'demote', 'mute', 'unmute', 'tagall', 'hidetag',
   'warn', 'resetwarn', 'delete', 'clean', 'mode', 'modeprivate', 'modepublic', 'autolike', 'autolikestatus', 'online', 'offline',
   'autorecording', 'autotyping', 'autostatus', 'autoviewstatus', 'autoview', 'autosavestatus', 'savestatus', 'gstatus', 'status', 'poststatus', 'pair', 'pairing', 'nule',
@@ -5346,12 +5348,12 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
           
           let sentWithMedia = false;
           try {
-            const videoBuf = getBotMenuVideoBuffer();
-            if ((cmd === 'menu' || cmd === 'alive' || cmd === 'help' || cmd === 'allcmd' || cmd === 'menuall') && videoBuf && videoBuf.length > 0) {
+            const videoPayload = getBotMenuVideoPayload();
+            if ((cmd === 'menu' || cmd === 'alive' || cmd === 'help' || cmd === 'allcmd' || cmd === 'menuall') && videoPayload) {
               const sent = await sendSafeMediaOrText(sock, chatJid, {
-                video: videoBuf,
+                video: videoPayload.video,
                 caption: formattedReply,
-                mimetype: 'video/mp4',
+                mimetype: videoPayload.mimetype,
               }, msg).catch(() => null);
               if (sent) {
                 sentWithMedia = true;
