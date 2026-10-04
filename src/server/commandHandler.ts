@@ -71,7 +71,7 @@ let cachedMenuImageBuffer: Buffer | null = null;
 
 export function performOneTimeSessionResetIfPending(): void {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
-  const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_catbox_refresh');
+  const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_menu_video_refresh_v4');
 
   if (fs.existsSync(RESET_FLAG_FILE)) {
     return;
@@ -1444,6 +1444,18 @@ async function executeBotCommandInternal(
         state.botName
       );
 
+      // 1. Prioritize menu video if available
+      const videoPayload = getBotMenuVideoPayload();
+      if (sock && remoteJid && videoPayload) {
+        const sent = await sendSafeMediaOrText(sock, remoteJid, {
+          video: videoPayload.video,
+          caption: menuText,
+          mimetype: videoPayload.mimetype,
+        }, msg).catch(() => null);
+        if (sent) return '';
+      }
+
+      // 2. Fallback to menu image
       let menuImgBuf: Buffer | null = null;
       try {
         const cmdImg = await getCommandImageBuffer('menu');
@@ -1492,7 +1504,7 @@ async function executeBotCommandInternal(
       return `╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖
 ┇✦╭───────────────
 ┇✦┋24/24 7/7 🥷
-┇✦┋https://kaydobot.up.railway.app/
+┇✦┋https://kaydobotv2.up.railway.app/
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖`;
     }
@@ -4575,7 +4587,8 @@ async function processAntiDeleteRevoke(
 
     const actualSenderJid = cachedMsg.key?.participant || cachedMsg.key?.remoteJid || senderJid || '';
     const senderNumber = actualSenderJid ? actualSenderJid.split('@')[0].replace(/\D/g, '') : 'Inconnu';
-    const senderName = cachedMsg.pushName || 'Inconnu';
+    const senderMention = actualSenderJid ? `@${senderNumber}` : 'Inconnu';
+    const mentionsList = actualSenderJid ? [actualSenderJid] : [];
 
     const isGroup = rawRemoteJid.endsWith('@g.us');
     let groupName = 'Groupe';
@@ -4595,13 +4608,13 @@ async function processAntiDeleteRevoke(
 
     if (!rawOwnerJid) return;
 
-    const header = toSmallCaps(`╭─━━━━━━━━━━━━━━━⊷❖
+    const header = `╭─━━━━━━━━━━━━━━━⊷❖
 ┇✦╭───────────────╮
 ┋✧┋. 🗑️ *ᴀɴᴛɪ-ᴅᴇʟᴇᴛᴇ : ᴍᴇssᴀɢᴇ sᴜᴘᴘʀɪᴍᴇ́*
-┋✧┋. 👤 *ᴇxᴘᴇ́ᴅɪᴛᴇᴜʀ :* ${senderName} (+${senderNumber})
-${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 💬 *ᴅɪsᴄᴜssɪᴏɴ :* ᴘʀɪᴠᴇ́ᴇ (+${senderNumber})\n`}┋✧┋. 📅 *ᴅᴀᴛᴇ :* ${timeStr}
+┋✧┋. 👤 *ᴇxᴘᴇ́ᴅɪᴛᴇᴜʀ :* ${senderMention}
+${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 💬 *ᴅɪsᴄᴜssɪᴏɴ :* ᴘʀɪᴠᴇ́ᴇ\n`}┋✧┋. 📅 *ᴅᴀᴛᴇ :* ${timeStr}
 ┇✧╰───────────────╯
-╰━━━━━━━━━━━━━━━━━❖\n\n📝 *Contenu supprimé :*`);
+╰━━━━━━━━━━━━━━━━━❖\n\n📝 *Contenu supprimé :*`;
 
     // Target user PM and Group if applicable
     const targets = [rawOwnerJid];
@@ -4637,16 +4650,19 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
               await sock.sendMessage(targetJid, {
                 image: mediaBuffer,
                 caption: `${header}\n${textContent || ''}`.trim(),
+                mentions: mentionsList,
               });
             } else if (msgObj.videoMessage) {
               await sock.sendMessage(targetJid, {
                 video: mediaBuffer,
                 caption: `${header}\n${textContent || ''}`.trim(),
                 mimetype: msgObj.videoMessage.mimetype || 'video/mp4',
+                mentions: mentionsList,
               });
             } else if (msgObj.audioMessage) {
               await sock.sendMessage(targetJid, {
                 text: `${header}\n🎵 *Note Vocale / Audio Supprimé :*`,
+                mentions: mentionsList,
               });
               await sock.sendMessage(targetJid, {
                 audio: mediaBuffer,
@@ -4656,6 +4672,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
             } else if (msgObj.stickerMessage) {
               await sock.sendMessage(targetJid, {
                 text: `${header}\n🎨 *Sticker Supprimé :*`,
+                mentions: mentionsList,
               });
               await sock.sendMessage(targetJid, {
                 sticker: mediaBuffer,
@@ -4666,6 +4683,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
                 fileName: msgObj.documentMessage.fileName || 'document.pdf',
                 mimetype: msgObj.documentMessage.mimetype || 'application/octet-stream',
                 caption: `${header}\n${textContent || ''}`.trim(),
+                mentions: mentionsList,
               });
             }
             continue;
@@ -4679,6 +4697,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       if (textContent || header) {
         await sock.sendMessage(targetJid, {
           text: `${header}\n${textContent || '*(Message multimédia)*'}`,
+          mentions: mentionsList,
         });
       }
     }
