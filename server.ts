@@ -1006,6 +1006,70 @@ app.post('/api/command-images/reset', (req: Request, res: Response) => {
   }
 });
 
+// Serving uploaded command media statically
+app.use('/public', express.static(path.join(process.cwd(), 'public')));
+
+app.post('/api/command-images/upload-command-media', async (req: Request, res: Response) => {
+  if (!checkOwnerAuth(req, res)) return;
+  try {
+    const { cmd, base64Media } = req.body || {};
+    if (!cmd || !base64Media) {
+      return res.status(400).json({ success: false, message: 'La commande et le média en base64 sont requis.' });
+    }
+
+    const cleanCmd = cmd.toLowerCase().trim().replace(/^[.!\/#$]/, '');
+    let isVideo = false;
+    let extension = 'jpg';
+    let mimeType = 'image/jpeg';
+    let base64Data = base64Media;
+
+    if (base64Media.startsWith('data:')) {
+      const matches = base64Media.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches && matches[2]) {
+        mimeType = matches[1];
+        base64Data = matches[2];
+        if (mimeType.startsWith('video/')) {
+          isVideo = true;
+          extension = 'mp4';
+        } else if (mimeType.includes('png')) {
+          extension = 'png';
+        } else if (mimeType.includes('gif')) {
+          extension = 'gif';
+        }
+      }
+    }
+
+    const buffer = Buffer.from(base64Data, 'base64');
+    if (!buffer || buffer.length === 0) {
+      return res.status(400).json({ success: false, message: 'Données base64 invalides.' });
+    }
+
+    const publicDir = path.join(process.cwd(), 'public');
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+
+    const filename = `command_media_${cleanCmd}.${extension}`;
+    const filePath = path.join(publicDir, filename);
+    fs.writeFileSync(filePath, buffer);
+
+    const publicPortalUrl = getPublicPortalUrl();
+    const mediaUrl = `${publicPortalUrl}/public/${filename}`;
+
+    setCommandImageUrl(cleanCmd, mediaUrl);
+
+    return res.json({
+      success: true,
+      message: `✅ Média de la commande .${cleanCmd} enregistré avec succès !`,
+      url: mediaUrl,
+      urls: getAllCommandImageUrls().urls,
+    });
+  } catch (err: any) {
+    console.error('[API upload-command-media] Erreur:', err);
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
+
 app.post('/api/command-images/validate', async (req: Request, res: Response) => {
   try {
     const { url } = req.body || {};

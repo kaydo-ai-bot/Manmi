@@ -19,112 +19,8 @@ export const DEFAULT_APP_PHOTO_URL = 'https://files.catbox.moe/9u2j5v.png';
 export const INITIAL_COMMAND_IMAGE_URLS: Record<string, string> = {
   // Main
   menu: 'https://files.catbox.moe/9u2j5v.png',
-  ping: 'https://files.catbox.moe/9u2j5v.png',
-  alive: 'https://files.catbox.moe/9u2j5v.png',
   help: 'https://files.catbox.moe/9u2j5v.png',
   allcmd: 'https://files.catbox.moe/9u2j5v.png',
-  list: 'https://files.catbox.moe/9u2j5v.png',
-  owner: 'https://files.catbox.moe/9u2j5v.png',
-  owner1: 'https://files.catbox.moe/9u2j5v.png',
-  owner2: 'https://files.catbox.moe/9u2j5v.png',
-  dev1: 'https://files.catbox.moe/9u2j5v.png',
-  dev2: 'https://files.catbox.moe/9u2j5v.png',
-  info: 'https://files.catbox.moe/9u2j5v.png',
-  botinfo: 'https://files.catbox.moe/9u2j5v.png',
-  runtime: 'https://files.catbox.moe/9u2j5v.png',
-  uptime: 'https://files.catbox.moe/9u2j5v.png',
-  profile: 'https://files.catbox.moe/9u2j5v.png',
-  qr: 'https://files.catbox.moe/9u2j5v.png',
-  online: 'https://files.catbox.moe/9u2j5v.png',
-  offline: 'https://files.catbox.moe/9u2j5v.png',
-  autorecording: 'https://files.catbox.moe/9u2j5v.png',
-  autotyping: 'https://files.catbox.moe/9u2j5v.png',
-  autolike: 'https://files.catbox.moe/9u2j5v.png',
-  autolikestatus: 'https://files.catbox.moe/9u2j5v.png',
-  groupinfo: 'https://files.catbox.moe/9u2j5v.png',
-  groupstats: 'https://files.catbox.moe/9u2j5v.png',
-  groupstatus: 'https://files.catbox.moe/9u2j5v.png',
-  status: 'https://files.catbox.moe/9u2j5v.png',
-  restore: 'https://files.catbox.moe/9u2j5v.png',
-  reconnect: 'https://files.catbox.moe/9u2j5v.png',
-
-  // Moderation
-  kick: 'https://files.catbox.moe/9u2j5v.png',
-  kickall: 'https://files.catbox.moe/9u2j5v.png',
-  purge: 'https://files.catbox.moe/9u2j5v.png',
-  mute: 'https://files.catbox.moe/9u2j5v.png',
-  unmute: 'https://files.catbox.moe/9u2j5v.png',
-  promote: 'https://files.catbox.moe/9u2j5v.png',
-  demote: 'https://files.catbox.moe/9u2j5v.png',
-  admins: 'https://files.catbox.moe/9u2j5v.png',
-  tagall: 'https://files.catbox.moe/9u2j5v.png',
-  hidetag: 'https://files.catbox.moe/9u2j5v.png',
-  antilink: 'https://files.catbox.moe/9u2j5v.png',
-  antitag: 'https://files.catbox.moe/9u2j5v.png',
-  antigroupmention: 'https://files.catbox.moe/9u2j5v.png',
-  antisticker: 'https://files.catbox.moe/9u2j5v.png',
-  antimessage: 'https://files.catbox.moe/9u2j5v.png',
-  autosticker: 'https://files.catbox.moe/9u2j5v.png',
-  warn: 'https://files.catbox.moe/9u2j5v.png',
-  resetwarn: 'https://files.catbox.moe/9u2j5v.png',
-  clean: 'https://files.catbox.moe/9u2j5v.png',
-  delete: 'https://files.catbox.moe/9u2j5v.png',
-  grouplink: 'https://files.catbox.moe/9u2j5v.png',
-  welcome: 'https://files.catbox.moe/9u2j5v.png',
-  goodbye: 'https://files.catbox.moe/9u2j5v.png',
-  setwelcome: 'https://files.catbox.moe/9u2j5v.png',
-  setgoodbye: 'https://files.catbox.moe/9u2j5v.png',
-
-  // Owner
-  mode: 'https://files.catbox.moe/9u2j5v.png',
-  anticall: 'https://files.catbox.moe/9u2j5v.png',
-  antidelete: 'https://files.catbox.moe/9u2j5v.png',
-  broadcast: 'https://files.catbox.moe/9u2j5v.png',
-  autoreact: 'https://files.catbox.moe/9u2j5v.png',
-  setprefix: 'https://files.catbox.moe/9u2j5v.png',
-  setbotname: 'https://files.catbox.moe/9u2j5v.png',
-  setbotpp: 'https://files.catbox.moe/9u2j5v.png',
-  setmenuimage: 'https://files.catbox.moe/9u2j5v.png',
-  mycommands: 'https://files.catbox.moe/9u2j5v.png',
-  newcommand: 'https://files.catbox.moe/9u2j5v.png',
-
-  // Fun & Games
-  joke: 'https://files.catbox.moe/9u2j5v.png',
-  meme: 'https://files.catbox.moe/9u2j5v.png',
-  memesearch: 'https://files.catbox.moe/9u2j5v.png',
-  compliment: 'https://files.catbox.moe/9u2j5v.png',
-  flirt: 'https://files.catbox.moe/9u2j5v.png',
-  ship: 'https://files.catbox.moe/9u2j5v.png',
-  insult: 'https://files.catbox.moe/9u2j5v.png',
-  bomb: 'https://files.catbox.moe/9u2j5v.png',
-  dare: 'https://files.catbox.moe/9u2j5v.png',
-  truth: 'https://files.catbox.moe/9u2j5v.png',
-  gayrate: 'https://files.catbox.moe/9u2j5v.png',
-  pies: 'https://files.catbox.moe/9u2j5v.png',
-  tictactoe: 'https://files.catbox.moe/9u2j5v.png',
-
-  // Anime
-  neko: 'https://files.catbox.moe/9u2j5v.png',
-  waifu: 'https://files.catbox.moe/9u2j5v.png',
-  loli: 'https://files.catbox.moe/9u2j5v.png',
-  megumin: 'https://files.catbox.moe/9u2j5v.png',
-  milf: 'https://files.catbox.moe/9u2j5v.png',
-  random: 'https://files.catbox.moe/9u2j5v.png',
-  konachan: 'https://files.catbox.moe/9u2j5v.png',
-  hneko: 'https://files.catbox.moe/9u2j5v.png',
-  hwaifu: 'https://files.catbox.moe/9u2j5v.png',
-
-  // Useful & Utils
-  time: 'https://files.catbox.moe/9u2j5v.png',
-  date: 'https://files.catbox.moe/9u2j5v.png',
-  calendar: 'https://files.catbox.moe/9u2j5v.png',
-  countdown: 'https://files.catbox.moe/9u2j5v.png',
-  age: 'https://files.catbox.moe/9u2j5v.png',
-  moon: 'https://files.catbox.moe/9u2j5v.png',
-  sun: 'https://files.catbox.moe/9u2j5v.png',
-  leapyear: 'https://files.catbox.moe/9u2j5v.png',
-  horoscope: 'https://files.catbox.moe/9u2j5v.png',
-  tarot: 'https://files.catbox.moe/9u2j5v.png',
 };
 
 // Storage file paths
@@ -318,12 +214,15 @@ export function saveCommandImagesToDisk(): void {
 /**
  * Returns the configured image URL for a given command name (falls back to defaultImageUrl)
  */
-export function getCommandImageUrl(cmd: string): string {
+export function getCommandImageUrl(cmd: string): string | null {
   const clean = cmd.toLowerCase().trim().replace(/^[.!\/#$]/, '');
   if (commandImageUrls[clean] && commandImageUrls[clean].trim()) {
     return commandImageUrls[clean].trim();
   }
-  return defaultImageUrl || DEFAULT_GLOBAL_IMAGE_URL;
+  if (clean === 'menu' || clean === 'help' || clean === 'allcmd' || clean === 'menuall') {
+    return defaultImageUrl || DEFAULT_GLOBAL_IMAGE_URL;
+  }
+  return null;
 }
 
 /**
@@ -424,7 +323,7 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
       } catch (_) {}
     }
 
-    // Save to all session directories
+    // Save to all session directories & Clean per-session stale menu videos
     const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
     if (fs.existsSync(SESSIONS_ROOT)) {
       try {
@@ -432,10 +331,36 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
         for (const entry of entries) {
           if (entry.isDirectory()) {
             const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+            const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
             try { fs.writeFileSync(sessionImg, buffer); } catch (_) {}
+            try { if (fs.existsSync(sessionVid)) fs.unlinkSync(sessionVid); } catch {}
           }
         }
       } catch (_) {}
+    }
+
+    // Clean old video menu background to ensure image priority
+    const oldVideos = [
+      path.join(process.cwd(), 'public', 'menu_video.mp4'),
+      path.join(process.cwd(), 'menu_video.mp4'),
+      path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
+    ];
+    for (const vid of oldVideos) {
+      try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
+    }
+
+    try {
+      const { sessionStates, saveSessionSettingsToDisk } = require('./commandHandler');
+      const { sessions } = require('./sessionManager');
+      for (const [sId, sessState] of sessionStates.entries()) {
+        sessState.customMenuImageBuffer = undefined;
+        saveSessionSettingsToDisk(sId, sessState);
+      }
+      for (const [sId, sess] of sessions.entries()) {
+        sess.customMenuImageBuffer = undefined;
+      }
+    } catch (importErr) {
+      console.warn('[CMD IMAGES] Non-fatal import warning during session image overrides cleanup:', importErr);
     }
 
     // Remove reset flags so sessions pick up the new photo immediately
@@ -619,10 +544,36 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
           for (const entry of entries) {
             if (entry.isDirectory()) {
               const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
+              const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
               try { fs.writeFileSync(sessionVid, buffer); } catch (_) {}
+              try { if (fs.existsSync(sessionImg)) fs.unlinkSync(sessionImg); } catch {}
             }
           }
         } catch (_) {}
+      }
+
+      // Clean old image menu background to ensure video priority
+      const oldImages = [
+        path.join(process.cwd(), 'public', 'menu_image.jpg'),
+        path.join(process.cwd(), 'menu_image.jpg'),
+        path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+      ];
+      for (const img of oldImages) {
+        try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
+      }
+
+      try {
+        const { sessionStates, saveSessionSettingsToDisk } = require('./commandHandler');
+        const { sessions } = require('./sessionManager');
+        for (const [sId, sessState] of sessionStates.entries()) {
+          sessState.customMenuImageBuffer = undefined;
+          saveSessionSettingsToDisk(sId, sessState);
+        }
+        for (const [sId, sess] of sessions.entries()) {
+          sess.customMenuImageBuffer = undefined;
+        }
+      } catch (importErr) {
+        console.warn('[CMD VIDEO] Non-fatal import warning during session overrides cleanup:', importErr);
       }
     }
 

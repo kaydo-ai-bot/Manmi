@@ -1840,7 +1840,7 @@ export async function broadcastOwnerMessageToAllSessions(
     `┃\n` +
     `╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
     `${rawText.trim()}\n\n` +
-    toSmallCaps(`👑 *KAYDO BOT V2 𓃶 • Système 24h/24 & 7j/7*`);
+    toSmallCaps(`👑 *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • Système 24h/24 & 7j/7*`);
 
   const details: Array<{
     sessionId: string;
@@ -1945,16 +1945,16 @@ export function getOfficialWelcomeMessage(): string {
   const publicUrl = getPublicPortalUrl();
   return `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* KAYDO BOT V2 𓃶
-*┋✦┋. ᴄᴏᴍᴍᴀɴᴅs:* 295+
-*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO 𓃶
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
+*┋✦┋. ᴄᴏᴍᴍᴀɴᴅs:* 300+
+*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🏿
 *┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* ʟɪɴᴜx / ᴄʟᴏᴜᴅ
 *┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒 / ᴘᴜʙʟɪᴄ 🟢
 *┋✦┋. ᴘʀᴇғɪx:* [ . ]
 *┋✦┋. ᴘᴏʀᴛᴀɪʟ:* ${publicUrl}
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-🎉 ʙɪᴇɴᴠᴇɴᴜᴇ sᴜʀ *KAYDO BOT V2 𓃶 !* ᴠᴏᴛʀᴇ ʙᴏᴛ ᴇsᴛ ᴄᴏɴɴᴇᴄᴛᴇ́ 24/7.
+🎉 ʙɪᴇɴᴠᴇɴᴜᴇ sᴜʀ *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 !* ᴠᴏᴛʀᴇ ʙᴏᴛ ᴇsᴛ ᴄᴏɴɴᴇᴄᴛᴇ́ 24/7.
 ᴛᴀᴘᴇᴢ *.ᴍᴇɴᴜ* ᴘᴏᴜʀ ᴀғғɪᴄʜᴇʀ ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs.`;
 }
 

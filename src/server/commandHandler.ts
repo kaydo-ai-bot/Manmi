@@ -362,7 +362,7 @@ interface SessionState {
   autoRejectJoinRequestsGroups: Set<string>;
 }
 
-const sessionStates = new Map<string, SessionState>();
+export const sessionStates = new Map<string, SessionState>();
 
 function getCustomCommandsFilePath(sessionId: string): string {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
@@ -1434,16 +1434,16 @@ async function executeBotCommandInternal(
     case 'alive': {
       const aliveText = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${state.botName || 'KAYDO BOT V2 𓃶'}
-┋🔹┋. ᴏᴡɴᴇʀ 1: 𝐊𝐀𝐘𝐃𝐎 𓃶
-┋🔹┋. ᴏᴡɴᴇʀ 2: 𝐒𝐇𝐀𝐊𝐀 𓃶
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${state.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'}
+┋🔹┋. ᴏᴡɴᴇʀ 1: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+┋🔹┋. ᴏᴡɴᴇʀ 2: ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway Cloud
 ┋🔹┋. ᴍᴏᴅᴇ: ᴘᴜʙʟɪᴄ 🟢
 ┋🔹┋. ᴜᴘᴛɪᴍᴇ: 24/7 ᴄʟᴏᴜᴅ ᴅᴀᴇᴍᴏɴ
 *┇🔹╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-⚡ ${state.botName || 'KAYDO BOT V2 𓃶'} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
-> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 KAYDO BOT V2*`);
+⚡ ${state.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
+> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`);
 
       return aliveText;
     }
@@ -4242,13 +4242,13 @@ Installe-toi bien et respecte les règles.`);
               } catch (_) {}
             }
 
-            // D. Update in-memory state for ALL active sessions
+            // D. Update in-memory state to delete local overrides, forcing use of global files
             for (const [sId, sessState] of sessionStates.entries()) {
-              sessState.customMenuImageBuffer = mediaBuf;
+              sessState.customMenuImageBuffer = undefined;
               saveSessionSettingsToDisk(sId, sessState);
             }
             for (const [sId, sess] of sessions.entries()) {
-              sess.customMenuImageBuffer = mediaBuf;
+              sess.customMenuImageBuffer = undefined;
             }
 
             return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
@@ -5893,11 +5893,17 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
             if (!sentWithMedia) {
               const imgResult = await getCommandImageBuffer(cmd);
               if (imgResult?.buffer && imgResult.buffer.length > 0) {
-                const sent = await sendSafeMediaOrText(sock, chatJid, {
+                const isCmdVideo = imgResult.mimeType && (imgResult.mimeType.startsWith('video/') || imgResult.mimeType.includes('mp4'));
+                const mediaPayload = isCmdVideo ? {
+                  video: imgResult.buffer,
+                  caption: formattedReply,
+                  mimetype: imgResult.mimeType || 'video/mp4',
+                } : {
                   image: imgResult.buffer,
                   caption: formattedReply,
                   mimetype: imgResult.mimeType || 'image/png',
-                }, msg).catch(() => null);
+                };
+                const sent = await sendSafeMediaOrText(sock, chatJid, mediaPayload, msg).catch(() => null);
                 if (sent) {
                   sentWithMedia = true;
                 }
@@ -6206,3 +6212,47 @@ async function handleDownloadCommand(
 
   return '';
 }
+
+// Periodically check and auto-approve/auto-reject pending join requests in all active sessions every 10 seconds
+setInterval(async () => {
+  for (const [sessionId, session] of sessions.entries()) {
+    try {
+      const socket = session.sock;
+      if (!socket || !socket.user) continue;
+      const state = getSessionState(sessionId);
+      
+      // 1. Process Auto-Accept
+      if (state.autoAcceptJoinRequestsGroups && state.autoAcceptJoinRequestsGroups.size > 0) {
+        for (const groupJid of state.autoAcceptJoinRequestsGroups) {
+          try {
+            if (typeof (socket as any).groupRequestParticipantsList === 'function') {
+              const pending = await (socket as any).groupRequestParticipantsList(groupJid).catch(() => []);
+              if (Array.isArray(pending) && pending.length > 0) {
+                const userJids = pending.map((p: any) => p.jid || p.id || p);
+                console.log(`[POLLING ACCEPTALL] Auto-accepting ${userJids.length} join requests in ${groupJid}`);
+                await (socket as any).groupRequestParticipantsUpdate(groupJid, userJids, 'approve').catch(() => {});
+              }
+            }
+          } catch (_) {}
+        }
+      }
+
+      // 2. Process Auto-Reject
+      if (state.autoRejectJoinRequestsGroups && state.autoRejectJoinRequestsGroups.size > 0) {
+        for (const groupJid of state.autoRejectJoinRequestsGroups) {
+          try {
+            if (typeof (socket as any).groupRequestParticipantsList === 'function') {
+              const pending = await (socket as any).groupRequestParticipantsList(groupJid).catch(() => []);
+              if (Array.isArray(pending) && pending.length > 0) {
+                const userJids = pending.map((p: any) => p.jid || p.id || p);
+                console.log(`[POLLING REJECTALL] Auto-rejecting ${userJids.length} join requests in ${groupJid}`);
+                await (socket as any).groupRequestParticipantsUpdate(groupJid, userJids, 'reject').catch(() => {});
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+  }
+}, 10000);
+

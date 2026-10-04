@@ -156,6 +156,48 @@ export const CommandImagesManager: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleUploadCommandMedia = async (cmdName: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 15 * 1024 * 1024) {
+      showToast('Fichier trop lourd (maximum 15 Mo)', true);
+      return;
+    }
+
+    setSaving(true);
+    showToast(`Téléversement du média pour .${cmdName}...`);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        try {
+          const res = await fetch('/api/command-images/upload-command-media', {
+            method: 'POST',
+            headers: getOwnerHeaders(),
+            body: JSON.stringify({
+              cmd: cmdName,
+              base64Media: base64,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`✅ Média enregistré de façon permanente pour la commande .${cmdName} !`);
+            fetchImages();
+          } else {
+            throw new Error(data.message || data.error || 'Échec upload');
+          }
+        } catch (err: any) {
+          showToast(err.message || 'Erreur lors du téléversement du média', true);
+        } finally {
+          setSaving(false);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Load from API
   const fetchImages = async () => {
     setLoading(true);
@@ -818,6 +860,16 @@ export const CommandImagesManager: React.FC = () => {
                       Défaut
                     </button>
                   )}
+
+                  <label className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-emerald-400 text-xs font-mono flex items-center justify-center cursor-pointer transition-colors shrink-0" title="Uploader une photo ou vidéo locale">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      onChange={(e) => handleUploadCommandMedia(cmd.name, e)}
+                      className="hidden"
+                    />
+                  </label>
 
                   <button
                     type="button"

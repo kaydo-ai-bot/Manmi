@@ -363,12 +363,12 @@ export function generateOfficialMenu(
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*
 
-> *© KAYDO BOT V2 𓃶 • CREATED FOR KAYDO 𓃶*`;
+> *© ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*`;
 }
 
 /**
  * Formats any bot command text response in the user's requested card style:
- * *╭─❖━━━ ⟣ ⟣ ⟣  KAYDO BOT V2 𓃶  ⟣ ⟣ ⟣━━━❖*
+ * *╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*
  * *┇*🔹╭───────────────
  * *┇*🔹┋. line1
  * *┇*🔹┋  line2
@@ -399,7 +399,7 @@ export function formatCommandCard(content: string): string {
     return `*┇*🔹┋  ${line}`;
   });
 
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO BOT V2 𓃶  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n${formattedLines.join('\n')}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n${formattedLines.join('\n')}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
 
 /**
@@ -411,12 +411,12 @@ export function formatLoadingBox(cmdName: string): string {
   if (clean === 'ping') {
     displayName = 'ᴘᴏɴɢ';
   }
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO BOT V2 𓃶  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
 
 /**
  * Returns a success box formatted with the requested borders
  */
 export function formatSuccessBox(message: string): string {
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO BOT V2 𓃶  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${message}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${message}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
