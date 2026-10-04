@@ -61,13 +61,15 @@ import {
 import {
   getCommandImageBuffer,
   getCommandImageUrl,
+  getDefaultImageBufferSync,
+  preloadDefaultImageBuffer,
 } from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
 
 export function performOneTimeSessionResetIfPending(): void {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
-  const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_reset');
+  const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_catbox_refresh');
 
   if (fs.existsSync(RESET_FLAG_FILE)) {
     return;
@@ -86,6 +88,23 @@ export function performOneTimeSessionResetIfPending(): void {
       }
     }
 
+    // Preload fresh image buffer
+    preloadDefaultImageBuffer().then((cached) => {
+      const freshBuffer = cached?.buffer || getDefaultImageBufferSync();
+      if (freshBuffer && freshBuffer.length > 0) {
+        for (const rootDir of allDirs) {
+          if (!fs.existsSync(rootDir)) continue;
+          const entries = fs.readdirSync(rootDir, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.isDirectory()) {
+              const sessionImg = path.join(rootDir, entry.name, 'menu_image.jpg');
+              try { fs.writeFileSync(sessionImg, freshBuffer); } catch (_) {}
+            }
+          }
+        }
+      }
+    }).catch(() => {});
+
     // Update settings in all directories
     for (const rootDir of allDirs) {
       if (!fs.existsSync(rootDir)) continue;
@@ -93,12 +112,7 @@ export function performOneTimeSessionResetIfPending(): void {
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const sessionDir = path.join(rootDir, entry.name);
-          const customImg = path.join(sessionDir, 'menu_image.jpg');
           const settingsFile = path.join(sessionDir, 'settings.json');
-
-          if (fs.existsSync(customImg)) {
-            try { fs.unlinkSync(customImg); } catch {}
-          }
 
           let parsed: any = {};
           if (fs.existsSync(settingsFile)) {
@@ -142,16 +156,16 @@ export function performOneTimeSessionResetIfPending(): void {
     }
 
     fs.writeFileSync(RESET_FLAG_FILE, `done at ${new Date().toISOString()}`);
-    console.log('[RESET V2] ✅ Reset unique effectué : Toutes les sessions ont été réinitialisées avec accès complet à toutes les nouveautés de KAYDO BOT V2 𓃶 et réactivées 24/7.');
+    console.log('[RESET V2] ✅ Reset & Refresh sessions réussi : Photo Catbox https://files.catbox.moe/9u2j5v.png et nouveau menu appliqués.');
 
     // Automatically reactivate and reconnect all sessions
     setTimeout(() => {
       restoreAllSessions().then((count) => {
-        console.log(`[RESET V2] 🚀 ${count} session(s) WhatsApp réactivée(s) et synchronisée(s) avec succès !`);
+        console.log(`[RESET V2] 🚀 ${count} session(s) WhatsApp réactivée(s) et rafraîchie(s) avec succès !`);
       }).catch((e) => {
         console.warn('[RESET V2] Erreur réactivation:', e?.message);
       });
-    }, 1500);
+    }, 1200);
   } catch (err: any) {
     console.warn('[RESET V2] Erreur reset unique:', err?.message || err);
   }
@@ -169,24 +183,18 @@ export function getBotMenuImageBuffer(sessionId?: string): Buffer | null {
     if (state?.customMenuImageBuffer && state.customMenuImageBuffer.length > 0) {
       return state.customMenuImageBuffer;
     }
-    const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
-    const customPath = path.join(SESSIONS_ROOT, sessionId, 'menu_image.jpg');
-    if (fs.existsSync(customPath)) {
-      try {
-        const buffer = fs.readFileSync(customPath);
-        if (buffer.length > 0) return buffer;
-      } catch {}
-    }
+  }
+
+  const defaultBuf = getDefaultImageBufferSync();
+  if (defaultBuf && defaultBuf.length > 0) {
+    return defaultBuf;
   }
 
   const possiblePaths = [
-    path.join(process.cwd(), 'src', 'assets', 'images', 'kaydo_law_bot_official_1790678745856.jpg'),
     path.join(process.cwd(), 'public', 'menu_image.jpg'),
     path.join(process.cwd(), 'menu_image.jpg'),
     path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-    path.join(process.cwd(), 'src', 'assets', 'images', 'zlk_bot_official_menu_1791031009642.jpg'),
     path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_bot_official.jpg'),
-    path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_mini_bot_menu.jpg'),
   ];
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
@@ -1386,15 +1394,24 @@ async function executeBotCommandInternal(
         state.botName
       );
 
-      let menuImg = getBotMenuImageBuffer(sessionId);
-      if (!menuImg) {
+      let menuImgBuf: Buffer | null = null;
+      try {
         const cmdImg = await getCommandImageBuffer('menu');
         if (cmdImg?.buffer && cmdImg.buffer.length > 0) {
-          menuImg = cmdImg.buffer;
+          menuImgBuf = cmdImg.buffer;
         }
+      } catch (_) {}
+
+      if (!menuImgBuf || menuImgBuf.length === 0) {
+        menuImgBuf = getBotMenuImageBuffer(sessionId);
       }
-      if (sock && remoteJid && menuImg) {
-        const sent = await sendSafeMediaOrText(sock, remoteJid, { image: menuImg, caption: menuText }, msg);
+
+      if (sock && remoteJid && menuImgBuf && menuImgBuf.length > 0) {
+        const sent = await sendSafeMediaOrText(sock, remoteJid, {
+          image: menuImgBuf,
+          caption: menuText,
+          mimetype: 'image/png',
+        }, msg).catch(() => null);
         if (sent) return '';
       }
       return menuText;

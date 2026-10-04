@@ -190,14 +190,22 @@ export function loadCommandImagesFromDisk(): void {
 // Initial load on import
 loadCommandImagesFromDisk();
 
+let defaultImageBufferCache: { buffer: Buffer; mimeType: string; timestamp: number } | null = null;
+
 // Preload the default image buffer immediately so it is instantly available in memory for all WhatsApp commands
-export async function preloadDefaultImageBuffer(): Promise<void> {
+export async function preloadDefaultImageBuffer(): Promise<{ buffer: Buffer; mimeType: string } | null> {
   const url = defaultImageUrl || DEFAULT_GLOBAL_IMAGE_URL;
-  if (!url || !url.startsWith('http')) return;
+  if (!url || !url.startsWith('http')) return null;
+
+  // Check if we already have fresh buffer
+  if (defaultImageBufferCache && Date.now() - defaultImageBufferCache.timestamp < CACHE_TTL_MS) {
+    return defaultImageBufferCache;
+  }
+
   try {
     const res = await axios.get(url, {
       responseType: 'arraybuffer',
-      timeout: 8000,
+      timeout: 10000,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
@@ -206,21 +214,76 @@ export async function preloadDefaultImageBuffer(): Promise<void> {
     if (res.status === 200 && res.data) {
       const buffer = Buffer.from(res.data);
       const mimeType = String(res.headers['content-type'] || 'image/png');
-      bufferCache.set(url, {
+      
+      defaultImageBufferCache = {
         buffer,
         mimeType,
-        timestamp: Date.now() + 86400000, // 24h cache
-      });
-      bufferCache.set(DEFAULT_GLOBAL_IMAGE_URL, {
-        buffer,
-        mimeType,
-        timestamp: Date.now() + 86400000,
-      });
-      console.log(`[CMD IMAGES] ✅ Image officielle pré-chargée en mémoire (${(buffer.length / 1024).toFixed(1)} KB) pour toutes les commandes WhatsApp : ${url}`);
+        timestamp: Date.now(),
+      };
+
+      bufferCache.set(url, defaultImageBufferCache);
+      bufferCache.set(DEFAULT_GLOBAL_IMAGE_URL, defaultImageBufferCache);
+      bufferCache.set('menu', defaultImageBufferCache);
+      bufferCache.set('default', defaultImageBufferCache);
+
+      // Persist to local disk so menu is ALWAYS available even offline
+      const diskTargets = [
+        path.join(process.cwd(), 'public', 'menu_image.jpg'),
+        path.join(process.cwd(), 'menu_image.jpg'),
+        path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+        path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_bot_official.jpg'),
+        path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_mini_bot_menu.jpg'),
+      ];
+
+      for (const target of diskTargets) {
+        try {
+          const dir = path.dirname(target);
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(target, buffer);
+        } catch (_) {}
+      }
+
+      // Also copy to all active session dirs
+      const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+      if (fs.existsSync(SESSIONS_ROOT)) {
+        try {
+          const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.isDirectory()) {
+              const sessionImgPath = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+              try { fs.writeFileSync(sessionImgPath, buffer); } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      }
+
+      console.log(`[CMD IMAGES] ✅ Image officielle Catbox pré-chargée en mémoire (${(buffer.length / 1024).toFixed(1)} KB) pour 100% des commandes et sessions : ${url}`);
+      return defaultImageBufferCache;
     }
   } catch (err: any) {
     console.warn(`[CMD IMAGES] Avertissement préchargement image (${url}):`, err?.message || err);
   }
+  return null;
+}
+
+export function getDefaultImageBufferSync(): Buffer | null {
+  if (defaultImageBufferCache?.buffer && defaultImageBufferCache.buffer.length > 0) {
+    return defaultImageBufferCache.buffer;
+  }
+  const diskTargets = [
+    path.join(process.cwd(), 'public', 'menu_image.jpg'),
+    path.join(process.cwd(), 'menu_image.jpg'),
+    path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+  ];
+  for (const t of diskTargets) {
+    if (fs.existsSync(t)) {
+      try {
+        const b = fs.readFileSync(t);
+        if (b.length > 0) return b;
+      } catch (_) {}
+    }
+  }
+  return null;
 }
 
 // Trigger preload immediately in background
