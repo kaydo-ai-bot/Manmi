@@ -34,10 +34,65 @@ export const CommandImagesManager: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [testStatus, setTestStatus] = useState<Record<string, { loading?: boolean; valid?: boolean; message?: string }>>({});
   const [toastMessage, setToastMessage] = useState<{ text: string; isError?: boolean } | null>(null);
+  const [quickMenuUrl, setQuickMenuUrl] = useState('https://files.catbox.moe/9u2j5v.png');
 
   const showToast = (text: string, isError: boolean = false) => {
     setToastMessage({ text, isError });
     setTimeout(() => setToastMessage(null), 4500);
+  };
+
+  const handleSetQuickMenuPhoto = async (urlToSet: string) => {
+    if (!urlToSet) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/command-images/set-menu-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlToSet }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('✅ Photo du menu et des commandes mise à jour et appliquée à toutes les sessions !');
+        fetchImages();
+      } else {
+        throw new Error(data.message || 'Échec');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Erreur lors de la mise à jour de la photo', true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setSaving(true);
+        try {
+          const res = await fetch('/api/command-images/set-menu-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64Image: base64 }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('✅ Fichier photo exporté et appliqué avec succès à 100% des sessions et menus !');
+            fetchImages();
+          } else {
+            throw new Error(data.message || 'Échec upload');
+          }
+        } catch (err: any) {
+          showToast(err.message || "Erreur lors de l'exportation du fichier", true);
+        } finally {
+          setSaving(false);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Load from API
@@ -247,6 +302,69 @@ export const CommandImagesManager: React.FC = () => {
           <span>{toastMessage.text}</span>
         </div>
       )}
+
+      {/* Quick Menu Photo URL & Export Card */}
+      <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-950/40 via-[#0b0d1b] to-indigo-950/40 border border-purple-500/30 backdrop-blur-2xl relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
+              <ImageIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-black font-mono text-white">📸 Photo Officielle du Menu & des Commandes</h3>
+              <p className="text-xs text-slate-400">Mettez le lien de votre photo ou exportez/uploadez directement un fichier image depuis votre appareil.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {/* Option 1: URL Link */}
+            <div className="space-y-2 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+              <label className="text-xs font-mono font-bold text-slate-300 block flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-purple-400" />
+                <span>Lien URL de la photo (ex: Catbox, Imgur...)</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={quickMenuUrl}
+                  onChange={(e) => setQuickMenuUrl(e.target.value)}
+                  placeholder="https://files.catbox.moe/9u2j5v.png"
+                  className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleSetQuickMenuPhoto(quickMenuUrl)}
+                  disabled={saving || loading}
+                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold transition-all shadow-md cursor-pointer shrink-0 disabled:opacity-50"
+                >
+                  Appliquer le Lien
+                </button>
+              </div>
+            </div>
+
+            {/* Option 2: File Upload / Export */}
+            <div className="space-y-2 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
+              <label className="text-xs font-mono font-bold text-slate-300 block flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Exporter / Importer une photo (Fichier local)</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/80 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-mono font-bold transition-all cursor-pointer shadow-md">
+                  <Sliders className="w-4 h-4 text-emerald-400" />
+                  <span>Choisir un fichier image...</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Header Info Banner */}
       <div className="p-6 rounded-3xl bg-[#0b0d1b]/90 border border-slate-800/90 backdrop-blur-2xl relative overflow-hidden">

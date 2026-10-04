@@ -369,6 +369,90 @@ export async function getCommandImageBuffer(cmd: string): Promise<{ buffer: Buff
   return null;
 }
 
+export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Promise<boolean> {
+  let buffer: Buffer | null = null;
+  let mimeType = 'image/jpeg';
+
+  if (!urlOrBase64) return false;
+
+  try {
+    if (urlOrBase64.startsWith('data:image/')) {
+      const matches = urlOrBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,(.+)$/);
+      if (matches && matches[2]) {
+        mimeType = matches[1];
+        buffer = Buffer.from(matches[2], 'base64');
+      }
+    } else if (urlOrBase64.startsWith('http')) {
+      const res = await axios.get(urlOrBase64, {
+        responseType: 'arraybuffer',
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'image/*',
+        },
+      });
+      if (res.status === 200 && res.data) {
+        buffer = Buffer.from(res.data);
+        mimeType = String(res.headers['content-type'] || 'image/jpeg');
+      }
+    }
+
+    if (!buffer || buffer.length === 0) return false;
+
+    const targetUrl = urlOrBase64.startsWith('http') ? urlOrBase64 : 'https://files.catbox.moe/9u2j5v.png';
+    setDefaultImageUrl(targetUrl);
+    setAppPhotoUrl(targetUrl);
+    applyUrlToAllCommands(targetUrl);
+
+    // Save locally to disk targets
+    const diskTargets = [
+      path.join(process.cwd(), 'public', 'menu_image.jpg'),
+      path.join(process.cwd(), 'menu_image.jpg'),
+      path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+      path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_bot_official.jpg'),
+    ];
+
+    for (const t of diskTargets) {
+      try {
+        const dir = path.dirname(t);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(t, buffer);
+      } catch (_) {}
+    }
+
+    // Save to all session directories
+    const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+    if (fs.existsSync(SESSIONS_ROOT)) {
+      try {
+        const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory()) {
+            const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
+            try { fs.writeFileSync(sessionImg, buffer); } catch (_) {}
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Remove reset flags so sessions pick up the new photo immediately
+    const flagFiles = [
+      path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_catbox_refresh'),
+      path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_reset'),
+    ];
+    for (const f of flagFiles) {
+      if (fs.existsSync(f)) {
+        try { fs.unlinkSync(f); } catch {}
+      }
+    }
+
+    console.log(`[CMD IMAGES] ✅ Nouvelle photo officielle configurée et exportée sur ${diskTargets.length} emplacements et sessions !`);
+    return true;
+  } catch (err: any) {
+    console.error('[CMD IMAGES] Erreur setGlobalMenuPhotoFromUrlOrBuffer:', err?.message || err);
+    return false;
+  }
+}
+
 /**
  * Sets the image URL for a specific command
  */

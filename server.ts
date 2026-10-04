@@ -68,6 +68,7 @@ import {
   applyUrlToAllCommands,
   resetToDefaultCommandImages,
   DEFAULT_GLOBAL_IMAGE_URL,
+  setGlobalMenuPhotoFromUrlOrBuffer,
 } from './src/server/commandImageManager';
 import axios from 'axios';
 import { getNextBotPhoto } from './src/server/botPhotoManager';
@@ -80,7 +81,8 @@ const app = express();
 const PORT = 3000;
 const START_TIME = Date.now();
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // In-memory security notifications for KAYDO XIT account
 interface SecurityAlert {
@@ -909,6 +911,27 @@ app.post('/api/command-images', (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/command-images/set-menu-photo', async (req: Request, res: Response) => {
+  try {
+    const { url, base64Image } = req.body || {};
+    const target = url || base64Image;
+    if (!target) {
+      return res.status(400).json({ success: false, message: 'URL ou image en base64 requise.' });
+    }
+    const success = await setGlobalMenuPhotoFromUrlOrBuffer(target);
+    if (success) {
+      const updated = getAllCommandImageUrls();
+      return res.json({
+        success: true,
+        message: '✅ Photo des commandes et du menu mise à jour et exportée avec succès sur toutes les sessions !',
+        ...updated,
+      });
+    }
+    return res.status(400).json({ success: false, message: 'Impossible de télécharger ou décoder cette image.' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err?.message });
+  }
+});
 app.post('/api/command-images/reset', (_req: Request, res: Response) => {
   try {
     resetToDefaultCommandImages();
