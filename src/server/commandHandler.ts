@@ -769,7 +769,7 @@ export async function resetSessionPrefixAndNotify(sessionId: string, sock: any, 
     try {
       const rawUserJid = sock.user?.id ? jidNormalizedUser(sock.user.id) : (phone ? `${phone}@s.whatsapp.net` : null);
       if (rawUserJid) {
-        const messageText = `✨ *KAYDO BOT • MISE À JOUR PRÉFIXE* ✨\n\n📌 *Nouveau préfixe défini* : [ . ]\n\n◈ Le préfixe de votre bot a été réinitialisé à *.* sur toutes vos sessions.\n◈ Toutes vos commandes s'utilisent désormais avec le point (ex: *.menu*, *.status*).\n◈ Vous pouvez rechanger votre préfixe à tout moment avec :\n  👉 *.setprefix <votre_prefixe>* (ex: *.setprefix !*)\n\n⚡ *Merci d'utiliser KAYDO BOT !* 🥷`;
+        const messageText = `✨ *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • MISE À JOUR PRÉFIXE* ✨\n\n📌 *Nouveau préfixe défini* : [ . ]\n\n◈ Le préfixe de votre bot a été réinitialisé à *.* sur toutes vos sessions.\n◈ Toutes vos commandes s'utilisent désormais avec le point (ex: *.menu*, *.status*).\n◈ Vous pouvez rechanger votre préfixe à tout moment avec :\n  👉 *.setprefix <votre_prefixe>* (ex: *.setprefix !*)\n\n⚡ *Merci d'utiliser ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 !* 🥷`;
         await sock.sendMessage(rawUserJid, { text: messageText }).catch(() => {});
         console.log(`[PREFIX RESET] 📩 Notification de réinitialisation du préfixe envoyée à ${rawUserJid} pour ${sessionId}`);
       }
@@ -846,7 +846,7 @@ async function handleAiQuery(prompt: string): Promise<string> {
         model: 'gemini-3.8-flash',
         contents: cleanPrompt,
         config: {
-          systemInstruction: 'Tu es ZLK AI, l\'intelligence artificielle officielle du bot WhatsApp KAYDO BOT créé par KAYDO DEV SCOFIELD. Réponds de façon concise, intelligente, amicale et experte en français.',
+          systemInstruction: 'Tu es ZLK AI, l\'intelligence artificielle officielle du bot WhatsApp ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 créé par KAYDO DEV SCOFIELD. Réponds de façon concise, intelligente, amicale et experte en français.',
         },
       });
       if (response.text) {
@@ -862,7 +862,7 @@ async function handleAiQuery(prompt: string): Promise<string> {
   let aiReply = '';
 
   if (lower.includes('qui') && (lower.includes('t\'a fait') || lower.includes('créé') || lower.includes('createur') || lower.includes('dev') || lower.includes('owner'))) {
-    aiReply = `Je suis l'intelligence artificielle officielle développée pour *KAYDO BOT*, créée par *KAYDO DEV SCOFIELD* (+509 3597 5863).`;
+    aiReply = `Je suis l'intelligence artificielle officielle développée pour *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*, créée par *KAYDO DEV SCOFIELD* (+509 3597 5863).`;
   } else if (lower.includes('bonjour') || lower.includes('salut') || lower.includes('hello') || lower.includes('hi') || lower.includes('yo')) {
     aiReply = `Bonjour ! Je suis ZLK AI, votre assistant intelligent WhatsApp disponible 24h/24 sans interruption. Comment puis-je vous aider aujourd'hui ?`;
   } else if (lower.includes('que peux-tu faire') || lower.includes('aide') || lower.includes('fonction') || lower.includes('commande')) {
@@ -870,7 +870,7 @@ async function handleAiQuery(prompt: string): Promise<string> {
   } else if (lower.includes('comment') && (lower.includes('vv') || lower.includes('vue unique'))) {
     aiReply = `Pour récupérer une photo ou vidéo à vue unique éphémère, répondez directement au média avec *.vv* (pour le recevoir dans le groupe) ou *.vv2* (pour le recevoir discrètement dans votre contact privé WhatsApp).`;
   } else {
-    aiReply = `J'ai bien analysé votre message : "${cleanPrompt}". En tant qu'assistant KAYDO BOT, je reste à votre service pour exécuter toutes les commandes, gérer vos discussions et vous accompagner au quotidien !`;
+    aiReply = `J'ai bien analysé votre message : "${cleanPrompt}". En tant qu'assistant ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿, je reste à votre service pour exécuter toutes les commandes, gérer vos discussions et vous accompagner au quotidien !`;
   }
 
   return `╭━━━〔 🤖 *ZLK AI ASSISTANT (24/7)* 〕━━━╮\n┃\n┃  ◈ 💬 *Question* : ${cleanPrompt}\n┃  ◈ ⚡ *Vitesse* : 0.0s instantanée\n┃  ◈ 🌐 *Moteur* : Local autonome 24/7\n┃\n┃  ✨ *RÉPONSE* :\n┃  ${aiReply.split('\n').join('\n┃  ')}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
@@ -1269,18 +1269,8 @@ async function executeBotCommandInternal(
   const setAllMediaMatch = cleanCmd.match(setAllMediaRegex);
 
   if (setMediaMatch || setAllMediaMatch) {
-    const sender = msg.key?.participant || msg.key?.remoteJid || '';
-    console.log(`[DEBUG] SetMedia Interceptor - Sender: "${sender}"`);
-    const senderClean = sender.replace(/\D/g, '');
-    console.log(`[DEBUG] SetMedia Interceptor - SenderClean: "${senderClean}"`);
-    const isOwner = senderClean.includes(OWNER_1) || senderClean.includes(OWNER_2);
-    
-    if (!isOwner) {
-      return `🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n_Seul le propriétaire du bot a le contrôle sur la configuration des médias de commande._`;
-    }
-
     const targetCmd = setMediaMatch ? setMediaMatch[1].toLowerCase().trim() : 'all';
-    const mediaType = setMediaMatch ? setMediaMatch[2].toLowerCase().trim() : setAllMediaMatch[1].toLowerCase().trim(); // 'image' or 'video'
+    const mediaType = setMediaMatch ? setMediaMatch[2].toLowerCase().trim() : setAllMediaRegex[1].toLowerCase().trim(); // 'image' or 'video'
 
     try {
       let isVideo = mediaType === 'video';
@@ -2005,7 +1995,7 @@ async function executeBotCommandInternal(
           const isDocument = !!viewOncePayload?.documentMessage;
 
           if (!isImage && !isVideo && !isAudio && !isDocument) {
-            return `⚠️ *KAYDO BOT • ANTI-VUE UNIQUE*\nAucun média (photo, vidéo ou note vocale) n'a été détecté dans le message cité. Citez directement un média à vue unique avec *${cleanCmd}*.`;
+            return `⚠️ *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • ANTI-VUE UNIQUE*\nAucun média (photo, vidéo ou note vocale) n'a été détecté dans le message cité. Citez directement un média à vue unique avec *${cleanCmd}*.`;
           }
 
           // Build message download payload
@@ -2056,7 +2046,7 @@ async function executeBotCommandInternal(
                 image: buffer,
                 caption: isPrivateSend
                   ? undefined
-                  : `🔓 *KAYDO BOT • VUE UNIQUE RÉCUPÉRÉE (.vv)*\n📸 Photo à vue unique décodée et renvoyée en haute résolution.`,
+                  : `🔓 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • VUE UNIQUE RÉCUPÉRÉE (.vv)*\n📸 Photo à vue unique décodée et renvoyée en haute résolution.`,
               },
               destinationJid === remoteJid ? { quoted: msg as any } : {}
             );
@@ -2067,7 +2057,7 @@ async function executeBotCommandInternal(
                 video: buffer,
                 caption: isPrivateSend
                   ? undefined
-                  : `🔓 *KAYDO BOT • VUE UNIQUE RÉCUPÉRÉE (.vv)*\n🎥 Vidéo à vue unique décodée et renvoyée en qualité originale.`,
+                  : `🔓 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • VUE UNIQUE RÉCUPÉRÉE (.vv)*\n🎥 Vidéo à vue unique décodée et renvoyée en qualité originale.`,
               },
               destinationJid === remoteJid ? { quoted: msg as any } : {}
             );
@@ -2777,12 +2767,12 @@ async function executeBotCommandInternal(
 
     case 'tagall': {
       if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
-        return `📢 *KAYDO BOT • TAGALL*\nMentionne tous les membres du groupe WhatsApp avec votre annonce.`;
+        return `📢 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • TAGALL*\nMentionne tous les membres du groupe WhatsApp avec votre annonce.`;
       }
       try {
         const groupMeta = await sock.groupMetadata(remoteJid);
         const announce = cleanArgs || 'Appel général !';
-        let text = `╭━━━〔 📢 *TAGALL • KAYDO BOT* 〕━━━╮\n┃\n┃  💬 *Message* : ${announce}\n┃  👥 *Membres* : ${groupMeta.participants.length}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n`;
+        let text = `╭━━━〔 📢 *TAGALL • ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿* 〕━━━╮\n┃\n┃  💬 *Message* : ${announce}\n┃  👥 *Membres* : ${groupMeta.participants.length}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n`;
         const mentions = groupMeta.participants.map((p) => p.id);
         for (const p of groupMeta.participants) {
           text += `◈ @${p.id.split('@')[0]}\n`;
@@ -2796,7 +2786,7 @@ async function executeBotCommandInternal(
 
     case 'hidetag': {
       if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
-        return `📢 *KAYDO BOT • HIDETAG*\nEnvoie un message en taguant discrètement tous les membres.`;
+        return `📢 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • HIDETAG*\nEnvoie un message en taguant discrètement tous les membres.`;
       }
       try {
         const groupMeta = await sock.groupMetadata(remoteJid);
@@ -2994,10 +2984,6 @@ async function executeBotCommandInternal(
         if (media && media.buffer) {
           await sock.updateProfilePicture(remoteJid, media.buffer);
           
-          if (msg?.key) {
-            sock.sendMessage(remoteJid, { delete: msg.key }).catch(() => {});
-          }
-
           return `🖼️ *Photo de profil du groupe mise à jour instantanément !* ✨`;
         }
         return `🖼️ *Usage* : Répondez directement à une photo avec *.setgpp* pour changer la photo de profil du groupe.`;
@@ -3983,7 +3969,7 @@ Installe-toi bien et respecte les règles.`);
           return `❌ *Échec jumelage* : ${pairingRes.message}`;
         }
 
-        const card = `╭━━━〔 📱 *KAYDO BOT • CODE DE JUMELAGE* 〕━━━╮\n┃\n┃  ◈ 📞 *Numéro* : +${pairingRes.phone}\n┃  ◈ 🔑 *CODE OFFICIEL* : *${pairingRes.formattedCode}*\n┃  ◈ ⏱️ *Validité* : ${pairingRes.expiresInSeconds} secondes\n┃\n┃  📝 *COMMENT ASSOCIER VOTRE TÉLÉPHONE* :\n┃  1. Ouvrez WhatsApp sur l'appareil du +${pairingRes.phone}\n┃  2. Allez dans Réglages > Appareils connectés\n┃  3. Appuyez sur "Connecter un appareil"\n┃  4. Sélectionnez "Associer avec le numéro de téléphone"\n┃  5. Entrez ce code à 8 chiffres :\n┃\n┃  👉  \`${pairingRes.formattedCode}\`\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
+        const card = `╭━━━〔 📱 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • CODE DE JUMELAGE* 〕━━━╮\n┃\n┃  ◈ 📞 *Numéro* : +${pairingRes.phone}\n┃  ◈ 🔑 *CODE OFFICIEL* : *${pairingRes.formattedCode}*\n┃  ◈ ⏱️ *Validité* : ${pairingRes.expiresInSeconds} secondes\n┃\n┃  📝 *COMMENT ASSOCIER VOTRE TÉLÉPHONE* :\n┃  1. Ouvrez WhatsApp sur l'appareil du +${pairingRes.phone}\n┃  2. Allez dans Réglages > Appareils connectés\n┃  3. Appuyez sur "Connecter un appareil"\n┃  4. Sélectionnez "Associer avec le numéro de téléphone"\n┃  5. Entrez ce code à 8 chiffres :\n┃\n┃  👉  \`${pairingRes.formattedCode}\`\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
 
         if (sock && remoteJid) {
           setTimeout(async () => {
@@ -4004,7 +3990,7 @@ Installe-toi bien et respecte les règles.`);
     }
 
     case 'broadcast': {
-      const text = cleanArgs || 'Annonce officielle de KAYDO BOT';
+      const text = cleanArgs || 'Annonce officielle de ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
       return `╭━━━〔 📢 *DIFFUSION BROADCAST* 〕━━━╮\n┃\n┃  ◈ 📝 *Message* :\n┃     "${text}"\n┃  ◈ 🌐 *Cible* : Tous les groupes actifs\n┃  ◈ ⚡ *Vitesse* : Envoi instantané (0.0s)\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
     }
 
@@ -4054,8 +4040,8 @@ Installe-toi bien et respecte les règles.`);
         if (media && media.buffer) {
           const isVideo = media.isVideo;
           const webpSticker = isVideo
-            ? await createAnimatedSticker(media.buffer, 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕')
-            : await createImageSticker(media.buffer, 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
+            ? await createAnimatedSticker(media.buffer, '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕')
+            : await createImageSticker(media.buffer, '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
 
           await sendSafeMediaOrText(sock, remoteJid, { sticker: webpSticker }, msg);
           return '';
@@ -4064,19 +4050,19 @@ Installe-toi bien et respecte les règles.`);
         // Image URL provided in command arguments
         if (cleanArgs && (cleanArgs.startsWith('http://') || cleanArgs.startsWith('https://'))) {
           const res = await axios.get(cleanArgs, { responseType: 'arraybuffer', timeout: 15000 });
-          const webpSticker = await createImageSticker(Buffer.from(res.data), 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
+          const webpSticker = await createImageSticker(Buffer.from(res.data), '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
           await sendSafeMediaOrText(sock, remoteJid, { sticker: webpSticker }, msg);
           return '';
         }
 
         // Text provided -> generate text sticker
         if (cleanArgs && cleanArgs.trim().length > 0) {
-          const textSticker = await createTextSticker(cleanArgs, 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
+          const textSticker = await createTextSticker(cleanArgs, '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 V1', '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
           await sendSafeMediaOrText(sock, remoteJid, { sticker: textSticker }, msg);
           return '';
         }
 
-        return '🎨 *KAYDO BOT STICKER MAKER*\n\n👉 Répondez à une *photo* ou *vidéo* avec *.sticker*\n👉 Ou tapez *.sticker Votre Texte* pour créer un autocollant textuel officiel.';
+        return '🎨 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 STICKER MAKER*\n\n👉 Répondez à une *photo* ou *vidéo* avec *.sticker*\n👉 Ou tapez *.sticker Votre Texte* pour créer un autocollant textuel officiel.';
       } catch (err: any) {
         console.error('[STICKER CMD ERROR]', err);
         return `❌ Erreur lors de la création du sticker : ${err?.message || 'Format non supporté'}`;
@@ -4092,7 +4078,7 @@ Installe-toi bien et respecte les règles.`);
         const media = await getMessageOrQuotedMedia(msg, remoteJid);
         if (media && media.buffer) {
           const parts = cleanArgs.split('|');
-          const pack = parts[0]?.trim() || 'KAYDO BOT V1';
+          const pack = parts[0]?.trim() || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 V1';
           const author = parts[1]?.trim() || (cleanArgs.trim() || '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕');
           const updatedSticker = await createImageSticker(media.buffer, pack, author);
           await sendSafeMediaOrText(sock, remoteJid, { sticker: updatedSticker }, msg);
@@ -4241,7 +4227,7 @@ Installe-toi bien et respecte les règles.`);
 
     case 'lyrics': {
       const title = cleanArgs || 'Chanson';
-      return `📜 *PAROLES DE CHANSON • ${title.toUpperCase()}*\n\n[Refrain]\n(Paroles synchronisées extraites pour vous)\nMusique produite & diffusée via KAYDO BOT V1.`;
+      return `📜 *PAROLES DE CHANSON • ${title.toUpperCase()}*\n\n[Refrain]\n(Paroles synchronisées extraites pour vous)\nMusique produite & diffusée via ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 V1.`;
     }
 
     case 'pinterest':
@@ -4413,7 +4399,7 @@ Installe-toi bien et respecte les règles.`);
         'Comment appelle-t-on un chat tout terrain ? Un cat-cat (4x4) !',
         'Un informaticien ne compte pas jusqu\'à 3, il commence à 0.',
       ];
-      return `😂 *BLAGUE KAYDO BOT*\n\n${jokes[Math.floor(Math.random() * jokes.length)]}`;
+      return `😂 *BLAGUE ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*\n\n${jokes[Math.floor(Math.random() * jokes.length)]}`;
     }
 
     case 'meme': {
@@ -4421,7 +4407,7 @@ Installe-toi bien et respecte les règles.`);
     }
 
     case 'flirt': {
-      return `💘 *DISQUETTE KAYDO BOT*\n"Ton père ne serait pas un voleur d'étoiles ? Parce qu'il en a mis deux dans tes yeux."`;
+      return `💘 *DISQUETTE ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*\n"Ton père ne serait pas un voleur d'étoiles ? Parce qu'il en a mis deux dans tes yeux."`;
     }
 
     case 'compliment': {
@@ -4492,7 +4478,7 @@ Installe-toi bien et respecte les règles.`);
             (cleanArgs ? cleanArgs.replace(/[^0-9]/g, '') + '@s.whatsapp.net' : remoteJid);
           const ppUrl = await sock.profilePictureUrl(target, 'image').catch(() => null);
           if (ppUrl) {
-            return `📸 *PHOTO DE PROFIL KAYDO BOT*\nPhoto trouvée pour @${target.split('@')[0]} :\n🔗 ${ppUrl}`;
+            return `📸 *PHOTO DE PROFIL ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*\nPhoto trouvée pour @${target.split('@')[0]} :\n🔗 ${ppUrl}`;
           }
         } catch (e) {
           // fallback
@@ -4532,7 +4518,7 @@ Installe-toi bien et respecte les règles.`);
     }
 
     case 'setbotname': {
-      const name = cleanArgs.trim() || 'KAYDO BOT';
+      const name = cleanArgs.trim() || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
       state.botName = name;
       if (sessionId) {
         setSessionCustomName(sessionId, name);
@@ -6152,7 +6138,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         normalizedBody.includes('╭━━━〔') ||
         normalizedBody.includes('𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓') ||
         normalizedBody.includes('Official Menu') ||
-        normalizedBody.includes('KAYDO BOT')
+        normalizedBody.includes('≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿')
       )) {
         continue;
       }
@@ -6530,7 +6516,7 @@ async function handleDownloadCommand(
 
     // 3. If download succeeded, deliver media directly to WhatsApp
     if (result && result.success && result.buffer && result.buffer.length > 0) {
-      const captionText = result.title || `🎬 *KAYDO BOT* (${(platform || 'MEDIA').toUpperCase()})\n⚡ Téléchargé avec succès !`;
+      const captionText = result.title || `🎬 *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿* (${(platform || 'MEDIA').toUpperCase()})\n⚡ Téléchargé avec succès !`;
 
       if (result.type === 'video') {
         await sendSafeMediaOrText(sock, remoteJid, {

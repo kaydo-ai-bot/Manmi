@@ -176,13 +176,13 @@ export async function convertStickerToVideo(webpBuffer: Buffer): Promise<Buffer>
     try {
       const ffmpegCmd = `ffmpeg -y -loop 1 -i "${inputPath}" -t 3 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -r 15 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
       console.log(`[DEBUG] SVideo Converter - Running: ${ffmpegCmd}`);
-      await execAsync(ffmpegCmd, { timeout: 12000 });
+      await execAsync(ffmpegCmd, { timeout: 30000 });
     } catch (err1) {
       console.warn(`[DEBUG] SVideo Converter - Try 1 failed:`, err1);
       // Try 2: Fallback
       const ffmpegFallbackCmd = `ffmpeg -y -i "${inputPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -r 15 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
       console.log(`[DEBUG] SVideo Converter - Running fallback: ${ffmpegFallbackCmd}`);
-      await execAsync(ffmpegFallbackCmd, { timeout: 12000 });
+      await execAsync(ffmpegFallbackCmd, { timeout: 30000 });
     }
 
     if (fs.existsSync(outputPath)) {
