@@ -668,8 +668,7 @@ const reactedStatusIds = new Set<string>();
 let lastStatusReactionTime = 0;
 const lastCommandExecutionTime = new Map<string, number>();
 
-export const OWNER_1 = '50935975863';
-export const OWNER_2 = '50940131864';
+import { OWNER_1, OWNER_2, BOT_NAME } from './config';
 
 /**
  * Checks if a phone or JID belongs to the user/owner and is strictly protected
@@ -1270,8 +1269,11 @@ async function executeBotCommandInternal(
   const setAllMediaMatch = cleanCmd.match(setAllMediaRegex);
 
   if (setMediaMatch || setAllMediaMatch) {
-    const senderClean = (msg.key?.participant || msg.key?.remoteJid || '').replace(/\D/g, '');
-    const isOwner = senderClean.includes('50935975863') || senderClean.includes('50940131864');
+    const sender = msg.key?.participant || msg.key?.remoteJid || '';
+    console.log(`[DEBUG] SetMedia Interceptor - Sender: "${sender}"`);
+    const senderClean = sender.replace(/\D/g, '');
+    console.log(`[DEBUG] SetMedia Interceptor - SenderClean: "${senderClean}"`);
+    const isOwner = senderClean.includes(OWNER_1) || senderClean.includes(OWNER_2);
     
     if (!isOwner) {
       return `🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n_Seul le propriétaire du bot a le contrôle sur la configuration des médias de commande._`;
@@ -1402,7 +1404,7 @@ async function executeBotCommandInternal(
             sessState.customMenuImageBuffer = undefined;
             saveSessionSettingsToDisk(sId, sessState);
           }
-          return `🎬 *Vidéo ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+          return `🎬 *Vidéo ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures avec ${BOT_NAME} !*`;
         } else {
           // Clean old video backgrounds
           const oldVideos = [
@@ -1448,7 +1450,7 @@ async function executeBotCommandInternal(
             sessState.customMenuImageBuffer = undefined;
             saveSessionSettingsToDisk(sId, sessState);
           }
-          return `🖼️ *Image ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures !*`;
+          return `🖼️ *Image ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures avec ${BOT_NAME} !*`;
         }
       } else {
         // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---

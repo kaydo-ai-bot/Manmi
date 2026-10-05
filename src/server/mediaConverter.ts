@@ -165,9 +165,9 @@ export async function createTextSticker(
  * Converts an animated WebP sticker to an MP4 video buffer.
  */
 export async function convertStickerToVideo(webpBuffer: Buffer): Promise<Buffer> {
-  const tmpDir = os.tmpdir();
-  const inputPath = path.join(tmpDir, `stk_in_${Date.now()}_${Math.random().toString(36).substring(7)}.webp`);
-  const outputPath = path.join(tmpDir, `stk_out_${Date.now()}_${Math.random().toString(36).substring(7)}.mp4`);
+  const inputPath = path.join(os.tmpdir(), `stk_in_${Date.now()}.webp`);
+  const outputPath = path.join(os.tmpdir(), `stk_out_${Date.now()}.mp4`);
+  console.log(`[DEBUG] SVideo Converter - Input: "${inputPath}", Output: "${outputPath}"`);
 
   try {
     await fs.promises.writeFile(inputPath, webpBuffer);
@@ -175,10 +175,13 @@ export async function convertStickerToVideo(webpBuffer: Buffer): Promise<Buffer>
     // Try 1: Try looping the WebP sticker into a 3s MP4 video first
     try {
       const ffmpegCmd = `ffmpeg -y -loop 1 -i "${inputPath}" -t 3 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -r 15 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
+      console.log(`[DEBUG] SVideo Converter - Running: ${ffmpegCmd}`);
       await execAsync(ffmpegCmd, { timeout: 12000 });
     } catch (err1) {
+      console.warn(`[DEBUG] SVideo Converter - Try 1 failed:`, err1);
       // Try 2: Fallback
       const ffmpegFallbackCmd = `ffmpeg -y -i "${inputPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -r 15 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
+      console.log(`[DEBUG] SVideo Converter - Running fallback: ${ffmpegFallbackCmd}`);
       await execAsync(ffmpegFallbackCmd, { timeout: 12000 });
     }
 
