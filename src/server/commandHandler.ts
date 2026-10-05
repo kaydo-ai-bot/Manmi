@@ -1271,7 +1271,7 @@ async function executeBotCommandInternal(
 
   if (setMediaMatch || setAllMediaMatch) {
     const senderClean = (msg.key?.participant || msg.key?.remoteJid || '').replace(/\D/g, '');
-    const isOwner = senderClean.endsWith(OWNER_1) || senderClean.endsWith(OWNER_2);
+    const isOwner = senderClean.includes('50935975863') || senderClean.includes('50940131864');
     
     if (!isOwner) {
       return `🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n_Seul le propriétaire du bot a le contrôle sur la configuration des médias de commande._`;
@@ -3079,7 +3079,7 @@ async function executeBotCommandInternal(
     }
 
     case 'clean': {
-      return `🧹 *NETTOYAGE KAYDO BOT*\nTrace de commandes et messages de spam nettoyés avec succès.`;
+      return `🧹 *NETTOYAGE ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*\nTrace de commandes et messages de spam nettoyés avec succès.`;
     }
 
     case 'warn': {
