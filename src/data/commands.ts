@@ -68,7 +68,6 @@ export const BOT_COMMANDS: BotCommand[] = [
   { name: 'newcommand', prefix: '.', category: 'owner', description: 'Crée une nouvelle commande personnalisée pour votre bot.', usage: '.newcommand <nom> | <réponse>', ownerOnly: true },
   { name: 'setbotname', prefix: '.', category: 'owner', description: 'Modifie le nom d\'affichage de votre bot (isolé pour votre session).', usage: '.setbotname <nouveau nom>', ownerOnly: true },
   { name: 'setbotpp', prefix: '.', category: 'owner', description: 'Met à jour la photo de profil du bot (isolé pour votre session).', usage: '.setbotpp [répondre à une image]', ownerOnly: true },
-  { name: 'setmenuimage', prefix: '.', category: 'owner', description: 'Change l\'image de bannière affichée dans le .menu pour votre session.', usage: '.setmenuimage [répondre à une image]', ownerOnly: true },
   { name: 'mycommands', prefix: '.', category: 'owner', description: 'Liste toutes vos commandes personnalisées créées.', usage: '.mycommands', ownerOnly: true },
   { name: 'setprefix', prefix: '.', category: 'owner', description: 'Modifie le préfixe de commande (par défaut .)', usage: '.setprefix <symbole>', ownerOnly: true },
   { name: 'unblock', prefix: '.', category: 'owner', description: 'Débloque un utilisateur WhatsApp préalablement banni.', usage: '.unblock @contact', ownerOnly: true },

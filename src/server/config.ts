@@ -1,3 +1,60 @@
-export const OWNER_1 = '50935975863';
-export const OWNER_2 = '50940131864';
-export const BOT_NAME = '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
+/**
+ * Configuration des Propriétaires et Identité de ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
+ * Modifiable directement via les variables d'environnement dans .env :
+ * OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME
+ */
+
+export const OWNER_1 = (process.env.OWNER_1 || '50935975863').replace(/\D/g, '');
+export const OWNER_2 = (process.env.OWNER_2 || '50940131864').replace(/\D/g, '');
+
+const envOwnerList = (process.env.OWNER_NUMBERS || '')
+  .split(',')
+  .map((n) => n.trim().replace(/\D/g, ''))
+  .filter(Boolean);
+
+export const OWNER_NUMBERS: string[] = Array.from(
+  new Set([OWNER_1, OWNER_2, ...envOwnerList].filter((n) => n.length >= 7))
+);
+
+export const BOT_NAME = process.env.BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
+
+/**
+ * Vérifie avec précision si un JID, numéro ou appelant est l'un des propriétaires officiels.
+ * Gère les formats internationaux (+509...), les JID WhatsApp (@s.whatsapp.net, @lid, etc.),
+ * les suffixes de multi-device (:0, :1, :2) et le numéro de la session connectée.
+ */
+export function isOwnerNumber(phoneOrJid?: string | null, sessionPhone?: string | null): boolean {
+  if (!phoneOrJid) return false;
+
+  // Extraction propre des chiffres
+  const clean = phoneOrJid
+    .split('@')[0]
+    .split(':')[0]
+    .replace(/\D/g, '');
+
+  if (!clean) return false;
+
+  // 1. Vérification contre les numéros Owner configurés (50935975863, 50940131864, etc.)
+  for (const owner of OWNER_NUMBERS) {
+    if (clean === owner || clean.endsWith(owner) || owner.endsWith(clean)) {
+      return true;
+    }
+    // Si le numéro a au moins 8 chiffres et correspond au suffixe
+    if (clean.length >= 8 && owner.includes(clean)) {
+      return true;
+    }
+  }
+
+  // 2. Vérification contre le numéro du téléphone connecté à la session active
+  if (sessionPhone) {
+    const cleanSession = sessionPhone
+      .split('@')[0]
+      .split(':')[0]
+      .replace(/\D/g, '');
+    if (cleanSession && (clean === cleanSession || clean.endsWith(cleanSession) || cleanSession.endsWith(clean))) {
+      return true;
+    }
+  }
+
+  return false;
+}

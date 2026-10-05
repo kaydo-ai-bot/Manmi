@@ -667,7 +667,7 @@ const reactedStatusIds = new Set<string>();
 let lastStatusReactionTime = 0;
 const lastCommandExecutionTime = new Map<string, number>();
 
-import { OWNER_1, OWNER_2, BOT_NAME } from './config';
+import { OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME, isOwnerNumber } from './config';
 
 /**
  * Checks if a phone or JID belongs to the user/owner and is strictly protected
@@ -675,10 +675,14 @@ import { OWNER_1, OWNER_2, BOT_NAME } from './config';
  */
 export function isUserProtected(targetJid: string, sessionPhone?: string): boolean {
   if (!targetJid) return false;
+  if (isOwnerNumber(targetJid, sessionPhone)) return true;
   const clean = targetJid.split('@')[0].replace(/\D/g, '');
   if (!clean) return false;
   // Creator / Owner official numbers
   if (clean.includes(OWNER_1) || clean.includes(OWNER_2)) return true;
+  for (const o of OWNER_NUMBERS) {
+    if (clean === o || clean.endsWith(o) || o.endsWith(clean)) return true;
+  }
   // Connected session phone
   if (sessionPhone) {
     const cleanSession = sessionPhone.replace(/\D/g, '');
@@ -691,7 +695,11 @@ export function isUserSudo(cleanSender: string, sessionId?: string): boolean {
   if (!cleanSender) return false;
   const clean = cleanSender.replace(/\D/g, '');
   if (!clean) return false;
+  if (isOwnerNumber(clean)) return true;
   if (clean.includes(OWNER_1) || clean.includes(OWNER_2)) return true;
+  for (const o of OWNER_NUMBERS) {
+    if (clean === o || clean.endsWith(o) || o.endsWith(clean)) return true;
+  }
   if (sessionId) {
     const state = getSessionState(sessionId);
     if (state?.sudoUsers && state.sudoUsers.has(clean)) return true;
@@ -708,8 +716,8 @@ export function getSessionState(sessionId: string): SessionState {
       alwaysOnline: saved.alwaysOnline !== undefined ? saved.alwaysOnline : true,
       offlineGhostMode: saved.offlineGhostMode !== undefined ? saved.offlineGhostMode : false,
       offlineMode: saved.offlineMode !== undefined ? saved.offlineMode : false,
-      autoStatusView: saved.autoStatusView !== undefined ? saved.autoStatusView : false,
-      autoSaveStatus: saved.autoSaveStatus !== undefined ? saved.autoSaveStatus : false,
+      autoStatusView: saved.autoStatusView !== undefined ? saved.autoStatusView : true,
+      autoSaveStatus: saved.autoSaveStatus !== undefined ? saved.autoSaveStatus : true,
       autoRecording: saved.autoRecording !== undefined ? saved.autoRecording : false,
       recordingJids: new Set<string>(),
       autoTyping: saved.autoTyping !== undefined ? saved.autoTyping : false,
@@ -731,7 +739,7 @@ export function getSessionState(sessionId: string): SessionState {
       antiGroupMentionGroups: new Set<string>(Array.isArray(saved.antiGroupMentionGroups) ? saved.antiGroupMentionGroups : []),
       autoAcceptJoinRequestsGroups: new Set<string>(Array.isArray((saved as any).autoAcceptJoinRequestsGroups) ? (saved as any).autoAcceptJoinRequestsGroups : []),
       autoRejectJoinRequestsGroups: new Set<string>(Array.isArray((saved as any).autoRejectJoinRequestsGroups) ? (saved as any).autoRejectJoinRequestsGroups : []),
-      sudoUsers: new Set<string>(['50935975863', '50940131864', ...(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : [])]),
+      sudoUsers: new Set<string>([...OWNER_NUMBERS, ...(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : [])]),
       customCommands: loadCustomCommandsFromDisk(sessionId),
       nuleMode: saved.nuleMode !== undefined ? saved.nuleMode : false,
       botName: saved.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿',
@@ -1048,6 +1056,17 @@ export async function executeBotCommand(
     clean === 'setmenuimage' ||
     clean === 'setmenuimageall' ||
     clean === 'setmenuimageall=' ||
+    clean === 'setmenuvideo' ||
+    clean === 'selmenuvideo' ||
+    clean === 'selmenuimage' ||
+    clean === 'setimageall' ||
+    clean === 'setvideoall' ||
+    clean === 'testowner' ||
+    clean === 'isowner' ||
+    clean === 'checkowner' ||
+    clean === 'bot' ||
+    clean.startsWith('set') ||
+    clean.startsWith('sel') ||
     clean === 'creator1' ||
     clean === 'creator2' ||
     clean === 'dev1' ||
@@ -1262,14 +1281,47 @@ async function executeBotCommandInternal(
     return usefulReply;
   }
 
-  const setMediaRegex = /^set([a-z0-9]+)(image|video)$/i;
-  const setAllMediaRegex = /^set(image|video)all$/i;
+  const setMediaRegex = /^(?:set|sel)([a-z0-9]+)(image|video)$/i;
+  const setAllMediaRegex = /^(?:set|sel)(image|video)all$/i;
+  const setAltAllMediaRegex = /^(?:set|sel)all(image|video)$/i;
+  const setAltMediaRegex = /^(?:set|sel)(image|video)([a-z0-9]+)$/i;
+
   const setMediaMatch = cleanCmd.match(setMediaRegex);
   const setAllMediaMatch = cleanCmd.match(setAllMediaRegex);
+  const setAltAllMediaMatch = cleanCmd.match(setAltAllMediaRegex);
+  const setAltMediaMatch = cleanCmd.match(setAltMediaRegex);
 
-  if (setMediaMatch || setAllMediaMatch) {
-    const targetCmd = setMediaMatch ? setMediaMatch[1].toLowerCase().trim() : 'all';
-    const mediaType = setMediaMatch ? setMediaMatch[2].toLowerCase().trim() : setAllMediaRegex[1].toLowerCase().trim(); // 'image' or 'video'
+  if (setMediaMatch || setAllMediaMatch || setAltAllMediaMatch || setAltMediaMatch) {
+    let targetCmd = 'all';
+    let mediaType = 'image';
+
+    if (setMediaMatch) {
+      targetCmd = setMediaMatch[1].toLowerCase().trim();
+      mediaType = setMediaMatch[2].toLowerCase().trim();
+    } else if (setAllMediaMatch) {
+      targetCmd = 'all';
+      mediaType = setAllMediaMatch[1].toLowerCase().trim();
+    } else if (setAltAllMediaMatch) {
+      targetCmd = 'all';
+      mediaType = setAltAllMediaMatch[1].toLowerCase().trim();
+    } else if (setAltMediaMatch) {
+      targetCmd = setAltMediaMatch[2].toLowerCase().trim();
+      mediaType = setAltMediaMatch[1].toLowerCase().trim();
+    }
+
+    // Owner check: Seuls les propriétaires autorisés peuvent configurer les médias du bot
+    const cleanSender = (senderJid || '').replace(/\D/g, '');
+    const isFromMe = !!msg?.key?.fromMe;
+    const isCallerOwner =
+      isFromMe ||
+      isOwnerNumber(senderJid, sessionPhone) ||
+      isOwnerNumber(cleanSender, sessionPhone) ||
+      isUserProtected(senderJid || '', sessionPhone) ||
+      isUserSudo(cleanSender, sessionId);
+
+    if (!isCallerOwner) {
+      return `*╭─❖━━━ ⟣ ⟣ ⟣ ${BOT_NAME} ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n*┇*🔹┋ Seul le propriétaire du bot a le contrôle sur la configuration des médias de commande.\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+    }
 
     try {
       let isVideo = mediaType === 'video';
@@ -1277,9 +1329,9 @@ async function executeBotCommandInternal(
       let mimeType = isVideo ? 'video/mp4' : 'image/jpeg';
 
       // 1. Detect media from message or quoted message
-      const contextInfo = msg.message?.extendedTextMessage?.contextInfo ||
-                          msg.message?.imageMessage?.contextInfo ||
-                          msg.message?.videoMessage?.contextInfo;
+      const contextInfo = msg?.message?.extendedTextMessage?.contextInfo ||
+                          msg?.message?.imageMessage?.contextInfo ||
+                          msg?.message?.videoMessage?.contextInfo;
       const quoted = contextInfo?.quotedMessage;
       
       if (quoted) {
@@ -1297,21 +1349,21 @@ async function executeBotCommandInternal(
           mimeType = payload.imageMessage.mimetype || 'image/jpeg';
         }
 
-        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+        const media = await getMessageOrQuotedMedia(msg, remoteJid || '').catch(() => null);
         if (media && media.buffer && media.buffer.length > 0) {
           mediaBuf = media.buffer;
         }
-      } else if (msg.message?.imageMessage) {
+      } else if (msg?.message?.imageMessage) {
         isVideo = false;
         mimeType = msg.message.imageMessage.mimetype || 'image/jpeg';
-        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+        const media = await getMessageOrQuotedMedia(msg, remoteJid || '').catch(() => null);
         if (media && media.buffer && media.buffer.length > 0) {
           mediaBuf = media.buffer;
         }
-      } else if (msg.message?.videoMessage) {
+      } else if (msg?.message?.videoMessage) {
         isVideo = true;
         mimeType = msg.message.videoMessage.mimetype || 'video/mp4';
-        const media = await getMessageOrQuotedMedia(msg, remoteJid).catch(() => null);
+        const media = await getMessageOrQuotedMedia(msg, remoteJid || '').catch(() => null);
         if (media && media.buffer && media.buffer.length > 0) {
           mediaBuf = media.buffer;
         }
@@ -1355,15 +1407,39 @@ async function executeBotCommandInternal(
         const menuVideoPath = path.join(MEDIA_ROOT, 'global_menu_video.mp4');
 
         if (isVideo) {
-          if (fs.existsSync(menuImagePath)) fs.unlinkSync(menuImagePath);
+          if (fs.existsSync(menuImagePath)) {
+            try { fs.unlinkSync(menuImagePath); } catch {}
+          }
           fs.writeFileSync(menuVideoPath, mediaBuf);
+
+          // Copy to public/ and root
+          try {
+            const pubVid = path.join(process.cwd(), 'public', 'menu_video.mp4');
+            fs.writeFileSync(pubVid, mediaBuf);
+          } catch {}
+          try {
+            const rootVid = path.join(process.cwd(), 'menu_video.mp4');
+            fs.writeFileSync(rootVid, mediaBuf);
+          } catch {}
           
-          return `🎬 *Vidéo de menu enregistrée de façon permanente pour tout le bot !*`;
+          return `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour tout le bot !*`;
         } else {
-          if (fs.existsSync(menuVideoPath)) fs.unlinkSync(menuVideoPath);
+          if (fs.existsSync(menuVideoPath)) {
+            try { fs.unlinkSync(menuVideoPath); } catch {}
+          }
           fs.writeFileSync(menuImagePath, mediaBuf);
+
+          // Copy to public/ and root
+          try {
+            const pubImg = path.join(process.cwd(), 'public', 'menu_image.jpg');
+            fs.writeFileSync(pubImg, mediaBuf);
+          } catch {}
+          try {
+            const rootImg = path.join(process.cwd(), 'menu_image.jpg');
+            fs.writeFileSync(rootImg, mediaBuf);
+          } catch {}
           
-          return `🖼️ *Image de menu enregistrée de façon permanente pour tout le bot !*`;
+          return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour tout le bot !*`;
         }
       } else {
         // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---
@@ -1436,6 +1512,32 @@ async function executeBotCommandInternal(
   }
 
   switch (cleanCmd) {
+    // ----------------------------------------------------
+    // OWNER VALIDATION / TESTING COMMANDS
+    // ----------------------------------------------------
+    case 'testowner':
+    case 'isowner':
+    case 'checkowner': {
+      const cleanSender = (senderJid || '').replace(/\D/g, '');
+      const isFromMe = !!msg?.key?.fromMe;
+      const recognized =
+        isFromMe ||
+        isOwnerNumber(senderJid, sessionPhone) ||
+        isOwnerNumber(cleanSender, sessionPhone) ||
+        isUserProtected(senderJid || '', sessionPhone) ||
+        isUserSudo(cleanSender, sessionId);
+
+      return `*╭─❖━━━ ⟣ ⟣ ⟣ ${BOT_NAME} ⟣ ⟣ ⟣━━━❖*
+*┇*🔹╭───────────────
+*┇*🔹┋. 👑 *VÉRIFICATION DU STATUT OWNER*
+*┇*🔹┋. 📱 *Votre Numéro :* ${cleanSender ? '+' + cleanSender : (isFromMe ? 'Session active (fromMe)' : 'Non détecté')}
+*┇*🔹┋. ⚡ *Reconnu comme Owner :* ${recognized ? 'OUI ✅ (Accès Total Accordé)' : 'NON ❌ (Accès Restreint)'}
+*┇*🔹┋. 📋 *Owners configurés :* ${OWNER_NUMBERS.map((n) => '+' + n).join(', ')}
+*┇*🔹┋. 🔒 *Numéro session :* ${sessionPhone ? '+' + sessionPhone.replace(/\D/g, '') : 'Non défini'}
+*┇*🔹╰───────────────⊷
+*╰━━━━━━━━━━━━━━━━━❖*`;
+    }
+
     // ----------------------------------------------------
     // MAIN COMMANDS
     // ----------------------------------------------------
@@ -1714,19 +1816,19 @@ async function executeBotCommandInternal(
     case 'list': {
       const listText = `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${state.botName || '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓'}
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${state.botName || BOT_NAME}
 *┋✦┋. ᴍᴏᴅᴜʟᴇs:* 8 ᴄᴀᴛᴇ́ɢᴏʀɪᴇs
-*┋✦┋. ᴏᴡɴᴇʀ:* 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕
+*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return listText;
     }
 
     case 'bot': {
-      return `╭─❖━━━ 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ━━━❖
+      return `╭─❖━━━ ${BOT_NAME} ━━━❖
 ┇✦╭───────────────
 ┇✦┋24/24 7/7 🥷
-┇✦┋https://kaydobotv2.up.railway.app/
+┇✦┋${BOT_NAME} Officiel
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖`;
     }
@@ -3142,7 +3244,7 @@ async function executeBotCommandInternal(
       if (!isGroup || !remoteJid) {
         return `╭─━━━━━━━━━━━━━━━⊷❖
 ┇✦╭───────────────╮
-┋✧┋. ʙᴏᴛ: 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓
+┋✧┋. ʙᴏᴛ: ${BOT_NAME}
 ┋✧┋. ᴜsᴀɢᴇ: *.antisticker* (ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ)
 ┋✧┋. ᴏᴘᴛɪᴏɴs: *.antisticker on* / *.antisticker off*
 ┇✧╰───────────────╯
@@ -3152,7 +3254,10 @@ async function executeBotCommandInternal(
       try {
         const cleanSender = (senderJid || '').replace(/[^0-9]/g, '');
         const isOwner =
-          cleanSender.includes('50935975863') ||
+          isOwnerNumber(senderJid, sessionPhone) ||
+          isOwnerNumber(cleanSender, sessionPhone) ||
+          cleanSender.includes(OWNER_1) ||
+          cleanSender.includes(OWNER_2) ||
           (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
           isUserProtected(senderJid, sessionPhone);
 
@@ -3225,7 +3330,7 @@ async function executeBotCommandInternal(
       if (!isGroup || !remoteJid) {
         return `╭─━━━━━━━━━━━━━━━⊷❖
 ┇✦╭───────────────╮
-┋✧┋. ʙᴏᴛ: 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓
+┋✧┋. ʙᴏᴛ: ${BOT_NAME}
 ┋✧┋. ᴜsᴀɢᴇ: *.antibot* (ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ)
 ┋✧┋. ᴏᴘᴛɪᴏɴs: *.antibot on* / *.antibot off*
 ┇✧╰───────────────╯
@@ -3235,7 +3340,10 @@ async function executeBotCommandInternal(
       try {
         const cleanSender = (senderJid || '').replace(/[^0-9]/g, '');
         const isOwner =
-          cleanSender.includes('50935975863') ||
+          isOwnerNumber(senderJid, sessionPhone) ||
+          isOwnerNumber(cleanSender, sessionPhone) ||
+          cleanSender.includes(OWNER_1) ||
+          cleanSender.includes(OWNER_2) ||
           (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
           isUserProtected(senderJid, sessionPhone);
 
@@ -3309,7 +3417,7 @@ async function executeBotCommandInternal(
       if (!isGroup || !remoteJid) {
         return `╭─━━━━━━━━━━━━━━━⊷❖
 ┇✦╭───────────────╮
-┋✧┋. ʙᴏᴛ: 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓
+┋✧┋. ʙᴏᴛ: ${BOT_NAME}
 ┋✧┋. ᴜsᴀɢᴇ: *.antimsg* (ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ)
 ┋✧┋. ᴏᴘᴛɪᴏɴs: *.antimsg on* / *.antimsg off*
 ┇✧╰───────────────╯
@@ -3319,7 +3427,10 @@ async function executeBotCommandInternal(
       try {
         const cleanSender = (senderJid || '').replace(/[^0-9]/g, '');
         const isOwner =
-          cleanSender.includes('50935975863') ||
+          isOwnerNumber(senderJid, sessionPhone) ||
+          isOwnerNumber(cleanSender, sessionPhone) ||
+          cleanSender.includes(OWNER_1) ||
+          cleanSender.includes(OWNER_2) ||
           (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
           isUserProtected(senderJid, sessionPhone);
 
@@ -4580,7 +4691,11 @@ const KNOWN_COMMANDS = new Set([
   'dl', 'download', 'get', 'shorts', 'ytshorts', 'pin', 'snapchat', 'snap', 'threads', 'reddit', 'twitch',
   'soundcloud', 'sc', 'spotify', 'linkedin', 'vimeo', 'dailymotion', 'tumblr', 'likee', 'kwai', 'capcut', 'telegram', 'tg',
   'direct', 'media', 'url',
-  'anticall', 'autoreact', 'setbotname', 'setbotpp', 'setmenuimage',
+  'anticall', 'autoreact', 'setbotname', 'setbotpp',
+  'setmenuimage', 'setmenuvideo', 'selmenuimage', 'selmenuvideo',
+  'setimageall', 'setvideoall', 'setallimage', 'setallvideo',
+  'setmenuimageall', 'setmenuvideoall', 'setimagemenu', 'setvideomenu',
+  'testowner', 'isowner', 'checkowner',
   'crash-wa', 'kaydo-wa',
   'restore', 'restoresessions', 'reconnect', 'reconnectall',
   'setprefix', 'broadcast', 'grouplink', 'groupstatus', 'setgname', 'setgroupname', 'setname', 'setgpp', 'setgrouppp', 'setgicon', 'admins', 'admin', 'listadmin', 'listadmins',
@@ -4619,8 +4734,10 @@ async function isParticipantAdmin(sock: any, groupJid: string, participantJid: s
     const normParticipant = jidNormalizedUser(participantJid);
     const cleanSender = normParticipant.replace(/[^0-9]/g, '');
     if (
-      cleanSender.includes('50935975863') ||
-      cleanSender.includes('50940131864') ||
+      isOwnerNumber(normParticipant, sessionPhone) ||
+      isOwnerNumber(cleanSender, sessionPhone) ||
+      cleanSender.includes(OWNER_1) ||
+      cleanSender.includes(OWNER_2) ||
       (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, '')))
     ) {
       return true;
@@ -4665,7 +4782,10 @@ function isParticipantAdminSync(groupJid: string, participantJid: string, sessio
     const normParticipant = jidNormalizedUser(participantJid);
     const cleanSender = normParticipant.replace(/[^0-9]/g, '');
     if (
-      cleanSender.includes('50935975863') ||
+      isOwnerNumber(normParticipant, sessionPhone) ||
+      isOwnerNumber(cleanSender, sessionPhone) ||
+      cleanSender.includes(OWNER_1) ||
+      cleanSender.includes(OWNER_2) ||
       (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, '')))
     ) {
       return true;
@@ -5999,6 +6119,8 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       // "quand un utilisateur fait une commande qui n'est pas dans le bot le bot doit l'ignorer, il ne doit rien lui dire, même pas réagir"
       const isKnownCommand =
         KNOWN_COMMANDS.has(cmd) ||
+        /^(?:set|sel)([a-z0-9]+)?(image|video)(all)?$/i.test(cmd) ||
+        /^(?:set|sel)all(image|video)$/i.test(cmd) ||
         cmd.startsWith('excuse') ||
         cmd.startsWith('pardon') ||
         cmd.startsWith('apology') ||
@@ -6022,8 +6144,10 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       const isSudoUser = isUserSudo(cleanSender, sessionId);
       const isOwner =
         isFromMe ||
-        cleanSender.includes('50935975863') ||
-        cleanSender.includes('50940131864') ||
+        isOwnerNumber(senderJid, session.phone) ||
+        isOwnerNumber(cleanSender, session.phone) ||
+        cleanSender.includes(OWNER_1) ||
+        cleanSender.includes(OWNER_2) ||
         (effectiveSessionPhone && cleanSender.includes(effectiveSessionPhone)) ||
         (!isGroup && effectiveSessionPhone && cleanSender === effectiveSessionPhone) ||
         isUserProtected(senderJid, session.phone) ||

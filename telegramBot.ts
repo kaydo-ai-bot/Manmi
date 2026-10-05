@@ -2,33 +2,38 @@ import fs from 'fs';
 import path from 'path';
 import { Telegraf } from 'telegraf';
 
-const BOT_NAME = '𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓';
+import { BOT_NAME as CONFIG_BOT_NAME, OWNER_1, OWNER_2 } from './src/server/config';
+
+const BOT_NAME = CONFIG_BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
 const OWNER_1_NAME = '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶';
-const OWNER_1_CONTACT = '50935975863';
+const OWNER_1_CONTACT = OWNER_1;
 const OWNER_2_NAME = '𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶';
-const OWNER_2_CONTACT = '50940131864';
+const OWNER_2_CONTACT = OWNER_2;
 const OWNER_NAME = '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶';
-const OWNER_CONTACT = '+509 3597 5863 / +509 4013 1864';
+const OWNER_CONTACT = `+${OWNER_1} / +${OWNER_2}`;
 
 const NEW_OFFICIAL_PHOTO_PATH = path.join(process.cwd(), 'src', 'assets', 'images', 'kaydo_law_bot_official_1790678745856.jpg');
 const OFFICIAL_PHOTO_PATH = path.join(process.cwd(), 'public', 'menu_image.jpg');
 const FALLBACK_PHOTO_PATH = path.join(process.cwd(), 'menu_image.jpg');
 
-function getPhotoSource(): string | { source: Buffer } {
+function getPhotoSource(): { source: fs.ReadStream } | null {
   try {
+    let p = null;
     if (fs.existsSync(NEW_OFFICIAL_PHOTO_PATH)) {
-      return NEW_OFFICIAL_PHOTO_PATH;
+      p = NEW_OFFICIAL_PHOTO_PATH;
+    } else if (fs.existsSync(OFFICIAL_PHOTO_PATH)) {
+      p = OFFICIAL_PHOTO_PATH;
+    } else if (fs.existsSync(FALLBACK_PHOTO_PATH)) {
+      p = FALLBACK_PHOTO_PATH;
     }
-    if (fs.existsSync(OFFICIAL_PHOTO_PATH)) {
-      return OFFICIAL_PHOTO_PATH;
-    }
-    if (fs.existsSync(FALLBACK_PHOTO_PATH)) {
-      return FALLBACK_PHOTO_PATH;
+    
+    if (p) {
+      return { source: fs.createReadStream(p) };
     }
   } catch (e) {
     console.warn('[TELEGRAM] Error reading photo path:', e);
   }
-  return OFFICIAL_PHOTO_PATH;
+  return null;
 }
 
 export function initTelegramBot(): Telegraf | null {
@@ -41,6 +46,13 @@ export function initTelegramBot(): Telegraf | null {
 
   try {
     const bot = new Telegraf(token.trim());
+
+    const escapeHtml = (text: string) => {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    };
 
     // Helper to send reply with the official Kaydo Bot photo
     const replyWithOfficialPhoto = async (ctx: any, caption: string, shouldReact: boolean = true) => {
@@ -59,7 +71,6 @@ export function initTelegramBot(): Telegraf | null {
       try {
         await ctx.replyWithPhoto(photoObj, {
           caption,
-          parse_mode: 'HTML',
         });
       } catch (err) {
         console.warn('[TELEGRAM] Erreur envoi photo HTML, tentative sans HTML:', err);
@@ -93,125 +104,30 @@ Tapez /menu pour voir la liste des commandes.`;
     });
 
     // /menu & /help
-    bot.command(['menu', 'help', 'allcmd'], async (ctx) => {
-      const caption = `╭─━━━━━━━━━━━━━━━⊷❖
-┇✦╭───────────────╮
-┋✦┋. <b>ʙᴏᴛ ɴᴀᴍᴇ:</b> ${BOT_NAME}
-┋✦┋. <b>ᴏᴡɴᴇʀ:</b> ${OWNER_NAME}
-┋✦┋. <b>ᴘʟᴀᴛғᴏʀᴍ:</b> ᴛᴇʟᴇɢʀᴀᴍ
-┋✦┋. <b>ᴍᴏᴅᴇ:</b> ᴘᴜʙʟɪᴄ 🟢
-┋✦┋. <b>sᴛᴀᴛᴜs:</b> ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ 24/7
-┇✦╰───────────────╯
-╰━━━━━━━━━━━━━━━━━❖
+    // /menu & /help
+    bot.command(["menu", "help", "allcmd"], async (ctx) => {
+      const caption = `╭─❖━━━ ${BOT_NAME} • MENU ━━━❖
+┇✦╭───────────────
+┋✦┋. 🤖 <b>ʙᴏᴛ :</b> ${BOT_NAME}
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ :</b> ${OWNER_NAME}
+┋✦┋. 🌐 <b>ᴘʟᴀᴛғᴏʀᴍ :</b> ᴛᴇʟᴇɢʀᴀᴍ
+┇✦╰───────────────⊷
 
-╭─❖━━━ ɢʀᴏᴜᴘ ━━━❖
-┇✦┋. /kickall
-┇✦┋. /purge
-┇✦┋. /left
-┇✦┋. /add
-┇✦┋. /kick
-┇✦┋. /promote
-┇✦┋. /demote
-┇✦┋. /mute
-┇✦┋. /unmute
-┇✦┋. /tagall
-┇✦┋. /hidetag
-┇✦┋. /warn
-┇✦┋. /resetwarn
-┇✦┋. /delete
-┇✦┋. /clean
-┇✦┋. /welcome
-┇✦┋. /goodbye
-┇✦┋. /grouplink
-┇✦┋. /groupinfo
-┇✦┋. /groupstats
-┇✦┋. /antilink
-┇✦┋. /antitag
-┇✦┋. /antigroupmention
-┇✦┋. /antisticker
-┇✦┋. /antimessage
-╰━━━━━━━━━━━━━━━━━❖
-
-╭─❖━━━ ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ ━━━❖
-┇✦┋. /autolikestatus
-┇✦┋. /autostatus
-┇✦┋. /autoviewstatus
-┇✦┋. /autosavestatus
-┇✦┋. /autotyping
-┇✦┋. /autorecording
-┇✦┋. /autosticker
-┇✦┋. /online
-┇✦┋. /offline
-┇✦┋. /vv
-┇✦┋. /vv2
-┇✦┋. /gstatus
-┇✦┋. /pair
-╰━━━━━━━━━━━━━━━━━❖
-
-╭─❖━━━ ᴍᴀɪɴ ━━━❖
+╭─❖━━━ ⟣ ⟣ ⟣ ᴍᴀɪɴ ⟣ ⟣ ⟣━━━❖
 ┇✦┋. /ping
-┇✦┋. /uptime
-┇✦┋. /runtime
-┇✦┋. /menu
-┇✦┋. /owner
 ┇✦┋. /alive
-┇✦┋. /list
-┇✦┋. /getpp
-┇✦┋. /qr
-┇✦┋. /simage
-┇✦┋. /sticker
-┇✦┋. /take
+┇✦┋. /owner
+┇✦┋. /menu
 ╰━━━━━━━━━━━━━━━━━❖
 
-╭─❖━━━ ᴍᴇᴅɪᴀ ━━━❖
+╭─❖━━━ ⟣ ⟣ ⟣ ᴍᴇᴅɪᴀ ⟣ ⟣ ⟣━━━❖
 ┇✦┋. /dl <url>
-┇✦┋. /song <titre>
-┇✦┋. /ytvideo <titre>
 ┇✦┋. /tiktok <url>
-┇✦┋. /shorts <url>
 ┇✦┋. /instagram <url>
-┇✦┋. /facebook <url>
-┇✦┋. /twitter <url>
-┇✦┋. /pinterest <url>
-┇✦┋. /snapchat <url>
-┇✦┋. /threads <url>
-┇✦┋. /reddit <url>
-┇✦┋. /twitch <url>
-┇✦┋. /soundcloud <url>
-┇✦┋. /spotify <url>
-┇✦┋. /linkedin <url>
-┇✦┋. /vimeo <url>
-┇✦┋. /dailymotion <url>
-┇✦┋. /tumblr <url>
-┇✦┋. /likee <url>
-┇✦┋. /kwai <url>
-┇✦┋. /capcut <url>
 ┇✦┋. /telegram <url>
-┇✦┋. /direct <url>
-┇✦┋. /lyrics
 ╰━━━━━━━━━━━━━━━━━❖
 
-╭─❖━━━ ғᴜɴ & ᴀɴɪᴍᴇ ━━━❖
-┇✦┋. /joke
-┇✦┋. /meme
-┇✦┋. /memesearch
-┇✦┋. /truth
-┇✦┋. /dare
-┇✦┋. /flirt
-┇✦┋. /compliment
-┇✦┋. /insult
-┇✦┋. /bomb
-┇✦┋. /ship
-┇✦┋. /tictactoe
-┇✦┋. /gayrate
-┇✦┋. /pies
-┇✦┋. /waifu
-┇✦┋. /neko
-┇✦┋. /random
-┇✦┋. /konachan
-╰━━━━━━━━━━━━━━━━━❖
-
-®2026 © MADE IN BY 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓`;
+®2026 © MADE IN BY ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿`;
       await replyWithOfficialPhoto(ctx, caption);
     });
 

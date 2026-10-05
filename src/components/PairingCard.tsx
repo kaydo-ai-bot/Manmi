@@ -227,7 +227,7 @@ export const PairingCard: React.FC<PairingCardProps> = ({
           >
             <img
               src="https://files.catbox.moe/9u2j5v.png"
-              alt="KAYDO BOT V2"
+              alt="≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover rounded-full"
               onError={(e) => {
@@ -247,8 +247,8 @@ export const PairingCard: React.FC<PairingCardProps> = ({
             <span>PAIRING PORTAL</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
-            KAYDO BOT V2 <span style={{ color: currentTheme.colorHex }}>𓃶</span>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-mono uppercase">
+            ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 font-medium">

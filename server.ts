@@ -105,7 +105,7 @@ const notifications: SecurityAlert[] = [
     timestamp: new Date(Date.now() - 3600000).toISOString().replace('T', ' ').substring(0, 19),
     type: 'SYSTEM_INFO',
     level: 'info',
-    title: 'Noyau KAYDO BOT V2 𓃶 Démarré',
+    title: 'Noyau ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 Démarré',
     message: 'Passerelle WhatsApp Baileys MD activée. Architecture multi-device synchronisée.',
     read: false,
   },

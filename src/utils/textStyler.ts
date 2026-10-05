@@ -284,7 +284,6 @@ export function generateOfficialMenu(
 *┇*🔹┋. ${p}autoreact
 *┇*🔹┋. ${p}setbotname <nom>
 *┇*🔹┋. ${p}setbotpp [répondre]
-*┇*🔹┋. ${p}setmenuimage [répondre]
 *┇*🔹┋. ${p}setprefix <symbole>
 *┇*🔹┋. ${p}mycommands
 *┇*🔹┋. ${p}newcommand

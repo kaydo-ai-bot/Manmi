@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             type="button"
             onClick={() => setActiveTab('pair')}
             className="flex items-center cursor-pointer group"
-            title="KAYDO BOT V2"
+            title="≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿"
           >
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center p-0.5 border shadow-md transition-all group-hover:scale-105 overflow-hidden"

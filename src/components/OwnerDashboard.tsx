@@ -227,15 +227,15 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         </div>
       )}
 
-      {/* Header : KAYDO BOT V2 𓃶 / OWNER PANEL */}
+      {/* Header : ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 / OWNER PANEL */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[#0a0b16]/90 border border-slate-800/90 backdrop-blur-2xl">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-widest uppercase text-purple-400">
             <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
             <span>ACCÈS EXCLUSIF SÉCURISÉ</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white flex items-center gap-2">
-            <span>KAYDO BOT V2 𓃶</span>
+          <h1 className="text-xl sm:text-2xl font-black font-mono tracking-tight text-white flex items-center gap-2">
+            <span>≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿</span>
             <span className="text-slate-500 text-lg font-normal">/</span>
             <span style={{ color: currentTheme.colorHex }}>OWNER PANEL</span>
           </h1>
