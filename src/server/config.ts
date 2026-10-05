@@ -20,6 +20,8 @@ export const OWNER_NUMBERS: string[] = Array.from(
 );
 
 const BOT_NAME_FILE = path.join(process.cwd(), 'data', 'bot_name.txt');
+const BOT_MODE_FILE = path.join(process.cwd(), 'data', 'bot_mode.txt');
+const BOT_PREFIX_FILE = path.join(process.cwd(), 'data', 'bot_prefix.txt');
 
 function loadPersistedBotName(): string {
   try {
@@ -31,7 +33,29 @@ function loadPersistedBotName(): string {
   return process.env.BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
 }
 
+function loadPersistedBotMode(): 'public' | 'private' {
+  try {
+    if (fs.existsSync(BOT_MODE_FILE)) {
+      const mode = fs.readFileSync(BOT_MODE_FILE, 'utf-8').trim().toLowerCase();
+      if (mode === 'public' || mode === 'private') return mode;
+    }
+  } catch {}
+  return (process.env.BOT_MODE as 'public' | 'private') || 'public';
+}
+
+function loadPersistedPrefix(): string {
+  try {
+    if (fs.existsSync(BOT_PREFIX_FILE)) {
+      const p = fs.readFileSync(BOT_PREFIX_FILE, 'utf-8').trim();
+      return p;
+    }
+  } catch {}
+  return process.env.PREFIX !== undefined ? process.env.PREFIX : '.';
+}
+
 let activeBotName = loadPersistedBotName();
+let activeBotMode: 'public' | 'private' = loadPersistedBotMode();
+let activePrefix = loadPersistedPrefix();
 
 export function getBotName(): string {
   return activeBotName;
@@ -48,6 +72,38 @@ export function setGlobalBotName(newName: string): void {
     fs.writeFileSync(BOT_NAME_FILE, trimmed, 'utf-8');
   } catch (err) {
     console.warn('[BOT_NAME] Error saving bot name to disk:', err);
+  }
+}
+
+export function getGlobalBotMode(): 'public' | 'private' {
+  return activeBotMode;
+}
+
+export function setGlobalBotMode(newMode: 'public' | 'private'): void {
+  activeBotMode = newMode;
+  process.env.BOT_MODE = newMode;
+  try {
+    const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(BOT_MODE_FILE, newMode, 'utf-8');
+  } catch (err) {
+    console.warn('[BOT_MODE] Error saving bot mode to disk:', err);
+  }
+}
+
+export function getGlobalPrefix(): string {
+  return activePrefix;
+}
+
+export function setGlobalPrefix(newPrefix: string): void {
+  activePrefix = newPrefix;
+  process.env.PREFIX = newPrefix;
+  try {
+    const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(BOT_PREFIX_FILE, newPrefix, 'utf-8');
+  } catch (err) {
+    console.warn('[BOT_PREFIX] Error saving prefix to disk:', err);
   }
 }
 

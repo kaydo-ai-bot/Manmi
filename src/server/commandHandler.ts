@@ -126,13 +126,13 @@ export function performOneTimeSessionResetIfPending(): void {
             } catch {}
           }
 
-          parsed.botName = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
-          parsed.prefix = '.';
+          parsed.botName = getBotName();
+          parsed.prefix = parsed.prefix !== undefined ? parsed.prefix : getGlobalPrefix();
           parsed.alwaysOnline = true;
           parsed.autoStatusView = true;
           parsed.autoLikeEnabled = true;
           parsed.autoLikeEmoji = '🥷🏿';
-          parsed.botMode = 'public';
+          parsed.botMode = parsed.botMode || getGlobalBotMode();
           parsed.offlineMode = false;
           parsed.offlineGhostMode = false;
           delete parsed.customMenuImageBase64;
@@ -148,12 +148,13 @@ export function performOneTimeSessionResetIfPending(): void {
 
     // Update all in-memory states
     for (const state of sessionStates.values()) {
-      state.botName = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
+      state.botName = getBotName();
+      state.prefix = state.prefix !== undefined ? state.prefix : getGlobalPrefix();
       state.alwaysOnline = true;
       state.autoStatusView = true;
       state.autoLikeEnabled = true;
       state.autoLikeEmoji = '🥷🏿';
-      state.botMode = 'public';
+      state.botMode = state.botMode || getGlobalBotMode();
       state.offlineMode = false;
       state.offlineGhostMode = false;
       state.customMenuImageBuffer = undefined;
@@ -678,7 +679,7 @@ const reactedStatusIds = new Set<string>();
 let lastStatusReactionTime = 0;
 const lastCommandExecutionTime = new Map<string, number>();
 
-import { OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME, getBotName, setGlobalBotName, isOwnerNumber } from './config';
+import { OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME, getBotName, setGlobalBotName, getGlobalBotMode, setGlobalBotMode, getGlobalPrefix, setGlobalPrefix, isOwnerNumber } from './config';
 
 /**
  * Checks if a phone or JID belongs to the user/owner and is strictly protected
@@ -722,7 +723,7 @@ export function getSessionState(sessionId: string): SessionState {
   if (!sessionStates.has(sessionId)) {
     const saved = loadSessionSettingsFromDisk(sessionId);
     sessionStates.set(sessionId, {
-      prefix: saved.prefix !== undefined ? saved.prefix : '.',
+      prefix: saved.prefix !== undefined ? saved.prefix : getGlobalPrefix(),
       prefixResetNoticeSent: (saved as any).prefixResetNoticeSent || false,
       alwaysOnline: saved.alwaysOnline !== undefined ? saved.alwaysOnline : true,
       offlineGhostMode: saved.offlineGhostMode !== undefined ? saved.offlineGhostMode : false,
@@ -739,7 +740,7 @@ export function getSessionState(sessionId: string): SessionState {
       antiLink: saved.antiLink !== undefined ? saved.antiLink : false,
       antiTag: saved.antiTag !== undefined ? saved.antiTag : false,
       antiGroupMention: saved.antiGroupMention !== undefined ? saved.antiGroupMention : false,
-      botMode: (saved.botMode as any) || 'public',
+      botMode: (saved.botMode as any) || getGlobalBotMode(),
       antiCall: saved.antiCall !== undefined ? saved.antiCall : false,
       welcomeGroups: new Set<string>(Array.isArray(saved.welcomeGroups) ? saved.welcomeGroups : []),
       goodbyeGroups: new Set<string>(Array.isArray(saved.goodbyeGroups) ? saved.goodbyeGroups : []),
@@ -753,7 +754,7 @@ export function getSessionState(sessionId: string): SessionState {
       sudoUsers: new Set<string>([...OWNER_NUMBERS, ...(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : [])]),
       customCommands: loadCustomCommandsFromDisk(sessionId),
       nuleMode: saved.nuleMode !== undefined ? saved.nuleMode : false,
-      botName: saved.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿',
+      botName: saved.botName || getBotName(),
       customMenuImageBuffer: saved.customMenuImageBase64 ? Buffer.from(saved.customMenuImageBase64, 'base64') : undefined,
       autoStatusReply: (saved as any).autoStatusReply !== undefined ? (saved as any).autoStatusReply : false,
       statusReplyText: (saved as any).statusReplyText || '🤗',
@@ -3574,15 +3575,24 @@ Installe-toi bien et respecte les règles.`);
     case 'mode': {
       const targetMode = cleanCmd === 'modeprivate' ? 'private' : cleanCmd === 'modepublic' ? 'public' : cleanArgs.trim().toLowerCase();
       if (targetMode === 'private' || targetMode.includes('priv') || targetMode === 'owner' || targetMode === 'off' || targetMode.includes('ferme') || targetMode.includes('close')) {
+        setGlobalBotMode('private');
         state.botMode = 'private';
-        saveSessionSettingsToDisk(sessionId, state);
-        return `🔒 *Mode Bot* : PRIVÉ (Owner Only)`;
+        sessionStates.forEach((s, sid) => {
+          s.botMode = 'private';
+          saveSessionSettingsToDisk(sid, s);
+        });
+        return `🔒 *Mode Bot* : PRIVÉ (Owner Only - Sauvegardé de façon permanente à jamais)`;
       } else if (targetMode === 'public' || targetMode.includes('pub') || targetMode === 'all' || targetMode === 'on' || targetMode.includes('ouvert') || targetMode.includes('open')) {
+        setGlobalBotMode('public');
         state.botMode = 'public';
-        saveSessionSettingsToDisk(sessionId, state);
-        return `🌐 *Mode Bot* : PUBLIC (Accessible à tous)`;
+        sessionStates.forEach((s, sid) => {
+          s.botMode = 'public';
+          saveSessionSettingsToDisk(sid, s);
+        });
+        return `🌐 *Mode Bot* : PUBLIC (Accessible à tous - Sauvegardé de façon permanente à jamais)`;
       } else {
-        return `🛡️ *Mode actuel* : ${state.botMode.toUpperCase()} (${state.botMode === 'private' ? '🔒 PRIVÉ (Owner Only)' : '🌐 PUBLIC (Accessible à tous)'})`;
+        const curMode = state.botMode || getGlobalBotMode();
+        return `🛡️ *Mode actuel* : ${curMode.toUpperCase()} (${curMode === 'private' ? '🔒 PRIVÉ (Owner Only)' : '🌐 PUBLIC (Accessible à tous)'})`;
       }
     }
 
@@ -3652,19 +3662,29 @@ Installe-toi bien et respecte les règles.`);
     case 'setprefix': {
       const newPrefix = (args || cleanArgs || '').trim();
       if (!newPrefix) {
-        return `⚡ Préfixe actuel : [ ${state.prefix || 'aucun'} ]`;
+        return `⚡ Préfixe actuel : [ ${state.prefix || getGlobalPrefix()} ]`;
       }
       if (newPrefix === 'none' || newPrefix === 'off' || newPrefix === 'sans' || newPrefix === 'aucun') {
+        setGlobalPrefix('');
         state.prefix = '';
         state.prefixResetNoticeSent = true;
-        saveSessionSettingsToDisk(sessionId, state);
-        return `⚡ Préfixe désactivé (commandes directes).`;
+        sessionStates.forEach((s, sid) => {
+          s.prefix = '';
+          s.prefixResetNoticeSent = true;
+          saveSessionSettingsToDisk(sid, s);
+        });
+        return `⚡ Préfixe désactivé (commandes directes sans préfixe - Sauvegardé de façon permanente à jamais).`;
       }
+      setGlobalPrefix(newPrefix);
       state.prefix = newPrefix;
       state.prefixResetNoticeSent = true;
-      saveSessionSettingsToDisk(sessionId, state);
-      console.log(`[SETPREFIX] ✅ Session ${sessionId} préfixe sauvegardé définitivement: "${state.prefix}"`);
-      return `⚡ Nouveau préfixe : "${state.prefix}"`;
+      sessionStates.forEach((s, sid) => {
+        s.prefix = newPrefix;
+        s.prefixResetNoticeSent = true;
+        saveSessionSettingsToDisk(sid, s);
+      });
+      console.log(`[SETPREFIX] ✅ Préfixe sauvegardé définitivement et appliqué à toutes les sessions: "${newPrefix}"`);
+      return `⚡ Nouveau préfixe : "${newPrefix}" (Sauvegardé de façon permanente à jamais sur tout le bot)`;
     }
 
     case 'nule':

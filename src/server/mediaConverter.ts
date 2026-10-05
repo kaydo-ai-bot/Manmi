@@ -162,36 +162,55 @@ export async function createTextSticker(
 }
 
 /**
- * Converts an animated WebP sticker to an MP4 video buffer.
+ * Converts any WebP sticker (animated or static) to a high quality MP4 video buffer.
  */
 export async function convertStickerToVideo(webpBuffer: Buffer): Promise<Buffer> {
-  const inputPath = path.join(os.tmpdir(), `stk_in_${Date.now()}.webp`);
-  const outputPath = path.join(os.tmpdir(), `stk_out_${Date.now()}.mp4`);
-  console.log(`[DEBUG] SVideo Converter - Input: "${inputPath}", Output: "${outputPath}"`);
+  const timestamp = Date.now();
+  const inputPath = path.join(os.tmpdir(), `stk_in_${timestamp}.webp`);
+  const pngPath = path.join(os.tmpdir(), `stk_frame_${timestamp}.png`);
+  const gifPath = path.join(os.tmpdir(), `stk_anim_${timestamp}.gif`);
+  const outputPath = path.join(os.tmpdir(), `stk_out_${timestamp}.mp4`);
 
   try {
     await fs.promises.writeFile(inputPath, webpBuffer);
-    
-    // Try 1: Try looping the WebP sticker into a 3s MP4 video first
-    try {
-      const ffmpegCmd = `ffmpeg -y -loop 1 -i "${inputPath}" -t 3 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -r 15 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
-      console.log(`[DEBUG] SVideo Converter - Running: ${ffmpegCmd}`);
-      await execAsync(ffmpegCmd, { timeout: 30000 });
-    } catch (err1) {
-      console.warn(`[DEBUG] SVideo Converter - Try 1 failed:`, err1);
-      // Try 2: Fallback
-      const ffmpegFallbackCmd = `ffmpeg -y -i "${inputPath}" -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -r 15 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
-      console.log(`[DEBUG] SVideo Converter - Running fallback: ${ffmpegFallbackCmd}`);
-      await execAsync(ffmpegFallbackCmd, { timeout: 30000 });
-    }
 
+    // Try 1: Direct FFmpeg conversion from WebP to MP4
+    try {
+      const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -vf "scale='min(512,iw)':'min(512,ih)':force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2" -r 20 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
+      await execAsync(ffmpegCmd, { timeout: 15000 });
+      if (fs.existsSync(outputPath) && (await fs.promises.stat(outputPath)).size > 500) {
+        return await fs.promises.readFile(outputPath);
+      }
+    } catch (_) {}
+
+    // Try 2: Convert via Sharp to animated GIF first then FFmpeg to MP4
+    try {
+      const gifBuffer = await sharp(webpBuffer, { animated: true }).gif().toBuffer().catch(() => null);
+      if (gifBuffer && gifBuffer.length > 0) {
+        await fs.promises.writeFile(gifPath, gifBuffer);
+        const ffmpegGifCmd = `ffmpeg -y -i "${gifPath}" -vf "scale='min(512,iw)':'min(512,ih)':force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2" -r 20 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
+        await execAsync(ffmpegGifCmd, { timeout: 15000 });
+        if (fs.existsSync(outputPath) && (await fs.promises.stat(outputPath)).size > 500) {
+          return await fs.promises.readFile(outputPath);
+        }
+      }
+    } catch (_) {}
+
+    // Try 3: Static sticker fallback (PNG frame looped for 3 seconds into MP4)
+    const pngBuffer = await sharp(webpBuffer).png().toBuffer();
+    await fs.promises.writeFile(pngPath, pngBuffer);
+    const ffmpegStaticCmd = `ffmpeg -y -loop 1 -i "${pngPath}" -t 3 -vf "scale='min(512,iw)':'min(512,ih)':force_original_aspect_ratio=decrease,pad=ceil(iw/2)*2:ceil(ih/2)*2" -r 20 -pix_fmt yuv420p -c:v libx264 -preset ultrafast -movflags +faststart "${outputPath}"`;
+    await execAsync(ffmpegStaticCmd, { timeout: 15000 });
     if (fs.existsSync(outputPath)) {
       return await fs.promises.readFile(outputPath);
     }
-    throw new Error('FFmpeg failed to output MP4 video');
+
+    throw new Error('Impossible de générer le fichier MP4 à partir du sticker.');
   } finally {
     try {
       if (fs.existsSync(inputPath)) await fs.promises.unlink(inputPath);
+      if (fs.existsSync(pngPath)) await fs.promises.unlink(pngPath);
+      if (fs.existsSync(gifPath)) await fs.promises.unlink(gifPath);
       if (fs.existsSync(outputPath)) await fs.promises.unlink(outputPath);
     } catch {}
   }
