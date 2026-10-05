@@ -282,7 +282,6 @@ export function generateOfficialMenu(
 *┇*🔹┋. ${p}anticall
 *┇*🔹┋. ${p}antidelete
 *┇*🔹┋. ${p}autoreact
-*┇*🔹┋. ${p}setbotname <nom>
 *┇*🔹┋. ${p}setbotpp [répondre]
 *┇*🔹┋. ${p}setprefix <symbole>
 *┇*🔹┋. ${p}mycommands

@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 /**
  * Configuration des Propriétaires et Identité de ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
  * Modifiable directement via les variables d'environnement dans .env :
@@ -16,7 +19,39 @@ export const OWNER_NUMBERS: string[] = Array.from(
   new Set([OWNER_1, OWNER_2, ...envOwnerList].filter((n) => n.length >= 7))
 );
 
-export const BOT_NAME = process.env.BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
+const BOT_NAME_FILE = path.join(process.cwd(), 'data', 'bot_name.txt');
+
+function loadPersistedBotName(): string {
+  try {
+    if (fs.existsSync(BOT_NAME_FILE)) {
+      const name = fs.readFileSync(BOT_NAME_FILE, 'utf-8').trim();
+      if (name) return name;
+    }
+  } catch {}
+  return process.env.BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
+}
+
+let activeBotName = loadPersistedBotName();
+
+export function getBotName(): string {
+  return activeBotName;
+}
+
+export function setGlobalBotName(newName: string): void {
+  const trimmed = newName.trim();
+  if (!trimmed) return;
+  activeBotName = trimmed;
+  process.env.BOT_NAME = trimmed;
+  try {
+    const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(BOT_NAME_FILE, trimmed, 'utf-8');
+  } catch (err) {
+    console.warn('[BOT_NAME] Error saving bot name to disk:', err);
+  }
+}
+
+export let BOT_NAME = activeBotName;
 
 /**
  * Vérifie avec précision si un JID, numéro ou appelant est l'un des propriétaires officiels.

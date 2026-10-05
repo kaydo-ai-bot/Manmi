@@ -262,7 +262,7 @@ export async function sendSafeMediaOrText(
   let sent: any = null;
 
   const isHeavyMedia = !!(content?.video || content?.audio || content?.sticker || content?.image || content?.document);
-  const defaultTimeout = isHeavyMedia ? 45000 : 7000;
+  const defaultTimeout = isHeavyMedia ? 10000 : 5000;
 
   const withTimeout = async (promise: Promise<any>, timeoutMs: number = defaultTimeout): Promise<any> => {
     let timer: any;
@@ -275,6 +275,16 @@ export async function sendSafeMediaOrText(
       clearTimeout(timer);
     }
   };
+
+  // Ensure content.mimetype for images and videos is strictly standards-compliant for WhatsApp servers
+  if (content && typeof content === 'object') {
+    if (content.image && (!content.mimetype || content.mimetype === 'image/jpg')) {
+      content.mimetype = 'image/jpeg';
+    }
+    if (content.video && !content.mimetype) {
+      content.mimetype = 'video/mp4';
+    }
+  }
 
   // 1. Try with quoted message if not sent by self
   if (!isFromMe && quotedMsg) {
@@ -667,7 +677,7 @@ const reactedStatusIds = new Set<string>();
 let lastStatusReactionTime = 0;
 const lastCommandExecutionTime = new Map<string, number>();
 
-import { OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME, isOwnerNumber } from './config';
+import { OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME, getBotName, setGlobalBotName, isOwnerNumber } from './config';
 
 /**
  * Checks if a phone or JID belongs to the user/owner and is strictly protected
@@ -1444,6 +1454,11 @@ async function executeBotCommandInternal(
       } else {
         // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---
         const publicDir = path.join(process.cwd(), 'public');
+        const mediaDir = path.join(process.cwd(), 'data', 'media');
+        if (!fs.existsSync(mediaDir)) {
+          try { fs.mkdirSync(mediaDir, { recursive: true }); } catch (_) {}
+        }
+
         if (isVideo) {
           // Clean old images
           const oldImages = [
@@ -1451,14 +1466,19 @@ async function executeBotCommandInternal(
             path.join(publicDir, `command_media_${targetCmd}.jpeg`),
             path.join(publicDir, `command_media_${targetCmd}.png`),
             path.join(publicDir, `command_media_${targetCmd}.webp`),
+            path.join(mediaDir, `command_media_${targetCmd}.jpg`),
+            path.join(mediaDir, `command_media_${targetCmd}.jpeg`),
+            path.join(mediaDir, `command_media_${targetCmd}.png`),
+            path.join(mediaDir, `command_media_${targetCmd}.webp`),
           ];
           for (const img of oldImages) {
             try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
           }
 
-          // Write video to public
-          const videoTarget = path.join(publicDir, `command_media_${targetCmd}.mp4`);
-          fs.writeFileSync(videoTarget, mediaBuf);
+          // Write video to public, data/media, and root
+          fs.writeFileSync(path.join(publicDir, `command_media_${targetCmd}.mp4`), mediaBuf);
+          try { fs.writeFileSync(path.join(mediaDir, `command_media_${targetCmd}.mp4`), mediaBuf); } catch (_) {}
+          try { fs.writeFileSync(path.join(process.cwd(), `command_media_${targetCmd}.mp4`), mediaBuf); } catch (_) {}
 
           // Propagate to all sessions under sessions/
           if (fs.existsSync(SESSIONS_ROOT)) {
@@ -1481,12 +1501,19 @@ async function executeBotCommandInternal(
           return `🎬 *Vidéo pour la commande .${targetCmd} enregistrée avec succès pour toutes les sessions !*`;
         } else {
           // Clean old videos
-          const oldVideo = path.join(publicDir, `command_media_${targetCmd}.mp4`);
-          try { if (fs.existsSync(oldVideo)) fs.unlinkSync(oldVideo); } catch {}
+          const oldVideos = [
+            path.join(publicDir, `command_media_${targetCmd}.mp4`),
+            path.join(mediaDir, `command_media_${targetCmd}.mp4`),
+            path.join(process.cwd(), `command_media_${targetCmd}.mp4`),
+          ];
+          for (const vid of oldVideos) {
+            try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
+          }
 
-          // Write image to public (as jpg)
-          const imgTarget = path.join(publicDir, `command_media_${targetCmd}.jpg`);
-          fs.writeFileSync(imgTarget, mediaBuf);
+          // Write image to public, data/media, and root (as jpg)
+          fs.writeFileSync(path.join(publicDir, `command_media_${targetCmd}.jpg`), mediaBuf);
+          try { fs.writeFileSync(path.join(mediaDir, `command_media_${targetCmd}.jpg`), mediaBuf); } catch (_) {}
+          try { fs.writeFileSync(path.join(process.cwd(), `command_media_${targetCmd}.jpg`), mediaBuf); } catch (_) {}
 
           // Propagate to all sessions under sessions/
           if (fs.existsSync(SESSIONS_ROOT)) {
@@ -4552,13 +4579,60 @@ Installe-toi bien et respecte les règles.`);
     }
 
     case 'setbotname': {
-      const name = cleanArgs.trim() || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
-      state.botName = name;
+      // 1. Restriction stricte aux propriétaires
+      const cleanSender = (senderJid || '').replace(/\D/g, '');
+      const isFromMe = !!msg?.key?.fromMe;
+      const isCallerOwner =
+        isFromMe ||
+        isOwnerNumber(senderJid, sessionPhone) ||
+        isOwnerNumber(cleanSender, sessionPhone) ||
+        isUserProtected(senderJid || '', sessionPhone) ||
+        isUserSudo(cleanSender, sessionId);
+
+      if (!isCallerOwner) {
+        return `*╭─❖━━━ ⟣ ⟣ ⟣ ${getBotName()} ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 🚫 *ACCÈS STRICTEMENT RÉSERVÉ AUX OWNERS* 🚫\n*┇*🔹┋ Seul le propriétaire du bot a le contrôle sur le nom du bot.\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+      }
+
+      const newName = (rawArgs || cleanArgs || '').trim();
+      if (!newName) {
+        return `❌ Veuillez fournir le nouveau nom du bot (ex: .setbotname ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿)`;
+      }
+
+      // 2. Mise à jour globale et permanente pour tout le bot
+      setGlobalBotName(newName);
+      state.botName = newName;
+
+      // Propager immédiatement à toutes les sessions actives en mémoire
+      sessionStates.forEach((s) => {
+        s.botName = newName;
+      });
+
+      // Sauvegarder sur disque pour toutes les sessions
       if (sessionId) {
-        setSessionCustomName(sessionId, name);
+        setSessionCustomName(sessionId, newName);
         saveSessionSettingsToDisk(sessionId, state);
       }
-      return toSmallCaps(`👑 *Nom du Bot mis à jour :* ${name}\n(Appliqué uniquement pour votre session)`);
+
+      const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+      if (fs.existsSync(SESSIONS_ROOT)) {
+        try {
+          const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.isDirectory()) {
+              const settingsPath = path.join(SESSIONS_ROOT, entry.name, 'settings.json');
+              if (fs.existsSync(settingsPath)) {
+                try {
+                  const data = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+                  data.botName = newName;
+                  fs.writeFileSync(settingsPath, JSON.stringify(data, null, 2), 'utf8');
+                } catch (_) {}
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  NOM DU BOT MIS À JOUR  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 *NOUVEAU NOM :* ${newName}\n*┇*🔹┋. ⚡ *STATUT :* Modifié à jamais dans tout le bot et dans toutes les réponses !\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
     }
 
     case 'antidelete': {
@@ -6246,49 +6320,50 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
           
           let sentWithMedia = false;
           try {
-            const videoPayload = getBotMenuVideoPayload();
+            // EXIGENCE FORMELLE DE L'UTILISATEUR :
+            // "et quand on fait .setmenuimage ou .setmenuvideo il doit envoyer la photo ou video avec seulement le menu pas les autre commande"
+            const isMenuCommand = (cmd === 'menu' || cmd === 'help' || cmd === 'allcmd');
             const mediaPayload = getCommandMediaPayload(cmd);
 
-            // Exclude commands that produce/send their own explicit files/stickers/downloads
-            const isMediaHeavyCommand = [
-              'sticker', 's', 'song', 'play', 'audio', 'mp3', 'video', 'ytvideo', 'mp4',
-              'tiktok', 'instagram', 'facebook', 'pinterest', 'image', 'photo', 'wallpaper',
-              'dl', 'download', 'get', 'shorts', 'ytshorts', 'send', 'save', 'send2', 'save2',
-              'vv', 'vv2', 'vo'
-            ].includes(cmd.toLowerCase());
-
-            if (!isMediaHeavyCommand && videoPayload) {
-              // Priority 1: Specific custom media for this command if set
-              const payloadToSend = mediaPayload ? (mediaPayload.video ? {
-                video: mediaPayload.video,
-                caption: formattedReply,
-                mimetype: mediaPayload.mimeType || 'video/mp4',
-              } : {
-                image: mediaPayload.image,
-                caption: formattedReply,
-                mimetype: mediaPayload.mimeType || 'image/png',
-              }) : {
-                video: videoPayload.video,
-                caption: formattedReply,
-                mimetype: videoPayload.mimetype,
-              };
-
-              const sent = await sendSafeMediaOrText(sock, chatJid, payloadToSend, msg).catch(() => null);
-              if (sent) {
-                sentWithMedia = true;
+            if (isMenuCommand) {
+              // UNIQUEMENT pour la commande .menu : vidéo de menu ou image de menu
+              const videoPayload = getBotMenuVideoPayload();
+              if (videoPayload) {
+                const sent = await sendSafeMediaOrText(sock, chatJid, {
+                  video: videoPayload.video,
+                  caption: formattedReply,
+                  mimetype: videoPayload.mimetype || 'video/mp4',
+                }, msg).catch(() => null);
+                if (sent) sentWithMedia = true;
+              } else if (mediaPayload) {
+                const sent = await sendSafeMediaOrText(sock, chatJid, mediaPayload.video ? {
+                  video: mediaPayload.video,
+                  caption: formattedReply,
+                  mimetype: 'video/mp4',
+                } : {
+                  image: mediaPayload.image,
+                  caption: formattedReply,
+                  mimetype: mediaPayload.mimeType || 'image/jpeg',
+                }, msg).catch(() => null);
+                if (sent) sentWithMedia = true;
               }
             } else if (mediaPayload) {
-              // For media heavy commands that have an explicit custom image/video set
-              const finalPayload = mediaPayload.video ? {
+              // Pour TOUTES les autres commandes (ex: .ping, .uptime, etc.) :
+              // Si un média spécifique a été configuré via .setpingimage, .setuptimevideo, etc.
+              const payloadToSend = mediaPayload.video ? {
                 video: mediaPayload.video,
                 caption: formattedReply,
-                mimetype: mediaPayload.mimeType || 'video/mp4',
+                mimetype: 'video/mp4',
               } : {
                 image: mediaPayload.image,
                 caption: formattedReply,
-                mimetype: mediaPayload.mimeType || 'image/png',
+                mimetype: mediaPayload.mimeType || 'image/jpeg',
               };
-              const sent = await sendSafeMediaOrText(sock, chatJid, finalPayload, msg).catch(() => null);
+
+              const sent = await sendSafeMediaOrText(sock, chatJid, payloadToSend, msg).catch((err) => {
+                console.warn(`[CMD MEDIA SEND] Échec envoi média pour .${cmd}:`, err?.message || err);
+                return null;
+              });
               if (sent) {
                 sentWithMedia = true;
               }

@@ -66,7 +66,6 @@ export const BOT_COMMANDS: BotCommand[] = [
   { name: 'broadcast', prefix: '.', category: 'owner', description: 'Diffuse un message d\'annonce à tous les groupes où est présent le bot.', usage: '.broadcast <message>', ownerOnly: true },
   { name: 'mode', prefix: '.', category: 'owner', description: 'Bascule le bot en mode Public ou Privé (seul l\'owner peut commander).', usage: '.mode public/private', ownerOnly: true },
   { name: 'newcommand', prefix: '.', category: 'owner', description: 'Crée une nouvelle commande personnalisée pour votre bot.', usage: '.newcommand <nom> | <réponse>', ownerOnly: true },
-  { name: 'setbotname', prefix: '.', category: 'owner', description: 'Modifie le nom d\'affichage de votre bot (isolé pour votre session).', usage: '.setbotname <nouveau nom>', ownerOnly: true },
   { name: 'setbotpp', prefix: '.', category: 'owner', description: 'Met à jour la photo de profil du bot (isolé pour votre session).', usage: '.setbotpp [répondre à une image]', ownerOnly: true },
   { name: 'mycommands', prefix: '.', category: 'owner', description: 'Liste toutes vos commandes personnalisées créées.', usage: '.mycommands', ownerOnly: true },
   { name: 'setprefix', prefix: '.', category: 'owner', description: 'Modifie le préfixe de commande (par défaut .)', usage: '.setprefix <symbole>', ownerOnly: true },
