@@ -66,6 +66,7 @@ import {
   getBotMenuVideoBuffer,
   getBotMenuVideoPayload,
   getCommandMediaPayload,
+  setGlobalCommandMedia,
 } from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
@@ -1406,132 +1407,16 @@ async function executeBotCommandInternal(
         return `❌ Veuillez répondre à une PHOTO/IMAGE pour la commande .set${targetCmd}image !`;
       }
 
-      const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+      await setGlobalCommandMedia(targetCmd, isVideo, mediaBuf);
 
       if (targetCmd === 'menu' || targetCmd === 'all') {
-        // --- PERMANENT GLOBAL MENU LOGIC ---
-        const MEDIA_ROOT = path.join(process.cwd(), 'data', 'media');
-        if (!fs.existsSync(MEDIA_ROOT)) fs.mkdirSync(MEDIA_ROOT, { recursive: true });
-
-        const menuImagePath = path.join(MEDIA_ROOT, 'global_menu_image.jpg');
-        const menuVideoPath = path.join(MEDIA_ROOT, 'global_menu_video.mp4');
-
-        if (isVideo) {
-          if (fs.existsSync(menuImagePath)) {
-            try { fs.unlinkSync(menuImagePath); } catch {}
-          }
-          fs.writeFileSync(menuVideoPath, mediaBuf);
-
-          // Copy to public/ and root
-          try {
-            const pubVid = path.join(process.cwd(), 'public', 'menu_video.mp4');
-            fs.writeFileSync(pubVid, mediaBuf);
-          } catch {}
-          try {
-            const rootVid = path.join(process.cwd(), 'menu_video.mp4');
-            fs.writeFileSync(rootVid, mediaBuf);
-          } catch {}
-          
-          return `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour tout le bot !*`;
-        } else {
-          if (fs.existsSync(menuVideoPath)) {
-            try { fs.unlinkSync(menuVideoPath); } catch {}
-          }
-          fs.writeFileSync(menuImagePath, mediaBuf);
-
-          // Copy to public/ and root
-          try {
-            const pubImg = path.join(process.cwd(), 'public', 'menu_image.jpg');
-            fs.writeFileSync(pubImg, mediaBuf);
-          } catch {}
-          try {
-            const rootImg = path.join(process.cwd(), 'menu_image.jpg');
-            fs.writeFileSync(rootImg, mediaBuf);
-          } catch {}
-          
-          return `🖼️ *Image de menu enregistrée avec succès de façon permanente pour tout le bot !*`;
-        }
+        return isVideo
+          ? `🎬 *Vidéo de menu enregistrée avec succès de façon permanente pour tout le bot et toutes les sessions !*`
+          : `🖼️ *Image de menu enregistrée avec succès de façon permanente pour tout le bot et toutes les sessions !*`;
       } else {
-        // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---
-        const publicDir = path.join(process.cwd(), 'public');
-        const mediaDir = path.join(process.cwd(), 'data', 'media');
-        if (!fs.existsSync(mediaDir)) {
-          try { fs.mkdirSync(mediaDir, { recursive: true }); } catch (_) {}
-        }
-
-        if (isVideo) {
-          // Clean old images
-          const oldImages = [
-            path.join(publicDir, `command_media_${targetCmd}.jpg`),
-            path.join(publicDir, `command_media_${targetCmd}.jpeg`),
-            path.join(publicDir, `command_media_${targetCmd}.png`),
-            path.join(publicDir, `command_media_${targetCmd}.webp`),
-            path.join(mediaDir, `command_media_${targetCmd}.jpg`),
-            path.join(mediaDir, `command_media_${targetCmd}.jpeg`),
-            path.join(mediaDir, `command_media_${targetCmd}.png`),
-            path.join(mediaDir, `command_media_${targetCmd}.webp`),
-          ];
-          for (const img of oldImages) {
-            try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
-          }
-
-          // Write video to public, data/media, and root
-          fs.writeFileSync(path.join(publicDir, `command_media_${targetCmd}.mp4`), mediaBuf);
-          try { fs.writeFileSync(path.join(mediaDir, `command_media_${targetCmd}.mp4`), mediaBuf); } catch (_) {}
-          try { fs.writeFileSync(path.join(process.cwd(), `command_media_${targetCmd}.mp4`), mediaBuf); } catch (_) {}
-
-          // Propagate to all sessions under sessions/
-          if (fs.existsSync(SESSIONS_ROOT)) {
-            try {
-              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-              for (const entry of entries) {
-                if (entry.isDirectory()) {
-                  const sVid = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.mp4`);
-                  try { fs.writeFileSync(sVid, mediaBuf); } catch (_) {}
-                  // delete old images in session folder
-                  for (const ext of ['jpg', 'jpeg', 'png', 'webp']) {
-                    const sImg = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.${ext}`);
-                    try { if (fs.existsSync(sImg)) fs.unlinkSync(sImg); } catch {}
-                  }
-                }
-              }
-            } catch (_) {}
-          }
-
-          return `🎬 *Vidéo pour la commande .${targetCmd} enregistrée avec succès pour toutes les sessions !*`;
-        } else {
-          // Clean old videos
-          const oldVideos = [
-            path.join(publicDir, `command_media_${targetCmd}.mp4`),
-            path.join(mediaDir, `command_media_${targetCmd}.mp4`),
-            path.join(process.cwd(), `command_media_${targetCmd}.mp4`),
-          ];
-          for (const vid of oldVideos) {
-            try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
-          }
-
-          // Write image to public, data/media, and root (as jpg)
-          fs.writeFileSync(path.join(publicDir, `command_media_${targetCmd}.jpg`), mediaBuf);
-          try { fs.writeFileSync(path.join(mediaDir, `command_media_${targetCmd}.jpg`), mediaBuf); } catch (_) {}
-          try { fs.writeFileSync(path.join(process.cwd(), `command_media_${targetCmd}.jpg`), mediaBuf); } catch (_) {}
-
-          // Propagate to all sessions under sessions/
-          if (fs.existsSync(SESSIONS_ROOT)) {
-            try {
-              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-              for (const entry of entries) {
-                if (entry.isDirectory()) {
-                  const sImg = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.jpg`);
-                  try { fs.writeFileSync(sImg, mediaBuf); } catch (_) {}
-                  const sVid = path.join(SESSIONS_ROOT, entry.name, `command_media_${targetCmd}.mp4`);
-                  try { if (fs.existsSync(sVid)) fs.unlinkSync(sVid); } catch {}
-                }
-              }
-            } catch (_) {}
-          }
-
-          return `🖼️ *Image pour la commande .${targetCmd} enregistrée avec succès pour toutes les sessions !*`;
-        }
+        return isVideo
+          ? `🎬 *Vidéo pour la commande .${targetCmd} enregistrée avec succès de façon permanente pour toutes les sessions !*`
+          : `🖼️ *Image pour la commande .${targetCmd} enregistrée avec succès de façon permanente pour toutes les sessions !*`;
       }
     } catch (err: any) {
       return `❌ Échec de la mise à jour des médias pour .set${targetCmd}${mediaType} : ${err?.message || 'Erreur'}`;

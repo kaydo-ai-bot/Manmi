@@ -70,6 +70,7 @@ import {
   DEFAULT_GLOBAL_IMAGE_URL,
   setGlobalMenuPhotoFromUrlOrBuffer,
   setGlobalMenuVideoFromUrlOrBuffer,
+  setGlobalCommandMedia,
   getMenuVideoUrl,
 } from './src/server/commandImageManager';
 import axios from 'axios';
@@ -1044,39 +1045,15 @@ app.post('/api/command-images/upload-command-media', async (req: Request, res: R
       return res.status(400).json({ success: false, message: 'Données base64 invalides.' });
     }
 
-    const publicDir = path.join(process.cwd(), 'public');
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
-    }
-
-    // Delete any old files for this command to avoid cache conflicts or type overrides
-    try {
-      if (fs.existsSync(publicDir)) {
-        const files = fs.readdirSync(publicDir);
-        const prefix = `command_media_${cleanCmd}.`;
-        for (const file of files) {
-          if (file.toLowerCase().startsWith(prefix.toLowerCase())) {
-            const oldPath = path.join(publicDir, file);
-            try { fs.unlinkSync(oldPath); } catch {}
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('[UPLOAD CMD MEDIA] Impossible de nettoyer les anciennes photos de la commande:', err);
-    }
-
-    const filename = `command_media_${cleanCmd}.${extension}`;
-    const filePath = path.join(publicDir, filename);
-    fs.writeFileSync(filePath, buffer);
+    await setGlobalCommandMedia(cleanCmd, isVideo, buffer, extension);
 
     const publicPortalUrl = getPublicPortalUrl();
+    const filename = `command_media_${cleanCmd}.${extension}`;
     const mediaUrl = `${publicPortalUrl}/public/${filename}`;
-
-    setCommandImageUrl(cleanCmd, mediaUrl);
 
     return res.json({
       success: true,
-      message: `✅ Média de la commande .${cleanCmd} enregistré avec succès !`,
+      message: `✅ Média de la commande .${cleanCmd} enregistré avec succès et synchronisé sur toutes les sessions !`,
       url: mediaUrl,
       urls: getAllCommandImageUrls().urls,
     });

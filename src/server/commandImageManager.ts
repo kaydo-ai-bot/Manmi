@@ -94,6 +94,30 @@ let defaultImageBufferCache: { buffer: Buffer; mimeType: string; timestamp: numb
 
 // Preload the default image buffer immediately so it is instantly available in memory for all WhatsApp commands
 export async function preloadDefaultImageBuffer(): Promise<{ buffer: Buffer; mimeType: string } | null> {
+  // Check local disk image first
+  const localCandidates = [
+    path.join(process.cwd(), 'data', 'media', 'global_menu_image.jpg'),
+    path.join(process.cwd(), 'public', 'menu_image.jpg'),
+    path.join(process.cwd(), 'public', 'kaydo_bot.jpg'),
+    path.join(process.cwd(), 'public', 'kaydo_bot.png'),
+    path.join(process.cwd(), 'menu_image.jpg'),
+  ];
+  for (const lp of localCandidates) {
+    if (fs.existsSync(lp)) {
+      try {
+        const buf = fs.readFileSync(lp);
+        if (buf && buf.length > 0) {
+          defaultImageBufferCache = {
+            buffer: buf,
+            mimeType: 'image/jpeg',
+            timestamp: Date.now(),
+          };
+          return defaultImageBufferCache;
+        }
+      } catch (_) {}
+    }
+  }
+
   const url = defaultImageUrl || DEFAULT_GLOBAL_IMAGE_URL;
   if (!url || !url.startsWith('http')) return null;
 
@@ -303,14 +327,32 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
 
     if (!buffer || buffer.length === 0) return false;
 
+    // 1. Wipe out ALL old menu videos from all locations so the image takes 100% priority
+    const oldVideos = [
+      path.join(process.cwd(), 'data', 'media', 'global_menu_video.mp4'),
+      path.join(process.cwd(), 'data', 'media', 'menu_video.mp4'),
+      path.join(process.cwd(), 'data', 'media', 'command_media_menu.mp4'),
+      path.join(process.cwd(), 'public', 'menu_video.mp4'),
+      path.join(process.cwd(), 'public', 'command_media_menu.mp4'),
+      path.join(process.cwd(), 'menu_video.mp4'),
+      path.join(process.cwd(), 'command_media_menu.mp4'),
+    ];
+    for (const vid of oldVideos) {
+      try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
+    }
+    menuVideoUrl = '';
+
     const targetUrl = urlOrBase64.startsWith('http') ? urlOrBase64 : 'https://files.catbox.moe/9u2j5v.png';
     setDefaultImageUrl(targetUrl);
     setAppPhotoUrl(targetUrl);
     applyUrlToAllCommands(targetUrl);
 
-    // Save locally to disk targets
+    // 2. Save locally to all disk targets
     const diskTargets = [
+      path.join(process.cwd(), 'data', 'media', 'global_menu_image.jpg'),
+      path.join(process.cwd(), 'data', 'media', 'command_media_menu.jpg'),
       path.join(process.cwd(), 'public', 'menu_image.jpg'),
+      path.join(process.cwd(), 'public', 'command_media_menu.jpg'),
       path.join(process.cwd(), 'menu_image.jpg'),
       path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
       path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_bot_official.jpg'),
@@ -324,7 +366,7 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
       } catch (_) {}
     }
 
-    // Save to all session directories & Clean per-session stale menu videos
+    // 3. Save to all session directories & Clean per-session stale menu videos
     const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
     if (fs.existsSync(SESSIONS_ROOT)) {
       try {
@@ -340,28 +382,18 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
       } catch (_) {}
     }
 
-    // Clean old video menu background to ensure image priority
-    const oldVideos = [
-      path.join(process.cwd(), 'public', 'menu_video.mp4'),
-      path.join(process.cwd(), 'menu_video.mp4'),
-    ];
-    for (const vid of oldVideos) {
-      try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
-    }
+    // 4. Update in-memory session states so all active sessions immediately serve the new image
+    try {
+      const { sessionStates } = await import('./commandHandler.js');
+      for (const [, sState] of sessionStates.entries()) {
+        sState.customMenuImageBuffer = buffer;
+      }
+    } catch (_) {}
 
     // Fully clear and override all session-specific custom menu configs/overrides
     await clearAllSessionCustomMenuOverrides().catch(() => {});
-
-    // Remove reset flags so sessions pick up the new photo immediately
-    const flagFiles = [
-      path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_catbox_refresh'),
-      path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_reset'),
-    ];
-    for (const f of flagFiles) {
-      if (fs.existsSync(f)) {
-        try { fs.unlinkSync(f); } catch {}
-      }
-    }
+    bufferCache.clear();
+    saveCommandImagesToDisk();
 
     console.log(`[CMD IMAGES] ✅ Nouvelle photo officielle configurée et exportée sur ${diskTargets.length} emplacements et sessions !`);
     return true;
@@ -512,8 +544,26 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
     }
 
     if (buffer && buffer.length > 0) {
+      // 1. Wipe out ALL old menu images across all locations so video takes 100% priority
+      const oldImages = [
+        path.join(process.cwd(), 'data', 'media', 'global_menu_image.jpg'),
+        path.join(process.cwd(), 'data', 'media', 'menu_image.jpg'),
+        path.join(process.cwd(), 'data', 'media', 'command_media_menu.jpg'),
+        path.join(process.cwd(), 'public', 'menu_image.jpg'),
+        path.join(process.cwd(), 'public', 'command_media_menu.jpg'),
+        path.join(process.cwd(), 'menu_image.jpg'),
+        path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
+      ];
+      for (const img of oldImages) {
+        try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
+      }
+
+      // 2. Save video to all disk targets
       const diskTargets = [
+        path.join(process.cwd(), 'data', 'media', 'global_menu_video.mp4'),
+        path.join(process.cwd(), 'data', 'media', 'command_media_menu.mp4'),
         path.join(process.cwd(), 'public', 'menu_video.mp4'),
+        path.join(process.cwd(), 'public', 'command_media_menu.mp4'),
         path.join(process.cwd(), 'menu_video.mp4'),
       ];
 
@@ -525,6 +575,7 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
         } catch (_) {}
       }
 
+      // 3. Save to all session directories & Clean per-session stale menu images
       const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
       if (fs.existsSync(SESSIONS_ROOT)) {
         try {
@@ -540,18 +591,17 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
         } catch (_) {}
       }
 
-      // Clean old image menu background to ensure video priority
-      const oldImages = [
-        path.join(process.cwd(), 'public', 'menu_image.jpg'),
-        path.join(process.cwd(), 'menu_image.jpg'),
-        path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-      ];
-      for (const img of oldImages) {
-        try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
-      }
+      // 4. Update in-memory session states so all active sessions immediately serve the video
+      try {
+        const { sessionStates } = await import('./commandHandler.js');
+        for (const [, sState] of sessionStates.entries()) {
+          sState.customMenuImageBuffer = undefined;
+        }
+      } catch (_) {}
 
       // Fully clear and override all session-specific custom menu configs/overrides
       await clearAllSessionCustomMenuOverrides().catch(() => {});
+      bufferCache.clear();
     }
 
     saveCommandImagesToDisk();
@@ -561,6 +611,82 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
     console.error('[CMD VIDEO] Erreur setGlobalMenuVideoFromUrlOrBuffer:', err?.message || err);
     return false;
   }
+}
+
+/**
+ * Universal function to set media (photo or video) for ANY command (.setpingimage, .setuptimevideo, website uploads, etc.)
+ * Permanently syncs across data/media/, public/, root, and all session folders.
+ */
+export async function setGlobalCommandMedia(cmd: string, isVideo: boolean, buffer: Buffer, customExt?: string): Promise<boolean> {
+  const cleanCmd = cmd.toLowerCase().trim().replace(/^[.!\/#$]/, '');
+  if (!cleanCmd || !buffer || buffer.length === 0) return false;
+
+  bufferCache.clear();
+
+  if (cleanCmd === 'menu' || cleanCmd === 'all') {
+    if (isVideo) {
+      return await setGlobalMenuVideoFromUrlOrBuffer(`data:video/mp4;base64,${buffer.toString('base64')}`);
+    } else {
+      return await setGlobalMenuPhotoFromUrlOrBuffer(`data:image/jpeg;base64,${buffer.toString('base64')}`);
+    }
+  }
+
+  const extension = isVideo ? 'mp4' : (customExt || 'jpg');
+  const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
+  const mediaDir = path.join(process.cwd(), 'data', 'media');
+  const publicDir = path.join(process.cwd(), 'public');
+  if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+  if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+
+  // 1. Delete opposite media types across all folders
+  const extensionsToDelete = isVideo
+    ? ['jpg', 'jpeg', 'png', 'webp', 'gif']
+    : ['mp4', 'mkv', 'mov', 'webm'];
+
+  const targetDirs = [mediaDir, publicDir, process.cwd()];
+  for (const dir of targetDirs) {
+    for (const ext of extensionsToDelete) {
+      const p = path.join(dir, `command_media_${cleanCmd}.${ext}`);
+      try { if (fs.existsSync(p)) fs.unlinkSync(p); } catch {}
+    }
+  }
+
+  // 2. Write to mediaDir, publicDir, process.cwd()
+  const outFilename = `command_media_${cleanCmd}.${extension}`;
+  for (const dir of targetDirs) {
+    try {
+      fs.writeFileSync(path.join(dir, outFilename), buffer);
+    } catch (_) {}
+  }
+
+  // 3. Propagate to all sessions in sessions/
+  if (fs.existsSync(SESSIONS_ROOT)) {
+    try {
+      const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const sDir = path.join(SESSIONS_ROOT, entry.name);
+          for (const ext of extensionsToDelete) {
+            const p = path.join(sDir, `command_media_${cleanCmd}.${ext}`);
+            try { if (fs.existsSync(p)) fs.unlinkSync(p); } catch {}
+          }
+          try {
+            fs.writeFileSync(path.join(sDir, outFilename), buffer);
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+  }
+
+  // 4. Update command image URL for web UI
+  try {
+    const { getPublicPortalUrl } = await import('./sessionManager.js');
+    const portalUrl = getPublicPortalUrl();
+    const mediaUrl = `${portalUrl}/public/${outFilename}`;
+    setCommandImageUrl(cleanCmd, mediaUrl);
+  } catch (_) {}
+
+  return true;
 }
 
 export function getBotMenuVideoBuffer(): Buffer | null {
