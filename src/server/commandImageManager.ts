@@ -343,7 +343,6 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
     const oldVideos = [
       path.join(process.cwd(), 'public', 'menu_video.mp4'),
       path.join(process.cwd(), 'menu_video.mp4'),
-      path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
     ];
     for (const vid of oldVideos) {
       try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
@@ -515,7 +514,6 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
       const diskTargets = [
         path.join(process.cwd(), 'public', 'menu_video.mp4'),
         path.join(process.cwd(), 'menu_video.mp4'),
-        path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
       ];
 
       for (const t of diskTargets) {
@@ -566,10 +564,9 @@ export async function setGlobalMenuVideoFromUrlOrBuffer(urlOrBase64: string): Pr
 
 export function getBotMenuVideoBuffer(): Buffer | null {
   const possiblePaths = [
-    path.join(process.cwd(), 'data', 'media', 'menu_video.mp4'),
+    path.join(process.cwd(), 'data', 'media', 'global_menu_video.mp4'),
     path.join(process.cwd(), 'public', 'menu_video.mp4'),
     path.join(process.cwd(), 'menu_video.mp4'),
-    path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
   ];
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
@@ -584,10 +581,9 @@ export function getBotMenuVideoBuffer(): Buffer | null {
 
 export function getBotMenuVideoPayload(): { video: Buffer | { url: string }; mimetype: string } | null {
   const possiblePaths = [
-    path.join(process.cwd(), 'data', 'media', 'menu_video.mp4'),
+    path.join(process.cwd(), 'data', 'media', 'global_menu_video.mp4'),
     path.join(process.cwd(), 'public', 'menu_video.mp4'),
     path.join(process.cwd(), 'menu_video.mp4'),
-    path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
   ];
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {

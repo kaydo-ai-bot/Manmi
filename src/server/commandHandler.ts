@@ -194,10 +194,9 @@ export function getBotMenuImageBuffer(sessionId?: string): Buffer | null {
   }
 
   const possiblePaths = [
+    path.join(process.cwd(), 'data', 'media', 'global_menu_image.jpg'),
     path.join(process.cwd(), 'public', 'menu_image.jpg'),
     path.join(process.cwd(), 'menu_image.jpg'),
-    path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-    path.join(process.cwd(), 'public', 'bot_photos', 'kaydo_bot_official.jpg'),
   ];
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
@@ -1348,99 +1347,23 @@ async function executeBotCommandInternal(
       const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
 
       if (targetCmd === 'menu' || targetCmd === 'all') {
-        // --- MENU/ALL LOGIC ---
+        // --- PERMANENT GLOBAL MENU LOGIC ---
+        const MEDIA_ROOT = path.join(process.cwd(), 'data', 'media');
+        if (!fs.existsSync(MEDIA_ROOT)) fs.mkdirSync(MEDIA_ROOT, { recursive: true });
+
+        const menuImagePath = path.join(MEDIA_ROOT, 'global_menu_image.jpg');
+        const menuVideoPath = path.join(MEDIA_ROOT, 'global_menu_video.mp4');
+
         if (isVideo) {
-          // Clean old image backgrounds
-          const oldImages = [
-            path.join(process.cwd(), 'public', 'menu_image.jpg'),
-            path.join(process.cwd(), 'menu_image.jpg'),
-            path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-          ];
-          for (const img of oldImages) {
-            try { if (fs.existsSync(img)) fs.unlinkSync(img); } catch {}
-          }
-
-          // Write video to global disk
-          const diskTargets = [
-            path.join(process.cwd(), 'public', 'menu_video.mp4'),
-            path.join(process.cwd(), 'menu_video.mp4'),
-            path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
-          ];
-          for (const t of diskTargets) {
-            try {
-              const d = path.dirname(t);
-              if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-              fs.writeFileSync(t, mediaBuf);
-            } catch (_) {}
-          }
-
-          // Propagate to all sessions
-          if (fs.existsSync(SESSIONS_ROOT)) {
-            try {
-              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-              for (const entry of entries) {
-                if (entry.isDirectory()) {
-                  const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
-                  const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
-                  try { fs.writeFileSync(sessionVid, mediaBuf); } catch (_) {}
-                  try { if (fs.existsSync(sessionImg)) fs.unlinkSync(sessionImg); } catch {}
-                }
-              }
-            } catch (_) {}
-          }
-
-          // Update in-memory state
-          for (const [sId, sessState] of sessionStates.entries()) {
-            sessState.customMenuImageBuffer = undefined;
-            saveSessionSettingsToDisk(sId, sessState);
-          }
-          return `🎬 *Vidéo ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures avec ${BOT_NAME} !*`;
+          if (fs.existsSync(menuImagePath)) fs.unlinkSync(menuImagePath);
+          fs.writeFileSync(menuVideoPath, mediaBuf);
+          
+          return `🎬 *Vidéo de menu enregistrée de façon permanente pour tout le bot !*`;
         } else {
-          // Clean old video backgrounds
-          const oldVideos = [
-            path.join(process.cwd(), 'public', 'menu_video.mp4'),
-            path.join(process.cwd(), 'menu_video.mp4'),
-            path.join(process.cwd(), 'sessions', 'global_menu_video.mp4'),
-          ];
-          for (const vid of oldVideos) {
-            try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
-          }
-
-          // Write image to global disk
-          const diskTargets = [
-            path.join(process.cwd(), 'public', 'menu_image.jpg'),
-            path.join(process.cwd(), 'menu_image.jpg'),
-            path.join(process.cwd(), 'sessions', 'global_menu_image.jpg'),
-          ];
-          for (const t of diskTargets) {
-            try {
-              const d = path.dirname(t);
-              if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
-              fs.writeFileSync(t, mediaBuf);
-            } catch (_) {}
-          }
-
-          // Propagate to all sessions
-          if (fs.existsSync(SESSIONS_ROOT)) {
-            try {
-              const entries = fs.readdirSync(SESSIONS_ROOT, { withFileTypes: true });
-              for (const entry of entries) {
-                if (entry.isDirectory()) {
-                  const sessionImg = path.join(SESSIONS_ROOT, entry.name, 'menu_image.jpg');
-                  const sessionVid = path.join(SESSIONS_ROOT, entry.name, 'menu_video.mp4');
-                  try { fs.writeFileSync(sessionImg, mediaBuf); } catch (_) {}
-                  try { if (fs.existsSync(sessionVid)) fs.unlinkSync(sessionVid); } catch {}
-                }
-              }
-            } catch (_) {}
-          }
-
-          // Update in-memory state
-          for (const [sId, sessState] of sessionStates.entries()) {
-            sessState.customMenuImageBuffer = undefined;
-            saveSessionSettingsToDisk(sId, sessState);
-          }
-          return `🖼️ *Image ${targetCmd === 'all' ? 'globale' : 'de menu'} enregistrée avec succès de façon permanente pour toutes les sessions actuelles et futures avec ${BOT_NAME} !*`;
+          if (fs.existsSync(menuVideoPath)) fs.unlinkSync(menuVideoPath);
+          fs.writeFileSync(menuImagePath, mediaBuf);
+          
+          return `🖼️ *Image de menu enregistrée de façon permanente pour tout le bot !*`;
         }
       } else {
         // --- OTHER COMMANDS LOGIC (e.g. ping, alive, uptime, etc.) ---
