@@ -53,12 +53,13 @@ export async function convertStickerBufferToWhatsAppSticker(
     // Fallback to Sharp WebP containment
   }
 
-  // 4. Hard fallback using Sharp
+  // 4. Hard fallback using Sharp (Full screen, transparent background, no black borders)
   return await sharp(inputBuffer)
     .resize(512, 512, {
-      fit: 'contain',
+      fit: 'cover',
+      position: 'center',
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
-    .webp({ quality: 80 })
+    .webp({ quality: 85, alphaQuality: 100 })
     .toBuffer();
 }

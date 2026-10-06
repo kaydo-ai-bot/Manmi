@@ -1076,7 +1076,6 @@ export async function executeBotCommand(
     clean === 'testowner' ||
     clean === 'isowner' ||
     clean === 'checkowner' ||
-    clean === 'bot' ||
     clean.startsWith('set') ||
     clean.startsWith('sel') ||
     clean === 'creator1' ||
@@ -1735,15 +1734,6 @@ async function executeBotCommandInternal(
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return listText;
-    }
-
-    case 'bot': {
-      return `╭─❖━━━ ${BOT_NAME} ━━━❖
-┇✦╭───────────────
-┇✦┋24/24 7/7 🥷
-┇✦┋${BOT_NAME} Officiel
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖`;
     }
 
     // ----------------------------------------------------
@@ -3575,24 +3565,16 @@ Installe-toi bien et respecte les règles.`);
     case 'mode': {
       const targetMode = cleanCmd === 'modeprivate' ? 'private' : cleanCmd === 'modepublic' ? 'public' : cleanArgs.trim().toLowerCase();
       if (targetMode === 'private' || targetMode.includes('priv') || targetMode === 'owner' || targetMode === 'off' || targetMode.includes('ferme') || targetMode.includes('close')) {
-        setGlobalBotMode('private');
         state.botMode = 'private';
-        sessionStates.forEach((s, sid) => {
-          s.botMode = 'private';
-          saveSessionSettingsToDisk(sid, s);
-        });
-        return `🔒 *Mode Bot* : PRIVÉ (Owner Only - Sauvegardé de façon permanente à jamais)`;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `🔒 *Mode Bot* : PRIVÉ (Owner Only - Sauvegardé pour votre session de façon permanente)`;
       } else if (targetMode === 'public' || targetMode.includes('pub') || targetMode === 'all' || targetMode === 'on' || targetMode.includes('ouvert') || targetMode.includes('open')) {
-        setGlobalBotMode('public');
         state.botMode = 'public';
-        sessionStates.forEach((s, sid) => {
-          s.botMode = 'public';
-          saveSessionSettingsToDisk(sid, s);
-        });
-        return `🌐 *Mode Bot* : PUBLIC (Accessible à tous - Sauvegardé de façon permanente à jamais)`;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `🌐 *Mode Bot* : PUBLIC (Accessible à tous - Sauvegardé pour votre session de façon permanente)`;
       } else {
-        const curMode = state.botMode || getGlobalBotMode();
-        return `🛡️ *Mode actuel* : ${curMode.toUpperCase()} (${curMode === 'private' ? '🔒 PRIVÉ (Owner Only)' : '🌐 PUBLIC (Accessible à tous)'})`;
+        const curMode = state.botMode || 'public';
+        return `🛡️ *Mode actuel de votre session* : ${curMode.toUpperCase()} (${curMode === 'private' ? '🔒 PRIVÉ (Owner Only)' : '🌐 PUBLIC (Accessible à tous)'})`;
       }
     }
 
@@ -3662,29 +3644,18 @@ Installe-toi bien et respecte les règles.`);
     case 'setprefix': {
       const newPrefix = (args || cleanArgs || '').trim();
       if (!newPrefix) {
-        return `⚡ Préfixe actuel : [ ${state.prefix || getGlobalPrefix()} ]`;
+        return `⚡ Préfixe actuel de votre session : [ ${state.prefix || '.'} ]`;
       }
       if (newPrefix === 'none' || newPrefix === 'off' || newPrefix === 'sans' || newPrefix === 'aucun') {
-        setGlobalPrefix('');
         state.prefix = '';
         state.prefixResetNoticeSent = true;
-        sessionStates.forEach((s, sid) => {
-          s.prefix = '';
-          s.prefixResetNoticeSent = true;
-          saveSessionSettingsToDisk(sid, s);
-        });
-        return `⚡ Préfixe désactivé (commandes directes sans préfixe - Sauvegardé de façon permanente à jamais).`;
+        saveSessionSettingsToDisk(sessionId, state);
+        return `⚡ Préfixe désactivé pour votre session (commandes directes sans préfixe).`;
       }
-      setGlobalPrefix(newPrefix);
       state.prefix = newPrefix;
       state.prefixResetNoticeSent = true;
-      sessionStates.forEach((s, sid) => {
-        s.prefix = newPrefix;
-        s.prefixResetNoticeSent = true;
-        saveSessionSettingsToDisk(sid, s);
-      });
-      console.log(`[SETPREFIX] ✅ Préfixe sauvegardé définitivement et appliqué à toutes les sessions: "${newPrefix}"`);
-      return `⚡ Nouveau préfixe : "${newPrefix}" (Sauvegardé de façon permanente à jamais sur tout le bot)`;
+      saveSessionSettingsToDisk(sessionId, state);
+      return `⚡ Nouveau préfixe pour votre session : "${newPrefix}" (Sauvegardé de façon permanente à jamais)`;
     }
 
     case 'nule':
@@ -4056,9 +4027,10 @@ Installe-toi bien et respecte les règles.`);
       }
     }
 
-    case 'toimg': {
+    case 'toimg':
+    case 'simage': {
       if (!sock || !remoteJid) {
-        return '🖼️ Répondez à un sticker avec *.toimg* pour le convertir en image.';
+        return '🖼️ Répondez à un sticker avec *.simage* ou *.toimg* pour le convertir en photo.';
       }
       try {
         const media = await getMessageOrQuotedMedia(msg, remoteJid);
@@ -4066,11 +4038,11 @@ Installe-toi bien et respecte les règles.`);
           const pngBuf = await convertStickerToImage(media.buffer);
           await sendSafeMediaOrText(sock, remoteJid, {
             image: pngBuf,
-            caption: toSmallCaps('🖼️ *Sticker converti en image HD avec succès.*'),
+            caption: toSmallCaps('🖼️ *Sticker converti en photo HD avec succès.*'),
           }, msg);
           return '';
         }
-        return '🖼️ Répondez à un autocollant avec *.toimg* pour extraire l\'image originale.';
+        return '🖼️ Répondez à un autocollant avec *.simage* ou *.toimg* pour extraire la photo originale.';
       } catch (e: any) {
         return `❌ Erreur conversion sticker vers image : ${e?.message || 'Erreur'}`;
       }
@@ -4457,22 +4429,6 @@ Installe-toi bien et respecte les règles.`);
       return `🛡️ *Sécurité Groupe* :\nAnti-Link: ${state.antiLink ? '✅' : '❌'} | Anti-Tag: ${state.antiTag ? '✅' : '❌'} | Anti-Call: ${state.antiCall ? '✅' : '❌'} | Mode: ${state.botMode.toUpperCase()}`;
     }
 
-    case 'simage': {
-      if (!sock || !remoteJid) {
-        return '🖼️ Répondez à un sticker avec *.simage* pour le convertir en image.';
-      }
-      try {
-        const media = await getMessageOrQuotedMedia(msg, remoteJid);
-        if (media && media.buffer) {
-          await sock.sendMessage(remoteJid, { image: media.buffer, caption: toSmallCaps('🖼️ Image extraite') }, { quoted: msg as any });
-          return '';
-        }
-        return '🖼️ Répondez à un sticker avec *.simage*.';
-      } catch (err) {
-        return '❌ Échec de la conversion en image.';
-      }
-    }
-
     case 'setwelcome': {
       const text = cleanArgs || 'Bienvenue dans notre groupe !';
       return `✅ *Bienvenue configuré* : "${text}"`;
@@ -4655,7 +4611,7 @@ Installe-toi bien et respecte les règles.`);
 }
 
 const KNOWN_COMMANDS = new Set([
-  'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', 'vv2', 'vo', 'bot',
+  'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', 'vv2', 'vo',
   'send', 'save', 'send2', 'save2',
   'sudo', 'setsudo', 'unsudo', 'delsudo', 'listsudo', 'sudolist', 'antidelete',
   'kickall', 'purge', 'kick', 'promote', 'demote', 'promoteall', 'demoteall', 'demoter', 'acceptall', 'rejectall', 'mute', 'unmute', 'tagall', 'hidetag',

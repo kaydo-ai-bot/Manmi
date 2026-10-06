@@ -24,35 +24,38 @@ export async function createImageSticker(
     const sticker = new Sticker(inputBuffer, {
       pack: packName || DEFAULT_PACK_NAME,
       author: authorName || DEFAULT_AUTHOR_NAME,
-      type: StickerTypes.DEFAULT,
+      type: StickerTypes.CROPPED,
       categories: ['👹', '⚡', '👑'] as any,
       id: `kaydo_${Date.now()}`,
-      quality: 80,
+      quality: 85,
       background: 'transparent',
     });
 
-    return await sticker.toBuffer();
+    const buf = await sticker.toBuffer();
+    if (buf && buf.length > 0) return buf;
   } catch (err) {
     console.warn('[STICKER] wa-sticker-formatter failed, falling back to sharp:', err);
-    // Fallback: Sharp conversion with 512x512 transparent containment
-    const resizedWebp = await sharp(inputBuffer)
-      .resize(512, 512, {
-        fit: 'contain',
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .webp({
-        quality: 80,
-        lossless: false,
-        effort: 4,
-      })
-      .toBuffer();
-
-    return resizedWebp;
   }
+
+  // Fallback: Sharp conversion with 512x512 full-bleed cover with transparent background
+  return await sharp(inputBuffer)
+    .resize(512, 512, {
+      fit: 'cover',
+      position: 'center',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .webp({
+      quality: 85,
+      alphaQuality: 100,
+      lossless: false,
+      effort: 4,
+    })
+    .toBuffer();
 }
 
 /**
  * Converts video buffer or animated GIF into an animated WhatsApp WebP sticker using ffmpeg + wa-sticker-formatter.
+ * Renders full-screen without black bands and preserves transparent alpha channels.
  */
 export async function createAnimatedSticker(
   videoBuffer: Buffer,
@@ -63,7 +66,7 @@ export async function createAnimatedSticker(
     const sticker = new Sticker(videoBuffer, {
       pack: packName || DEFAULT_PACK_NAME,
       author: authorName || DEFAULT_AUTHOR_NAME,
-      type: StickerTypes.DEFAULT,
+      type: StickerTypes.CROPPED,
       categories: ['👹', '⚡', '👑'] as any,
       id: `kaydo_anim_${Date.now()}`,
       quality: 50,
@@ -71,7 +74,7 @@ export async function createAnimatedSticker(
     });
 
     const buf = await sticker.toBuffer();
-    if (buf && buf.length > 0 && buf.length <= 900 * 1024) {
+    if (buf && buf.length > 0 && buf.length <= 950 * 1024) {
       return buf;
     }
   } catch (err) {
@@ -85,25 +88,28 @@ export async function createAnimatedSticker(
   try {
     await fs.promises.writeFile(inputPath, videoBuffer);
 
-    // Fast animated WebP compression: max 2s, 8 fps, 280x280 scale, q:v 25, compression_level 1
-    const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -t 2.0 -vf "fps=8,scale=280:280:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000" -vcodec libwebp -lossless 0 -compression_level 1 -q:v 25 -loop 0 -an "${outputPath}"`;
+    // Full-screen crop without black bands and with yuva420p alpha transparency support
+    const ffmpegCmd = `ffmpeg -y -i "${inputPath}" -t 2.5 -vf "fps=10,scale=512:512:force_original_aspect_ratio=increase,crop=512:512" -pix_fmt yuva420p -vcodec libwebp -lossless 0 -compression_level 2 -q:v 35 -loop 0 -an "${outputPath}"`;
 
-    await execAsync(ffmpegCmd, { timeout: 8000 });
+    await execAsync(ffmpegCmd, { timeout: 10000 });
 
     if (fs.existsSync(outputPath)) {
       const webpBuf = await fs.promises.readFile(outputPath);
       if (webpBuf.length <= 950 * 1024) {
-        const sticker = new Sticker(webpBuf, {
-          pack: packName || DEFAULT_PACK_NAME,
-          author: authorName || DEFAULT_AUTHOR_NAME,
-          type: StickerTypes.DEFAULT,
-          categories: ['👹', '⚡', '👑'] as any,
-          id: `kaydo_anim_${Date.now()}`,
-        });
-        const out = await sticker.toBuffer();
-        if (out && out.length <= 950 * 1024) {
-          return out;
-        }
+        try {
+          const sticker = new Sticker(webpBuf, {
+            pack: packName || DEFAULT_PACK_NAME,
+            author: authorName || DEFAULT_AUTHOR_NAME,
+            type: StickerTypes.CROPPED,
+            categories: ['👹', '⚡', '👑'] as any,
+            id: `kaydo_anim_${Date.now()}`,
+            background: 'transparent',
+          });
+          const out = await sticker.toBuffer();
+          if (out && out.length <= 950 * 1024) {
+            return out;
+          }
+        } catch (_) {}
         return webpBuf;
       }
     }
