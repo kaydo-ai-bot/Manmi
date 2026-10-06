@@ -67,8 +67,6 @@ import {
   getBotMenuVideoPayload,
   getCommandMediaPayload,
   setGlobalCommandMedia,
-  setGlobalMenuPhotoFromUrlOrBuffer,
-  setGlobalMenuVideoFromUrlOrBuffer,
 } from './commandImageManager';
 
 let cachedMenuImageBuffer: Buffer | null = null;
@@ -254,10 +252,7 @@ export async function sendSafeMediaOrText(
   content: { image?: Buffer; video?: Buffer; audio?: Buffer; sticker?: Buffer; caption?: string } | { text: string } | any,
   quotedMsg?: proto.IWebMessageInfo
 ): Promise<any> {
-  if (!sock || !destJid || !content) return null;
-  if ('text' in content && (!content.text || typeof content.text !== 'string' || !content.text.trim())) {
-    return null;
-  }
+  if (!sock || !destJid) return null;
   const isFromMe = !!quotedMsg?.key?.fromMe;
   let sent: any = null;
 
@@ -4541,62 +4536,6 @@ Installe-toi bien et respecte les règles.`);
       }
 
       return `*╭─❖━━━ ⟣ ⟣ ⟣  NOM DU BOT MIS À JOUR  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 *NOUVEAU NOM :* ${newName}\n*┇*🔹┋. ⚡ *STATUT :* Modifié à jamais dans tout le bot et dans toutes les réponses !\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
-    }
-
-    case 'setmenuimage':
-    case 'setmenuimageall':
-    case 'setmenuimageall=': {
-      if (!sock || !remoteJid) {
-        return toSmallCaps('🖼️ Répondez à une photo avec *.setmenuimage* pour définir l\'image officielle du menu du bot de façon permanente dans toutes les sessions.');
-      }
-      try {
-        const media = await getMessageOrQuotedMedia(msg, remoteJid);
-        if (media && media.buffer) {
-          const success = await setGlobalMenuPhotoFromUrlOrBuffer(`data:image/jpeg;base64,${media.buffer.toString('base64')}`);
-          if (success) {
-            return toSmallCaps('✅ *Image du menu mise à jour et appliquée définitivement dans tout le bot, pour toutes les sessions ! L\'ancienne image a été entièrement supprimée.*');
-          }
-        }
-        return toSmallCaps('❌ Veuillez répondre directement à une *photo* valide avec *.setmenuimage*.');
-      } catch (err: any) {
-        return toSmallCaps(`❌ Erreur lors de la mise à jour de l'image du menu : ${err?.message || 'Erreur'}`);
-      }
-    }
-
-    case 'setmenuvideo': {
-      if (!sock || !remoteJid) {
-        return toSmallCaps('🎬 Répondez à une vidéo avec *.setmenuvideo* pour définir la vidéo officielle du menu de façon permanente.');
-      }
-      try {
-        const media = await getMessageOrQuotedMedia(msg, remoteJid);
-        if (media && media.buffer) {
-          const success = await setGlobalMenuVideoFromUrlOrBuffer(`data:video/mp4;base64,${media.buffer.toString('base64')}`);
-          if (success) {
-            return toSmallCaps('✅ *Vidéo du menu mise à jour et appliquée définitivement dans tout le bot, pour toutes les sessions !*');
-          }
-        }
-        return toSmallCaps('❌ Veuillez répondre directement à une *vidéo* valide avec *.setmenuvideo*.');
-      } catch (err: any) {
-        return toSmallCaps(`❌ Erreur lors de la mise à jour de la vidéo du menu : ${err?.message || 'Erreur'}`);
-      }
-    }
-
-    case 'setpingimage': {
-      if (!sock || !remoteJid) {
-        return toSmallCaps('⚡ Répondez à une photo avec *.setpingimage* pour définir l\'image de la commande .ping.');
-      }
-      try {
-        const media = await getMessageOrQuotedMedia(msg, remoteJid);
-        if (media && media.buffer) {
-          const success = await setGlobalCommandMedia('ping', media.isVideo, media.buffer, media.isVideo ? 'mp4' : 'jpg');
-          if (success) {
-            return toSmallCaps('✅ *Image de la commande .ping mise à jour avec succès dans toutes les sessions.*');
-          }
-        }
-        return toSmallCaps('❌ Veuillez répondre directement à une *photo* valide avec *.setpingimage*.');
-      } catch (err: any) {
-        return toSmallCaps(`❌ Erreur lors de la mise à jour de l'image ping : ${err?.message || 'Erreur'}`);
-      }
     }
 
     case 'antidelete': {
