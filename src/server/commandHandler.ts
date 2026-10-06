@@ -1733,17 +1733,16 @@ async function executeBotCommandInternal(
         if (sent) return '';
       }
 
-      // 2. Fallback to menu image
+      // 2. Menu image (Prioritize getBotMenuImageBuffer first so .setmenuimage takes immediate effect)
       let menuImgBuf: Buffer | null = null;
-      try {
-        const cmdImg = await getCommandImageBuffer('menu');
-        if (cmdImg?.buffer && cmdImg.buffer.length > 0) {
-          menuImgBuf = cmdImg.buffer;
-        }
-      } catch (_) {}
-
+      menuImgBuf = getBotMenuImageBuffer(sessionId);
       if (!menuImgBuf || menuImgBuf.length === 0) {
-        menuImgBuf = getBotMenuImageBuffer(sessionId);
+        try {
+          const cmdImg = await getCommandImageBuffer('menu');
+          if (cmdImg?.buffer && cmdImg.buffer.length > 0) {
+            menuImgBuf = cmdImg.buffer;
+          }
+        } catch (_) {}
       }
 
       if (sock && remoteJid && menuImgBuf && menuImgBuf.length > 0) {

@@ -327,8 +327,8 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
 
     if (!buffer || buffer.length === 0) return false;
 
-    // 1. Wipe out ALL old menu videos from all locations so the image takes 100% priority
-    const oldVideos = [
+    // 1. Wipe out ALL old menu videos AND old menu images from all locations so stale images are never sent
+    const oldMediaFiles = [
       path.join(process.cwd(), 'data', 'media', 'global_menu_video.mp4'),
       path.join(process.cwd(), 'data', 'media', 'menu_video.mp4'),
       path.join(process.cwd(), 'data', 'media', 'command_media_menu.mp4'),
@@ -336,9 +336,15 @@ export async function setGlobalMenuPhotoFromUrlOrBuffer(urlOrBase64: string): Pr
       path.join(process.cwd(), 'public', 'command_media_menu.mp4'),
       path.join(process.cwd(), 'menu_video.mp4'),
       path.join(process.cwd(), 'command_media_menu.mp4'),
+      path.join(process.cwd(), 'data', 'media', 'global_menu_image.jpg'),
+      path.join(process.cwd(), 'data', 'media', 'global_menu_image.png'),
+      path.join(process.cwd(), 'public', 'menu_image.jpg'),
+      path.join(process.cwd(), 'public', 'menu_image.png'),
+      path.join(process.cwd(), 'menu_image.jpg'),
+      path.join(process.cwd(), 'menu_image.png'),
     ];
-    for (const vid of oldVideos) {
-      try { if (fs.existsSync(vid)) fs.unlinkSync(vid); } catch {}
+    for (const file of oldMediaFiles) {
+      try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch {}
     }
     menuVideoUrl = '';
 
