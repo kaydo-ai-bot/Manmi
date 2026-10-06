@@ -183,13 +183,6 @@ performOneTimeSessionResetIfPending();
  * Retrieves the official menu image buffer provided by user (supporting per-session custom image)
  */
 export function getBotMenuImageBuffer(sessionId?: string): Buffer | null {
-  if (sessionId) {
-    const state = sessionStates.get(sessionId);
-    if (state?.customMenuImageBuffer && state.customMenuImageBuffer.length > 0) {
-      return state.customMenuImageBuffer;
-    }
-  }
-
   const defaultBuf = getDefaultImageBufferSync();
   if (defaultBuf && defaultBuf.length > 0) {
     return defaultBuf;
