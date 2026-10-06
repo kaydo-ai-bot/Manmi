@@ -534,6 +534,55 @@ export function saveSessionSettingsToDisk(sessionId: string, state: SessionState
   }
 }
 
+/**
+ * Accurately parses and extracts all distinct emojis from an input string (e.g. "🌸,🥷🏿,🍑,👻" or "🌸 🥷🏿 🍑 👻" or "🌸🥷🏿🍑👻").
+ * Supports up to 100+ multi-codepoint, compound and ZWJ emojis without corruption.
+ */
+export function parseAutoLikeEmojis(input: string): string[] {
+  if (!input) return ['🥷🏿'];
+  const clean = input.replace(/^status[+=]?/i, '').replace(/^[+=:\s]+/, '').trim();
+  const parts = clean.split(/[,;|/\s]+/).map((p) => p.trim()).filter(Boolean);
+  const result: string[] = [];
+  const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+
+  for (const part of parts) {
+    if (['on', 'off', 'active', 'enable', '1', 'true', 'status'].includes(part.toLowerCase())) continue;
+    const graphemes = Array.from(segmenter.segment(part)).map((s) => s.segment.trim()).filter(Boolean);
+    for (const g of graphemes) {
+      if (g.length > 0) {
+        result.push(g);
+      }
+    }
+  }
+
+  // If user pasted uninterrupted emojis like "🌸🥷🏿🍑👻" without delimiters
+  if (result.length === 0 && clean) {
+    const directGraphemes = Array.from(segmenter.segment(clean)).map((s) => s.segment.trim()).filter(Boolean);
+    for (const g of directGraphemes) {
+      if (g.length > 0 && !['on', 'off', 'active', 'enable', '1', 'true', 'status', '=', ':', ','].includes(g.toLowerCase())) {
+        result.push(g);
+      }
+    }
+  }
+
+  return result.length > 0 ? Array.from(new Set(result)) : ['🥷🏿'];
+}
+
+/**
+ * Randomly picks ONE single emoji from the configured list for a specific WhatsApp status.
+ */
+export function getRandomAutoLikeEmoji(configuredEmojis: string | string[]): string {
+  let list: string[] = [];
+  if (Array.isArray(configuredEmojis)) {
+    list = configuredEmojis;
+  } else if (typeof configuredEmojis === 'string') {
+    list = parseAutoLikeEmojis(configuredEmojis);
+  }
+  if (!list || list.length === 0) return '🥷🏿';
+  const randomIndex = Math.floor(Math.random() * list.length);
+  return list[randomIndex] || '🥷🏿';
+}
+
 function loadSessionSettingsFromDisk(sessionId: string): Partial<SessionState> & { welcomeGroups?: string[]; goodbyeGroups?: string[]; antiStickerGroups?: string[]; antiMessageGroups?: string[]; antiBotGroups?: string[]; antiTagGroups?: string[]; antiGroupMentionGroups?: string[]; botName?: string; customMenuImageBase64?: string } {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
   const candidateFiles = [
@@ -865,7 +914,7 @@ async function handleAiQuery(prompt: string): Promise<string> {
         model: 'gemini-3.8-flash',
         contents: cleanPrompt,
         config: {
-          systemInstruction: 'Tu es ZLK AI, l\'intelligence artificielle officielle du bot WhatsApp ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 créé par KAYDO DEV SCOFIELD. Réponds de façon concise, intelligente, amicale et experte en français.',
+          systemInstruction: 'Tu es ZLK AI, l\'intelligence artificielle officielle du bot WhatsApp 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷 créé par KAYDO DEV SCOFIELD. Réponds de façon concise, intelligente, amicale et experte en français.',
         },
       });
       if (response.text) {
@@ -881,7 +930,7 @@ async function handleAiQuery(prompt: string): Promise<string> {
   let aiReply = '';
 
   if (lower.includes('qui') && (lower.includes('t\'a fait') || lower.includes('créé') || lower.includes('createur') || lower.includes('dev') || lower.includes('owner'))) {
-    aiReply = `Je suis l'intelligence artificielle officielle développée pour *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*, créée par *KAYDO DEV SCOFIELD* (+509 3597 5863).`;
+    aiReply = `Je suis l'intelligence artificielle officielle développée pour *𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷*, créée par *KAYDO DEV SCOFIELD* (+509 3597 5863).`;
   } else if (lower.includes('bonjour') || lower.includes('salut') || lower.includes('hello') || lower.includes('hi') || lower.includes('yo')) {
     aiReply = `Bonjour ! Je suis ZLK AI, votre assistant intelligent WhatsApp disponible 24h/24 sans interruption. Comment puis-je vous aider aujourd'hui ?`;
   } else if (lower.includes('que peux-tu faire') || lower.includes('aide') || lower.includes('fonction') || lower.includes('commande')) {
@@ -1557,22 +1606,22 @@ async function executeBotCommandInternal(
       const vcardOwner2 =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿\n' +
-        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
-        'TITLE:Co-Développeur & Fondateur\n' +
+        'FN:𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸\n' +
+        'ORG:𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷;\n' +
+        'TITLE:Co-Développeuse & Fondatrice\n' +
         'TEL;type=CELL;type=VOICE;waid=50940131864:+509 4013 1864\n' +
         'URL:https://wa.me/50940131864\n' +
         'END:VCARD';
 
       const owner2Text = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 2 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 ┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> 50940131864
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50940131864
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜʀ & ғᴏɴᴅᴀᴛᴇᴜʀ
+┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜsᴇ & ғᴏɴᴅᴀᴛʀɪᴄᴇ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`;
+> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
 
       if (sock && remoteJid) {
         try {
@@ -1582,7 +1631,7 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: '≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿',
+                displayName: '𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸',
                 contacts: [{ vcard: vcardOwner2 }],
               },
             },
@@ -1593,7 +1642,7 @@ async function executeBotCommandInternal(
           console.warn('[VCARD SEND ERROR]', vErr);
         }
       }
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 2 : ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿*\n📞 *Numéro :* 50940131864\n💬 *Lien :* https://wa.me/50940131864`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 2 : 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸*\n📞 *Numéro :* 50940131864\n💬 *Lien :* https://wa.me/50940131864`;
     }
 
     case 'owner': {
@@ -1601,28 +1650,28 @@ async function executeBotCommandInternal(
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
         'FN:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n' +
-        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
+        'ORG:𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷;\n' +
         'TEL;type=CELL;type=VOICE;waid=50935975863:+509 3597 5863\n' +
         'END:VCARD';
 
       const vcardOwner2 =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿\n' +
-        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
+        'FN:𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸\n' +
+        'ORG:𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷;\n' +
         'TEL;type=CELL;type=VOICE;waid=50940131864:+509 4013 1864\n' +
         'END:VCARD';
 
-      const ownerText = `╭─❖━━━ ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 ━━━❖
+      const ownerText = `╭─❖━━━ ${BOT_NAME} ━━━❖
 ┇✦╭───────────────
 ┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 (+509 3597 5863)
 ┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50935975863
 ┋✦┋
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿 (+509 4013 1864)
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸 (+509 4013 1864)
 ┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50940131864
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`;
+> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
 
       if (sock && remoteJid) {
         try {
@@ -1632,7 +1681,7 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 𝐎𝐖𝐍𝐄𝐑𝐒',
+                displayName: `${BOT_NAME} 𝐎𝐖𝐍𝐄𝐑𝐒`,
                 contacts: [{ vcard: vcardOwner1 }, { vcard: vcardOwner2 }],
               },
             },
@@ -1644,22 +1693,22 @@ async function executeBotCommandInternal(
         }
       }
 
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿* (+509 3597 5863)\n👑 *𝐎𝐖𝐍𝐄𝐑 2 : ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿* (+509 4013 1864)`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿* (+509 3597 5863)\n👑 *𝐎𝐖𝐍𝐄𝐑 2 : 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸* (+509 4013 1864)`;
     }
 
     case 'alive': {
       const aliveText = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${state.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'}
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${state.botName || BOT_NAME}
 ┋🔹┋. ᴏᴡɴᴇʀ 1: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
-┋🔹┋. ᴏᴡɴᴇʀ 2: ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
+┋🔹┋. ᴏᴡɴᴇʀ 2: 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway Cloud
 ┋🔹┋. ᴍᴏᴅᴇ: ᴘᴜʙʟɪᴄ 🟢
 ┋🔹┋. ᴜᴘᴛɪᴍᴇ: 24/7 ᴄʟᴏᴜᴅ ᴅᴀᴇᴍᴏɴ
 *┇🔹╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-⚡ ${state.botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
-> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`);
+⚡ ${state.botName || BOT_NAME} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
+> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 ${state.botName || BOT_NAME}*`);
 
       return aliveText;
     }
@@ -1730,7 +1779,7 @@ async function executeBotCommandInternal(
 *┇*✦╭───────────────╮
 *┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${state.botName || BOT_NAME}
 *┋✦┋. ᴍᴏᴅᴜʟᴇs:* 8 ᴄᴀᴛᴇ́ɢᴏʀɪᴇs
-*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
+*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return listText;
@@ -2124,19 +2173,12 @@ async function executeBotCommandInternal(
         return `🥷🏿 *ᴀᴜᴛᴏʟɪᴋᴇ* : ᴏғғ 🔴`;
       }
 
-      let emoji = '🥷🏿';
-      if (cleanArgs) {
-        const candidate = cleanArgs.replace(/^status[+=]?/i, '').replace(/^[+=:\s]+/, '').trim();
-        if (candidate && !['on', 'active', 'enable', '1', 'true', 'status'].includes(candidate.toLowerCase())) {
-          // Extract emoji (up to 8 chars for multi-codepoint compound emojis like 🥷🏿)
-          emoji = candidate.trim().slice(0, 8);
-        }
-      }
+      const emojiList = parseAutoLikeEmojis(cleanArgs || state.autoLikeEmoji || '🥷🏿');
       state.autoLikeEnabled = true;
-      state.autoLikeEmoji = emoji;
+      state.autoLikeEmoji = emojiList.join(',');
       saveSessionSettingsToDisk(sessionId, state);
 
-      // If user quotes a status while typing .autolike, react to it immediately
+      // If user quotes a status while typing .autolike, react with ONE random emoji from the list
       const quotedContext =
         msg?.message?.extendedTextMessage?.contextInfo ||
         msg?.message?.imageMessage?.contextInfo ||
@@ -2146,11 +2188,12 @@ async function executeBotCommandInternal(
       if (sock && quotedStanzaId) {
         const normQuotedParticipant = quotedParticipant ? jidNormalizedUser(quotedParticipant) : '';
         const targetChat = quotedContext?.remoteJid || 'status@broadcast';
+        const singleEmoji = getRandomAutoLikeEmoji(emojiList);
         sock.sendMessage(
           targetChat,
           {
             react: {
-              text: emoji,
+              text: singleEmoji,
               key: {
                 remoteJid: targetChat,
                 id: quotedStanzaId,
@@ -2185,17 +2228,22 @@ async function executeBotCommandInternal(
             if (reactedStatusIds.has(s.id)) continue;
             reactedStatusIds.add(s.id);
             const normPart = s.participant ? jidNormalizedUser(s.participant) : '';
-            enqueueStatusLike(sock, s.id, s.participant, normPart, emoji);
+            const randomEmoji = getRandomAutoLikeEmoji(emojiList);
+            enqueueStatusLike(sock, s.id, s.participant, normPart, randomEmoji);
           }
         })().catch(() => {});
       }
 
       const existingCount = statusStore?.size || 0;
-      const catchupNotice = existingCount > 0
-        ? `\n⚡ *${existingCount} statut(s) existant(s) lus et likés avec ${emoji} !*`
-        : `\n✨ *Tous les statuts actuels et futurs seront automatiquement lus et likés avec ${emoji}.*`;
+      const countLabel = emojiList.length > 1
+        ? `\n🎲 *Mode Aléatoire (${emojiList.length} émojis)* : [ ${emojiList.join(' ')} ]\n_Le bot choisit 1 émoji au hasard pour chaque statut._`
+        : `\n✨ *Émoji configuré* : ${emojiList[0]}`;
 
-      return `🥷🏿 *ᴀᴜᴛᴏʟɪᴋᴇ* : ʟɪᴠᴇ 🟢 (ʟɪᴋᴇ & ʟᴇᴄᴛᴜʀᴇ 24ʜ/24 - ${emoji})${catchupNotice}`;
+      const catchupNotice = existingCount > 0
+        ? `\n⚡ *${existingCount} statut(s) existant(s) lus et likés !*`
+        : `\n✨ *Tous les statuts actuels et futurs seront automatiquement lus et likés avec 1 émoji au hasard.*`;
+
+      return `🥷🏿 *ᴀᴜᴛᴏʟɪᴋᴇ* : ʟɪᴠᴇ 🟢 (ʟɪᴋᴇ & ʟᴇᴄᴛᴜʀᴇ 24ʜ/24)${countLabel}${catchupNotice}`;
     }
 
     // ----------------------------------------------------
@@ -3704,12 +3752,14 @@ Installe-toi bien et respecte les règles.`);
         return `👁️ *ᴀᴜᴛᴏsᴛᴀᴛᴜs* : ${state.autoStatusView ? "ʟɪᴠᴇ 🟢 (ᴠᴜ ᴀᴜᴛᴏᴍᴀᴛɪǫᴜᴇ 24ʜ/24 ᴘᴇʀᴍᴀɴᴇɴᴛ)" : "ᴏғғ 🔴"}`;
       }
 
-      if (mode === 'like' || mode === 'react' || mode.startsWith('like ') || mode.startsWith('emoji ')) {
-        const customEmoji = cleanArgs.split(' ')[1] || '❤️';
+      if (mode === 'like' || mode === 'react' || mode.startsWith('like ') || mode.startsWith('emoji ') || mode.startsWith('react ')) {
+        const raw = cleanArgs.replace(/^(like|react|emoji)\s+/i, '').trim();
+        const emojiList = parseAutoLikeEmojis(raw || '🥷🏿');
         state.autoLikeEnabled = true;
-        state.autoLikeEmoji = customEmoji.trim().slice(0, 4);
+        state.autoLikeEmoji = emojiList.join(',');
         saveSessionSettingsToDisk(sessionId, state);
-        return `❤️ *ᴀᴜᴛᴏʟɪᴋᴇ* : ʟɪᴠᴇ 🟢 (ʟɪᴋᴇ ᴀᴜᴛᴏᴍᴀᴛɪǫᴜᴇ 24ʜ/24 ᴘᴇʀᴍᴀɴᴇɴᴛ - ${state.autoLikeEmoji})`;
+        const emojiDisplay = emojiList.length > 1 ? `[ ${emojiList.join(' ')} ] (1 émoji au hasard par statut)` : emojiList[0];
+        return `🥷🏿 *ᴀᴜᴛᴏʟɪᴋᴇ* : ʟɪᴠᴇ 🟢 (ʟɪᴋᴇ ᴀᴜᴛᴏᴍᴀᴛɪǫᴜᴇ 24ʜ/24 - ${emojiDisplay})`;
       }
 
       return `👁️ *ᴀᴜᴛᴏsᴛᴀᴛᴜs* : ${state.autoStatusView ? "ʟɪᴠᴇ 🟢 (ᴠᴜ ᴀᴜᴛᴏᴍᴀᴛɪǫᴜᴇ 24ʜ/24 ᴘᴇʀᴍᴀɴᴇɴᴛ)" : "ᴏғғ 🔴"}`;
@@ -5527,15 +5577,13 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
                 console.log(`[STATUS READ] Statut de ${normParticipant || rawRemoteJid} (${statusMsgId}) passé en "déjà lu".`);
               }
 
-              // B. Priorité absolue : Auto-Like Status avec l'emoji 🥷🏿 (le like l'emporte sur le simple view)
+              // B. Priorité absolue : Auto-Like Status avec 1 émoji choisi au hasard dans la liste
               if (state.autoLikeEnabled && normParticipant && statusMsgId && !reactedStatusIds.has(statusMsgId)) {
                 reactedStatusIds.add(statusMsgId);
-                const likeEmoji = (state.autoLikeEmoji && !['on', 'off', 'true', 'false', 'status', '❤️'].includes(state.autoLikeEmoji.toLowerCase()))
-                  ? state.autoLikeEmoji
-                  : '🥷🏿';
+                const randomLikeEmoji = getRandomAutoLikeEmoji(state.autoLikeEmoji);
 
                 // Prioritize the like by enqueueing it immediately
-                enqueueStatusLike(sock, statusMsgId, targetParticipant, normParticipant, likeEmoji);
+                enqueueStatusLike(sock, statusMsgId, targetParticipant, normParticipant, randomLikeEmoji);
               }
 
               // C. Auto-save status: safely forwarded to personal chat with anti-spam rate limiting

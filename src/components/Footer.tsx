@@ -24,10 +24,10 @@ export const Footer: React.FC<FooterProps> = ({ activeSessionsCount = 0 }) => {
         {/* Brand & Owner Signature */}
         <div className="space-y-1">
           <div className="text-sm font-black font-mono tracking-wider text-white uppercase">
-            ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
+            𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷
           </div>
           <p className="text-xs font-mono tracking-widest text-slate-400 uppercase">
-            &quot;CREATED FOR KAYDO 𓃶&quot;
+            &quot;CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸&quot;
           </p>
         </div>
 

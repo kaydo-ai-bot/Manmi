@@ -30,7 +30,7 @@ function loadPersistedBotName(): string {
       if (name) return name;
     }
   } catch {}
-  return process.env.BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
+  return process.env.BOT_NAME || '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷';
 }
 
 function loadPersistedBotMode(): 'public' | 'private' {

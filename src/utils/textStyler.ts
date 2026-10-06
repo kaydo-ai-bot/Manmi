@@ -177,15 +177,15 @@ export function generateOfficialMenu(
   mode: string = 'PUBLIC 🟢',
   memory: string = getDynamicMemoryUsage(),
   prefix: string = '.',
-  botName: string = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'
+  botName: string = '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷'
 ): string {
   const p = prefix || '';
 
   return `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${botName || '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿'}
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${botName || '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷'}
 ┋🔹┋. ᴄᴏᴍᴍᴀɴᴅs: 300+ ᴄᴍᴅs
-┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
+┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway / Linux
 ┋🔹┋. ᴍᴏᴅᴇ: ${mode}
 *┇🔹╰───────────────╯*
@@ -361,12 +361,12 @@ export function generateOfficialMenu(
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*
 
-> *© ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*`;
+> *© 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷 • CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*`;
 }
 
 /**
  * Formats any bot command text response in the user's requested card style:
- * *╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*
+ * *╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*
  * *┇*🔹╭───────────────
  * *┇*🔹┋. line1
  * *┇*🔹┋  line2
@@ -397,7 +397,7 @@ export function formatCommandCard(content: string): string {
     return `*┇*🔹┋  ${line}`;
   });
 
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n${formattedLines.join('\n')}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n${formattedLines.join('\n')}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
 
 /**
@@ -409,12 +409,12 @@ export function formatLoadingBox(cmdName: string): string {
   if (clean === 'ping') {
     displayName = 'ᴘᴏɴɢ';
   }
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
 
 /**
  * Returns a success box formatted with the requested borders
  */
 export function formatSuccessBox(message: string): string {
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${message}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${message}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }

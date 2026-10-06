@@ -4,12 +4,12 @@ import { Telegraf } from 'telegraf';
 
 import { BOT_NAME as CONFIG_BOT_NAME, OWNER_1, OWNER_2 } from './src/server/config';
 
-const BOT_NAME = CONFIG_BOT_NAME || '≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿';
-const OWNER_1_NAME = '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶';
+const BOT_NAME = CONFIG_BOT_NAME || '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷';
+const OWNER_1_NAME = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿';
 const OWNER_1_CONTACT = OWNER_1;
-const OWNER_2_NAME = '𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶';
+const OWNER_2_NAME = '𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸';
 const OWNER_2_CONTACT = OWNER_2;
-const OWNER_NAME = '𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐃𝐄𝐕 𓃶';
+const OWNER_NAME = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸';
 const OWNER_CONTACT = `+${OWNER_1} / +${OWNER_2}`;
 
 const NEW_OFFICIAL_PHOTO_PATH = path.join(process.cwd(), 'src', 'assets', 'images', 'kaydo_law_bot_official_1790678745856.jpg');
@@ -181,7 +181,7 @@ Tapez /menu pour voir la liste des commandes.`;
 ┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ${OWNER_2_NAME}
 ┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> ${OWNER_2_CONTACT}
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50940131864
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜʀ & ғᴏɴᴅᴀᴛᴇᴜʀ
+┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜsᴇ & ғᴏɴᴅᴀᴛʀɪᴄᴇ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
 > *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;

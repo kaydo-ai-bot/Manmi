@@ -14,8 +14,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ stats, onQuickTest }) =>
   const dynamicAscii = stats
     ? `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* SHADO BOT 𓃶
-*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO 𓃶
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷
+*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 *┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Railway / Cloud
 *┋✦┋. ᴍᴏᴅᴇ:* ${stats.status === 'ONLINE' ? 'ᴘᴜʙʟɪᴄ 🟢' : 'ᴘʀɪᴠᴇ́ 🔒'}
 *┋✦┋. ᴜᴘᴛɪᴍᴇ:* ${stats.uptime || '24/7'}

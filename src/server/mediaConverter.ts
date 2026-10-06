@@ -8,8 +8,8 @@ import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter';
 
 const execAsync = promisify(exec);
 
-const DEFAULT_PACK_NAME = '𝐙𝐋𝐊 𝐁𝐎𝐓 𓃶';
-const DEFAULT_AUTHOR_NAME = '𝐊𝐀𝐘𝐃𝐎 𝐙𝐋𝐊 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐙𝐋𝐊 𓃶';
+const DEFAULT_PACK_NAME = '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷';
+const DEFAULT_AUTHOR_NAME = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸';
 
 /**
  * Converts any input image Buffer (JPG, PNG, GIF, BMP, WEBP, TIFF, SVG) into a high quality 512x512 WhatsApp WebP sticker
@@ -159,7 +159,7 @@ export async function createTextSticker(
       ${safeText}
     </text>
     <text x="256" y="450" text-anchor="middle" fill="#fca5a5" font-size="14" font-family="sans-serif" font-weight="bold" letter-spacing="2">
-      👑 SHAKA ZLK 👑
+      👑 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸 👑
     </text>
   </svg>`;
 

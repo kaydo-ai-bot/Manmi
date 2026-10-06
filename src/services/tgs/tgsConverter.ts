@@ -20,7 +20,7 @@ export async function convertStickerBufferToWhatsAppSticker(
   // 1. WebM Video Sticker -> Animated WhatsApp Sticker
   if (isWebM) {
     try {
-      const animatedWebp = await createAnimatedSticker(inputBuffer, 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐙𝐋𝐊 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐙𝐋𝐊 𓃶');
+      const animatedWebp = await createAnimatedSticker(inputBuffer, '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷', '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸');
       if (animatedWebp && animatedWebp.length > 0) {
         return animatedWebp;
       }
@@ -34,7 +34,7 @@ export async function convertStickerBufferToWhatsAppSticker(
     try {
       const decompressed = zlib.gunzipSync(inputBuffer);
       // Try sharp conversion on decompressed PNG/SVG/WebP
-      const converted = await createImageSticker(decompressed, 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐙𝐋𝐊 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐙𝐋𝐊 𓃶').catch(() => null);
+      const converted = await createImageSticker(decompressed, '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷', '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸').catch(() => null);
       if (converted && converted.length > 0) {
         return converted;
       }
@@ -45,7 +45,7 @@ export async function convertStickerBufferToWhatsAppSticker(
 
   // 3. Static WebP / PNG / JPG Sticker -> Image WhatsApp Sticker
   try {
-    const webpSticker = await createImageSticker(inputBuffer, 'KAYDO BOT V1', '𝐊𝐀𝐘𝐃𝐎 𝐙𝐋𝐊 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐙𝐋𝐊 𓃶');
+    const webpSticker = await createImageSticker(inputBuffer, '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷', '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸');
     if (webpSticker && webpSticker.length > 0) {
       return webpSticker;
     }
