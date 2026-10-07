@@ -4660,7 +4660,7 @@ Installe-toi bien et respecte les règles.`);
 }
 
 const KNOWN_COMMANDS = new Set([
-  'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', 'vv2', 'vo',
+  'menu', 'help', 'ping', 'uptime', 'runtime', 'owner', 'owner1', 'owner2', 'creator1', 'creator2', 'dev1', 'dev2', 'alive', 'list', 'vv', '❤️', 'vo',
   'send', 'save', 'send2', 'save2',
   'sudo', 'setsudo', 'unsudo', 'delsudo', 'listsudo', 'sudolist', 'antidelete',
   'kickall', 'purge', 'kick', 'promote', 'demote', 'promoteall', 'demoteall', 'demoter', 'acceptall', 'rejectall', 'mute', 'unmute', 'tagall', 'hidetag',
