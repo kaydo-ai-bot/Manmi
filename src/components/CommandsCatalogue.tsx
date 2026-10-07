@@ -105,20 +105,20 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
 
         {/* 5 Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-          {/* 1. .vv & .vv2 */}
+          {/* 1. .vv & .❤️ */}
           <div className="bg-slate-950/80 border border-emerald-500/30 hover:border-emerald-400 rounded-xl p-3.5 transition-all flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <span className="font-mono font-extrabold text-sm text-emerald-400 flex items-center gap-1.5">
                   <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                  .vv / .vv2
+                  .vv / .❤️
                 </span>
                 <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">
                   Anti-Vue Unique
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 leading-snug mb-3">
-                <strong>.vv</strong> : renvoie la vue unique dans le groupe/contact actuel. <strong>.vv2</strong> : l&apos;envoie discrètement en privé (DM).
+                <strong>.vv</strong> : renvoie la vue unique dans le groupe/contact actuel. <strong>.❤️</strong> : l&apos;envoie discrètement en privé (DM).
               </p>
             </div>
             <div className="flex items-center space-x-1.5">
@@ -130,11 +130,11 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
                 <span>{copiedCmd === 'vv' ? 'Copié' : '.vv'}</span>
               </button>
               <button
-                onClick={() => onExecuteCommand('vv2')}
+                onClick={() => onExecuteCommand('❤️')}
                 className="flex-1 py-1 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-[10px] font-semibold text-emerald-300 transition-all flex items-center justify-center space-x-1 border border-emerald-500/40"
               >
                 <Terminal className="w-3 h-3" />
-                <span>.vv2 (PV)</span>
+                <span>.❤️ (PV)</span>
               </button>
             </div>
           </div>
@@ -321,7 +321,7 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher une commande (.vv2, .autolike, .online)..."
+              placeholder="Rechercher une commande (❤️, .autolike, .online)..."
               className="w-full h-10 pl-9 pr-4 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
             />
           </div>
@@ -364,7 +364,7 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
             <div
               key={cmd.name}
               className={`bg-[#0f1422] border ${
-                ['vv2', 'autolike', 'online', 'autorecording', 'autotyping'].includes(cmd.name)
+                ['❤️', 'autolike', 'online', 'autorecording', 'autotyping'].includes(cmd.name)
                   ? 'border-emerald-500/50 ring-1 ring-emerald-500/20'
                   : 'border-slate-800/90'
               } hover:border-emerald-500/40 rounded-xl p-4 transition-all group flex flex-col justify-between`}
@@ -375,7 +375,7 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
                     <span className="font-mono font-bold text-base text-emerald-400">
                       .{cmd.name}
                     </span>
-                    {['vv2', 'autolike', 'online', 'autorecording', 'autotyping'].includes(cmd.name) && (
+                    {['❤️', 'autolike', 'online', 'autorecording', 'autotyping'].includes(cmd.name) && (
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         Nouveau
                       </span>

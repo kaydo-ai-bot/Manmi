@@ -119,7 +119,7 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
     'menu',
     '.excuse',
     '.vv',
-    '.vv2',
+    '.❤️',
     '.autolike ❤️',
     '.mode public',
     '.mode private',
@@ -143,7 +143,7 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
             Console Simulateur WhatsApp • KAYDO BOT
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Testez instantanément toutes les commandes (dont .vv2, .autolike, .online, .autorecording, .autotyping) et visualisez les réponses authentiques envoyées par le bot.
+            Testez instantanément toutes les commandes (dont .❤️, .autolike, .online, .autorecording, .autotyping) et visualisez les réponses authentiques envoyées par le bot.
           </p>
         </div>
 

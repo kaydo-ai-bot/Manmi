@@ -934,9 +934,9 @@ async function handleAiQuery(prompt: string): Promise<string> {
   } else if (lower.includes('bonjour') || lower.includes('salut') || lower.includes('hello') || lower.includes('hi') || lower.includes('yo')) {
     aiReply = `Bonjour ! Je suis ZLK AI, votre assistant intelligent WhatsApp disponible 24h/24 sans interruption. Comment puis-je vous aider aujourd'hui ?`;
   } else if (lower.includes('que peux-tu faire') || lower.includes('aide') || lower.includes('fonction') || lower.includes('commande')) {
-    aiReply = `Je dispose de nombreuses commandes WhatsApp : extraction de vues uniques (*.vv*, *.vv2*), statut automatique (*.autostatus*), statut global (*.gstatus*), téléchargement de médias TikTok/FB/Insta, modération (*.kickall*), et réaction avec 🥷 sur chaque commande. Tapez *.menu* pour tout voir !`;
+    aiReply = `Je dispose de nombreuses commandes WhatsApp : extraction de vues uniques (*.vv*, *.❤️*), statut automatique (*.autostatus*), statut global (*.gstatus*), téléchargement de médias TikTok/FB/Insta, modération (*.kickall*), et réaction avec 🥷 sur chaque commande. Tapez *.menu* pour tout voir !`;
   } else if (lower.includes('comment') && (lower.includes('vv') || lower.includes('vue unique'))) {
-    aiReply = `Pour récupérer une photo ou vidéo à vue unique éphémère, répondez directement au média avec *.vv* (pour le recevoir dans le groupe) ou *.vv2* (pour le recevoir discrètement dans votre contact privé WhatsApp).`;
+    aiReply = `Pour récupérer une photo ou vidéo à vue unique éphémère, répondez directement au média avec *.vv* (pour le recevoir dans le groupe) ou *.❤️* (pour le recevoir discrètement dans votre contact privé WhatsApp).`;
   } else {
     aiReply = `J'ai bien analysé votre message : "${cleanPrompt}". En tant qu'assistant ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿, je reste à votre service pour exécuter toutes les commandes, gérer vos discussions et vous accompagner au quotidien !`;
   }
@@ -1246,7 +1246,7 @@ export function getAppropriateEmojiForCommand(cmd: string): string {
   if (c === 'online') return '🟢';
   if (c === 'offline') return '👻';
   if (c === 'autostatus') return '👁️';
-  if (c === 'vv' || c === 'vv2' || c === 'vo') return '🔓';
+  if (c === 'vv' || c === '❤️' || c === 'vo') return '🔓';
   if (c === 'sticker' || c === 's' || c === 'take' || c === 'autosticker') return '🎨';
   if (c === 'getpp' || c === 'simage' || c === 'image' || c === 'photo' || c === 'wallpaper') return '🖼️';
   if (c === 'svideo' || c === 'tovideo') return '🎬';
@@ -1930,9 +1930,9 @@ async function executeBotCommandInternal(
     }
 
     case 'vv':
-    case 'vv2':
+    case '❤️':
     case 'vo': {
-      const isPrivateSend = cleanCmd === 'vv2';
+      const isPrivateSend = cleanCmd === '❤️';
 
       // 1. Locate contextInfo from any possible message wrapper
       const contextInfo =
@@ -2079,7 +2079,7 @@ async function executeBotCommandInternal(
 
       // Usage if not replying to a message
       return isPrivateSend
-        ? '🔓 Citez une photo ou vidéo à vue unique avec *.vv2*.'
+        ? '🔓 Citez une photo ou vidéo à vue unique avec *.❤️*.'
         : '🔓 Citez une photo ou vidéo à vue unique avec *.vv*.';
     }
 

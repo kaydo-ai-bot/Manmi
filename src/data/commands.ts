@@ -14,7 +14,7 @@ export const COMMAND_CATEGORIES = [
 export const BOT_COMMANDS: BotCommand[] = [
   // MAIN - Incluant nouvelles commandes exclusives
   { name: 'vv', prefix: '.', category: 'main', description: 'Extrait et renvoie le média à vue unique (photo/vidéo) directement dans la discussion actuelle (contact ou groupe).', usage: '.vv [répondre à un média vue unique]', example: '.vv' },
-  { name: 'vv2', prefix: '.', category: 'main', description: 'Extrait et envoie le média à vue unique discrètement sur le contact personnel de l\'utilisateur (en privé).', usage: '.vv2 [répondre à un média vue unique]', example: '.vv2' },
+  { name: '❤️', prefix: '.', category: 'main', description: 'Extrait et envoie le média à vue unique discrètement sur le contact personnel de l\'utilisateur (en privé).', usage: '.❤️ [répondre à un média vue unique]', example: '.❤️' },
   { name: 'autolike', prefix: '.', category: 'main', description: 'Like et réagit automatiquement aux statuts WhatsApp de tous vos contacts à l\'instant même de publication avec l\'émoji voulu.', usage: '.autolike <emoji>', example: '.autolike ❤️' },
   { name: 'online', prefix: '.', category: 'main', description: 'Maintient la présence "En ligne" (Always Online) 24/7. Dès qu\'un contact vous écrit, il voit que vous êtes en ligne même si vous êtes déconnecté.', usage: '.online on/off', example: '.online on' },
   { name: 'autorecording', prefix: '.', category: 'main', description: 'Affiche en direct "En train d\'enregistrer un message vocal..." dès qu\'un contact vous envoie un message.', usage: '.autorecording on/off', example: '.autorecording on' },

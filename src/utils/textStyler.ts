@@ -243,7 +243,7 @@ export function generateOfficialMenu(
 *┇*🔹┋. ${p}online
 *┇*🔹┋. ${p}offline= (1 tick ✓)
 *┇*🔹┋. ${p}vv
-*┇*🔹┋. ${p}vv2
+*┇*🔹┋. ${p}❤️
 *┇*🔹┋. ${p}gstatus
 *┇*🔹┋. ${p}restore
 *┇*🔹┋. ${p}pair

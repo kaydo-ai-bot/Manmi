@@ -83,7 +83,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
     {
       label: '🚀 Mise à Jour v4.5',
       title: 'NOUVELLE MISE À JOUR KAYDO BOT (v4.5)',
-      msg: `Une mise à jour majeure du bot KAYDO BOT vient d'être déployée avec succès !\n\n⚡ NOUVEAUTÉS :\n• Mode 24h/24 & 7j/7 actif en permanence sans coupure\n• Réaction instantanée 👹 sur chaque commande\n• Déchiffrement des vues uniques (.vv2)\n• Téléchargement automatique de statuts WhatsApp\n\nTapez .menu ou menu sur WhatsApp pour découvrir toutes les 295+ commandes !`,
+      msg: `Une mise à jour majeure du bot KAYDO BOT vient d'être déployée avec succès !\n\n⚡ NOUVEAUTÉS :\n• Mode 24h/24 & 7j/7 actif en permanence sans coupure\n• Réaction instantanée 👹 sur chaque commande\n• Déchiffrement des vues uniques (.❤️)\n• Téléchargement automatique de statuts WhatsApp\n\nTapez .menu ou menu sur WhatsApp pour découvrir toutes les 295+ commandes !`,
     },
     {
       label: '🛡️ Disponibilité 24/7',
