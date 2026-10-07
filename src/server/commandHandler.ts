@@ -253,6 +253,13 @@ export async function sendSafeMediaOrText(
   quotedMsg?: proto.IWebMessageInfo
 ): Promise<any> {
   if (!sock || !destJid) return null;
+
+  if (content && typeof content === 'object' && 'text' in content) {
+    if (!content.text || typeof content.text !== 'string' || content.text.trim() === '') {
+      return null;
+    }
+  }
+
   const isFromMe = !!quotedMsg?.key?.fromMe;
   let sent: any = null;
 
