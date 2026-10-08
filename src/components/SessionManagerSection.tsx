@@ -310,7 +310,7 @@ export const SessionManagerSection: React.FC<SessionManagerSectionProps> = ({
     if (e) e.preventDefault();
     const clean = lookupPhone.replace(/\D/g, '');
     if (!clean || clean.length < 8) {
-      setLookupError("Veuillez saisir votre numéro complet avec l'indicatif (ex: 50935975863).");
+      setLookupError("Veuillez saisir votre numéro complet avec l'indicatif (ex: 33612345678).");
       return;
     }
 
@@ -966,7 +966,7 @@ export const SessionManagerSection: React.FC<SessionManagerSectionProps> = ({
                 type="tel"
                 value={lookupPhone}
                 onChange={(e) => setLookupPhone(e.target.value)}
-                placeholder="50935975863 (avec indicatif)"
+                placeholder="Ex: 33612345678 (avec indicatif)"
                 className="w-full sm:flex-1 h-10 px-3 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-mono placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                 disabled={isLookingUp}
               />

@@ -337,10 +337,15 @@ export async function loadAllSessionsFromPostgres(): Promise<
 export async function purgeSessionKeysFromPostgres(sessionId: string): Promise<boolean> {
   if (!isConnected || !pool) return false;
   try {
-    await pool.query('DELETE FROM whatsapp_session_keys WHERE session_id = $1', [sessionId]);
+    await pool.query(
+      `DELETE FROM whatsapp_session_keys
+       WHERE session_id = $1
+         AND (key_id LIKE 'session-%' OR key_id LIKE 'sender-key%')`,
+      [sessionId]
+    );
     return true;
   } catch (err: any) {
-    console.error(`[PERSISTENCE] Erreur purge cles Signal pour ${sessionId}:`, err.message);
+    console.error(`[PERSISTENCE] Erreur purge clés Signal pour ${sessionId}:`, err.message);
     return false;
   }
 }

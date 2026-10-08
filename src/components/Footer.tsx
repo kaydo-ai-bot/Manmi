@@ -38,15 +38,9 @@ export const Footer: React.FC<FooterProps> = ({ activeSessionsCount = 0 }) => {
             <span>Chiffrement E2EE • Baileys Signal Protocol</span>
           </span>
           <span>•</span>
-          <a
-            href="https://wa.me/50935975863"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-slate-400 transition-colors flex items-center gap-1"
-          >
-            <span>WhatsApp (+509 3597 5863)</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
+          <span className="text-slate-500">
+            © 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶 • Déploiement 24/7
+          </span>
         </div>
       </div>
     </footer>

@@ -5,8 +5,9 @@ export const ThemeSelector: React.FC<{ className?: string }> = ({ className = ''
   const { theme, setTheme } = useTheme();
 
   const themes: Array<{ id: AccentTheme; label: string; color: string; ringColor: string }> = [
-    { id: 'cyan', label: 'Cyan', color: 'bg-cyan-500', ringColor: 'ring-cyan-400' },
+    { id: 'red', label: 'Rouge', color: 'bg-red-600', ringColor: 'ring-red-500' },
     { id: 'purple', label: 'Violet', color: 'bg-purple-500', ringColor: 'ring-purple-400' },
+    { id: 'cyan', label: 'Cyan', color: 'bg-cyan-500', ringColor: 'ring-cyan-400' },
     { id: 'orange', label: 'Orange', color: 'bg-orange-500', ringColor: 'ring-orange-400' },
     { id: 'green', label: 'Émeraude', color: 'bg-emerald-500', ringColor: 'ring-emerald-400' },
   ];

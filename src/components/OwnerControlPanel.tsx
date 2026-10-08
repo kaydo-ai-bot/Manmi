@@ -93,7 +93,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
     {
       label: '👑 Message du Développeur',
       title: 'MESSAGE OFFICIEL DU CRÉATEUR KAYDO DEV',
-      msg: `Chers utilisateurs de KAYDO BOT,\n\nVotre session est activement connectée à nos serveurs. Pour toute demande, commande personnalisée ou assistance, contactez le développeur officiel :\n\n📞 WhatsApp : +509 3597 5863 (wa.me/50935975863)\n🌐 Portail Web Public : ${publicUrl}`,
+      msg: `Chers utilisateurs de KAYDO BOT,\n\nVotre session est activement connectée à nos serveurs. Pour toute demande, commande personnalisée ou assistance, contactez le développeur officiel via le portail ou sur WhatsApp.\n\n🌐 Portail Web Public : ${publicUrl}`,
     },
     {
       label: '⚠️ Maintenance Rapide',
@@ -374,7 +374,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
               <div className="relative">
                 <input
                   type="password"
-                  placeholder="Ex: 50935975863 ou clé secrète..."
+                  placeholder="Clé secrète propriétaire (OWNER_PANEL_KEY)..."
                   value={credentialInput}
                   onChange={(e) => setCredentialInput(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono text-sm"
@@ -383,7 +383,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
                 <KeyRound className="w-5 h-5 text-slate-500 absolute right-3.5 top-3.5" />
               </div>
               <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-                <span>Indice : Numéro Owner <code className="text-amber-400">50935975863</code> ou code <code className="text-amber-400">KAYDO2026</code></span>
+                <span>Accès protégé par clé secrète configurée dans Railway / .env (<code className="text-amber-400">OWNER_PANEL_KEY</code>)</span>
               </p>
             </div>
 
@@ -675,7 +675,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
                           <span className="font-mono text-base font-bold text-white">
                             +{session.phone}
                           </span>
-                          {session.phone === '50935975863' && (
+                          {session.isOwnerSession && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
                               👑 OWNER
                             </span>
@@ -880,11 +880,11 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
         {targetMode === 'custom_target' && (
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Numéro de téléphone ou JID du groupe cible (ex: 50935975863 ou id@g.us)
+              Numéro de téléphone ou JID du groupe cible (ex: 33612345678 ou id@g.us)
             </label>
             <input
               type="text"
-              placeholder="50935975863..."
+              placeholder="Numéro ou jid du groupe..."
               value={customTargetJid}
               onChange={(e) => setCustomTargetJid(e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -935,8 +935,6 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
               <span className="text-amber-400 font-bold">╭━━━〔 👑 𝐌𝐄𝐒𝐒𝐀𝐆𝐄 𝐃𝐔 𝐏𝐑𝐎𝐏𝐑𝐈É𝐓𝐀𝐈𝐑𝐄 〕━━━╮</span>
               <br />
               ┃ ◈ 👑 𝐃𝐄𝐕 : 𝐃𝐄𝐕 𝐊𝐀𝐘𝐃𝐎 𝐒𝐂𝐎𝐅𝐈𝐄𝐋𝐃
-              <br />
-              ┃ ◈ 📞 𝐂𝐎𝐍𝐓𝐀𝐂𝐓 : +509 3597 5863 (wa.me/50935975863)
               <br />
               ┃ ◈ 📢 𝐎𝐁𝐉𝐄𝐓 : <span className="text-cyan-300 font-bold">{broadcastTitle}</span>
               <br />

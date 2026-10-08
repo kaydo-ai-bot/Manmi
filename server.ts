@@ -81,7 +81,7 @@ import { initTelegramBot } from './telegramBot';
 initTelegramBot();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const START_TIME = Date.now();
 
 app.use(express.json({ limit: '50mb' }));
@@ -282,15 +282,15 @@ const handleStatusRequest = (req: Request, res: Response) => {
 
     res.setHeader('Content-Type', 'application/json');
     res.json({
-      user: 'SHADO BOT 𓃶',
-      botName: 'SHADO BOT 𓃶',
-      prefix: '.',
+      user: 'KAYDO BOT 𓃶',
+      botName: 'KAYDO BOT 𓃶',
+      prefix: process.env.PREFIX || '.',
       uptime: getFormattedUptime(),
       memory: `${dynamicUsedMb} MB`,
       totalMemory: `${totalMemMb} MB`,
       commandsCount: 295,
-      owner: 'KAYDO 𓃶',
-      siteUrl: 'https://wa.me/50935975863',
+      owner: 'KAYDO DEV 𓃶',
+      siteUrl: process.env.CHANNEL_LINK || '/',
       pingMs: Math.floor(Math.random() * 15) + 20,
       status: 'ONLINE',
       activeSessionsCount: getActiveSessionsCount(),
@@ -330,7 +330,140 @@ app.post('/api/watchdog/test-restart', (req: Request, res: Response) => {
   });
 });
 
-// 2. Request WhatsApp Pairing Code (Real direct Baileys request)
+// ====================================================
+// DIRECT COMPATIBILITY ENDPOINTS (Matching main.js & pair.html)
+// ====================================================
+
+// Serve direct bot avatar image
+app.get('/kaydo.jpg', (req: Request, res: Response) => {
+  const candidateImages = [
+    path.join(process.cwd(), 'public', 'kaydo.jpg'),
+    path.join(process.cwd(), 'public', 'kaydo_bot.jpg'),
+    path.join(process.cwd(), 'public', 'menu_image.jpg'),
+    path.join(process.cwd(), 'assets', 'kaydo.jpg'),
+  ];
+  for (const img of candidateImages) {
+    if (fs.existsSync(img)) return res.sendFile(img);
+  }
+  res.redirect('https://files.catbox.moe/9u2j5v.png');
+});
+
+// GET /code?number=... (Pairing Code)
+app.get('/code', async (req: Request, res: Response) => {
+  const number = (req.query.number as string) || (req.query.phone as string);
+  if (!number) return res.status(400).json({ error: 'Number required' });
+  try {
+    const pairResult = await requestPairingCode(number);
+    res.json({
+      code: pairResult.code || pairResult.formattedCode,
+      status: 'new_pairing',
+      sessionId: pairResult.sessionId,
+      expiresIn: pairResult.expiresInSeconds,
+      message: 'Code généré. Entrez-le dans WhatsApp.'
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to get pairing code', status: 'error', message: err.message });
+  }
+});
+
+// GET /status (System or per-number status)
+app.get('/status', async (req: Request, res: Response) => {
+  const { number } = req.query;
+  const sessions = await getAllSessionsDetails();
+  if (!number) {
+    const list = sessions.map(s => ({
+      number: s.phone,
+      status: (s.isSocketOpen || s.status === 'paired') ? 'connected' : 'disconnected',
+      connectionTime: s.createdAt ? new Date(s.createdAt).toLocaleString('fr-FR') : null,
+      uptime: s.uptimeFormatted || '0s'
+    }));
+    return res.json({ totalActive: getActiveSessionsCount(), connections: list });
+  }
+  const clean = String(number).replace(/\D/g, '');
+  const target = sessions.find(s => s.phone.replace(/\D/g, '').includes(clean) || s.sessionId.includes(clean));
+  res.json({
+    number: clean,
+    isConnected: !!(target && (target.isSocketOpen || target.status === 'paired')),
+    connectionTime: target?.createdAt ? new Date(target.createdAt).toLocaleString('fr-FR') : null,
+    uptime: target?.uptimeFormatted || '0s'
+  });
+});
+
+// GET /disconnect?number=...
+app.get('/disconnect', async (req: Request, res: Response) => {
+  const number = (req.query.number as string) || '';
+  if (!number) return res.status(400).json({ error: 'Number required' });
+  const clean = number.replace(/\D/g, '');
+  const sessions = await getAllSessionsDetails();
+  const target = sessions.find(s => s.phone.replace(/\D/g, '').includes(clean) || s.sessionId.includes(clean));
+  if (!target) return res.status(404).json({ error: 'Session not found' });
+  await deleteSession(target.sessionId);
+  res.json({ status: 'success', message: 'Disconnected' });
+});
+
+// GET /active (Active sessions count & numbers)
+app.get('/active', async (req: Request, res: Response) => {
+  const sessions = await getAllSessionsDetails();
+  const activeNumbers = sessions.filter(s => s.isSocketOpen || s.status === 'paired').map(s => s.phone);
+  res.json({ count: activeNumbers.length, numbers: activeNumbers });
+});
+
+// GET /ping (Healthcheck)
+app.get('/ping', (req: Request, res: Response) => {
+  res.json({ status: 'active', message: 'KAYDO BOT is running 🔥', activeSessions: getActiveSessionsCount() });
+});
+
+// GET /connect-all (Trigger 24/7 reconnect of all saved sessions)
+app.get('/connect-all', async (req: Request, res: Response) => {
+  try {
+    const count = await restoreAllSessions();
+    res.json({ status: 'success', total: count, message: `${count} session(s) restaurée(s) et réactivée(s)` });
+  } catch (e: any) {
+    res.status(500).json({ error: 'Failed', message: e.message });
+  }
+});
+
+// GET /owner/api/sessions
+app.get('/owner/api/sessions', async (req: Request, res: Response) => {
+  const key = (req.headers['x-owner-key'] as string) || (req.query.key as string) || '';
+  const ownerPanelKey = process.env.OWNER_PANEL_KEY || process.env.ADMIN_SECRET_KEY || 'KAYDO2026';
+  if (key && key !== ownerPanelKey && !isAuthorizedOwner(key, key)) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const sessions = await getAllSessionsDetails();
+  const list = sessions.map(s => ({
+    number: s.phone,
+    active: s.isSocketOpen || s.status === 'paired',
+    connectionTime: s.createdAt ? new Date(s.createdAt).toLocaleString('fr-FR') : null,
+    uptime: s.uptimeFormatted,
+    status: s.status
+  }));
+  res.json({ totalStored: list.length, active: getActiveSessionsCount(), sessions: list });
+});
+
+// GET /owner/api/reconnect
+app.get('/owner/api/reconnect', async (req: Request, res: Response) => {
+  const n = String(req.query.number || '').replace(/\D/g, '');
+  if (!n) return res.status(400).json({ error: 'Number required' });
+  try {
+    await restartSession(`session_${n}`);
+    res.json({ status: 'success', message: 'Reconnect initiated' });
+  } catch (e: any) {
+    res.status(500).json({ error: 'Reconnect failed', message: e?.message });
+  }
+});
+
+// GET /owner/api/disconnect
+app.get('/owner/api/disconnect', async (req: Request, res: Response) => {
+  const n = String(req.query.number || '').replace(/\D/g, '');
+  if (!n) return res.status(400).json({ error: 'Number required' });
+  try {
+    await deleteSession(`session_${n}`);
+    res.json({ status: 'success', message: 'Session disconnected and deleted' });
+  } catch (e: any) {
+    res.status(500).json({ error: 'Failed to disconnect', message: e?.message });
+  }
+});
 app.post('/api/pair', async (req: Request, res: Response) => {
   const { phone } = req.body;
   if (!phone || typeof phone !== 'string') {
@@ -497,17 +630,16 @@ app.get('/api/whatsapp/apology-message', (req: Request, res: Response) => {
 
 // ====================================================
 // 👑 OWNER EXCLUSIVE CONTROL SPACE & AUTH HELPERS
-// Accessible ONLY to Dev Kaydo (+509 3597 5863) & Dev Shaka (+509 4013 1864)
 // ====================================================
 
-const OWNER_1_PHONE = '50935975863';
-const OWNER_2_PHONE = '50940131864';
-const OWNER_PHONE = '50935975863';
+const OWNER_1_PHONE = (process.env.OWNER_1 || process.env.OWNER_NUMBER || '').replace(/\D/g, '');
+const OWNER_2_PHONE = (process.env.OWNER_2 || '').replace(/\D/g, '');
+const OWNER_PHONE = OWNER_1_PHONE;
 const OWNER_1_NAME = 'KAYDO 𓃶';
 const OWNER_2_NAME = 'SHAKA 𓃶';
 const OWNER_NAME = 'KAYDO 𓃶';
 const OWNER_TOKENS = new Set<string>();
-const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || 'KAYDO2026';
+const ADMIN_SECRET_KEY = process.env.OWNER_PANEL_KEY || process.env.ADMIN_SECRET_KEY || process.env.ADMIN_PASSCODE || 'KAYDO2026';
 
 // Helper to verify owner authentication
 function isAuthorizedOwner(token?: string, credential?: string): boolean {
@@ -520,8 +652,8 @@ function isAuthorizedOwner(token?: string, credential?: string): boolean {
     const clean = credential.trim().replace(/\D/g, '');
     const cleanRaw = credential.trim();
     if (
-      clean === OWNER_1_PHONE ||
-      clean === OWNER_2_PHONE ||
+      (OWNER_1_PHONE && clean === OWNER_1_PHONE) ||
+      (OWNER_2_PHONE && clean === OWNER_2_PHONE) ||
       cleanRaw === ADMIN_SECRET_KEY ||
       cleanRaw === 'KAYDO2026' ||
       cleanRaw.toLowerCase() === 'kaydo' ||

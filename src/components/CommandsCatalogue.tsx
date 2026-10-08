@@ -284,15 +284,9 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
                 <BookOpen className="w-3.5 h-3.5" />
                 Rendu du Menu Officiel Étiré (.menu)
               </span>
-              <a
-                href="https://wa.me/50935975863"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center space-x-1 text-emerald-400 hover:underline"
-              >
-                <span>WhatsApp Owner: +509 3597 5863</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <span className="flex items-center space-x-1 text-emerald-400 font-mono">
+                <span>KAYDO BOT • 24/24 Cloud</span>
+              </span>
             </div>
             <pre className="whitespace-pre select-all text-[11px] leading-relaxed max-h-[500px] overflow-y-auto">
 {generateOfficialMenu('Actif 24/7')}

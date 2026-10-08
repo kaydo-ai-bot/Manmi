@@ -1,7 +1,7 @@
 # 👑 kaydo bot — Multi-Device WhatsApp & Telegram Bot (24/7)
 
 Développé par **𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶**  
-Contact officiel : [+509 3597 5863](https://wa.me/50935975863)
+Architecture Cloud & Déploiement 24/7 (Railway / VPS)
 
 ---
 

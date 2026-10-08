@@ -127,7 +127,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
 
     const cleanInput = phoneNumber.replace(/[^0-9]/g, '');
     if (!cleanInput || cleanInput.length < 8 || cleanInput.length > 15) {
-      setError("Veuillez renseigner votre identifiant / numéro WhatsApp complet avec l'indicatif international (ex: 50935975863 pour Haïti).");
+      setError("Veuillez renseigner votre identifiant / numéro WhatsApp complet avec l'indicatif international (ex: 33612345678 ou 22501020304).");
       return;
     }
 
@@ -368,7 +368,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="50935975863 (Haïti) ou indicatif + numéro"
+                      placeholder="Ex: 33612345678 ou 22501020304"
                       className="flex-1 h-12 px-3 bg-transparent text-white font-mono text-base placeholder-slate-500 focus:outline-none"
                       disabled={loading}
                     />
@@ -385,15 +385,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
 
                   {/* Quick helper shortcuts */}
                   <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                    <span className="text-[11px] text-slate-400">Raccourcis rapides :</span>
-                    <button
-                      type="button"
-                      onClick={() => setPhoneNumber('50935975863')}
-                      className="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono transition-all flex items-center gap-1 cursor-pointer font-semibold"
-                    >
-                      <span>🇭🇹</span>
-                      <span>Haïti (+509 3597 5863)</span>
-                    </button>
+                    <span className="text-[11px] text-slate-400">Indicatifs rapides :</span>
                     <button
                       type="button"
                       onClick={() => setPhoneNumber('509')}

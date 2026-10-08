@@ -11,6 +11,7 @@ import {
   WASocket,
   jidNormalizedUser,
   makeCacheableSignalKeyStore,
+  jidDecode,
   proto,
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
@@ -30,20 +31,33 @@ import { sessionStartLimiter, downloadLimiter, databaseLimiter, apiLimiter } fro
 
 const NodeCache = (NodeCacheModule as any)?.default || NodeCacheModule;
 
-// Rolling in-memory cache for recent messages (up to 10,000 entries) for Anti-Delete and Baileys retry requests
-const recentMessagesMap = new Map<string, any>();
+// Rolling in-memory cache for recent messages (up to 20,000 entries) for Anti-Delete and Baileys retry requests
+const recentMessagesMap = new Map<string, { message: any; fullMsg: any }>();
 
-export function storeRecentMessage(id: string, message: any): void {
+export function storeRecentMessage(id: string, message: any, fullMsg?: any): void {
   if (!id || !message) return;
-  recentMessagesMap.set(id, message);
-  if (recentMessagesMap.size > 10000) {
+  const content = message.message ? message.message : message;
+  const full = fullMsg || (message.message ? message : { key: { id }, message: content });
+  recentMessagesMap.set(id, {
+    message: content,
+    fullMsg: full,
+  });
+  if (recentMessagesMap.size > 20000) {
     const oldestKey = recentMessagesMap.keys().next().value;
     if (oldestKey) recentMessagesMap.delete(oldestKey);
   }
 }
 
 export function getRecentMessage(id: string): any | undefined {
-  return recentMessagesMap.get(id);
+  const item = recentMessagesMap.get(id);
+  if (!item) return undefined;
+  return item.fullMsg || item;
+}
+
+export function getRecentMessageContent(id: string): any | undefined {
+  const item = recentMessagesMap.get(id);
+  if (!item) return undefined;
+  return item.message || item;
 }
 
 // Dedicated retry counter caches per session to coordinate multi-round handshake retries
@@ -561,13 +575,15 @@ async function initSessionSocket(
     defaultQueryTimeoutMs: isPairingMode ? undefined : 60000,
     keepAliveIntervalMs: 15000,
     msgRetryCounterCache: retryCache,
+    enableRecentMessageCache: true,
     getMessage: async (key: any) => {
       if (key?.id) {
+        const content = getRecentMessageContent(key.id);
+        if (content) return content;
         const cached = getRecentMessage(key.id);
-        if (cached) return cached;
+        if (cached) return (cached as any).message || cached;
       }
-      // Fulfill WhatsApp retry request with empty message prototype to prevent Bad MAC handshake failure silently without printing text
-      return proto.Message.fromObject({ conversation: '' });
+      return undefined;
     },
     enableAutoSessionRecreation: true,
     retryRequestDelayMs: 250,
@@ -2611,27 +2627,102 @@ export async function repairSessionKeys(sessionId: string): Promise<{ success: b
 
     session.status = 'reconnecting';
 
-    // 2. Supprimer les clés Signal dans PostgreSQL (garder creds.json intact)
+    // 2. Supprimer les clés de sessions Signal corrompues dans PostgreSQL (garder creds.json et pre-keys intacts)
     await purgeSessionKeysFromPostgres(sessionId);
 
-    // 3. Supprimer les fichiers de clés locaux (tout sauf creds.json)
+    // 3. Supprimer uniquement les fichiers de sessions/ratchets corrompus locaux (session-*.json, sender-key-*.json)
+    // CRITIQUE: Ne JAMAIS supprimer pre-key-*.json, signedPreKey, app-state-* ni creds.json !
     if (fs.existsSync(session.sessionDir)) {
       const files = fs.readdirSync(session.sessionDir);
       for (const file of files) {
-        if (file !== 'creds.json' && file !== 'creds.backup.json') {
-          fs.unlinkSync(path.join(session.sessionDir, file));
+        if (
+          file.startsWith('session-') ||
+          file.startsWith('sender-key-') ||
+          file.startsWith('sender-key-memory-')
+        ) {
+          try {
+            fs.unlinkSync(path.join(session.sessionDir, file));
+          } catch {}
         }
       }
     }
 
     // 4. Redémarrer la session
-    console.log(`[SELF-HEALING] ✅ Clés Signal purgées pour ${sessionId}. Reconnexion en cours...`);
+    console.log(`[SELF-HEALING] ✅ Clés Signal corrompues purgées pour ${sessionId}. Reconnexion en cours...`);
     await initSessionSocket(session, false);
     
     return { success: true, message: 'Réparation des clés terminée. La session redémarre.' };
   } catch (err: any) {
     console.error(`[SELF-HEALING] ❌ Erreur lors de la réparation de ${sessionId}:`, err);
     return { success: false, message: `Erreur de réparation : ${err.message}` };
+  }
+}
+
+/**
+ * Robustly purges pairwise Signal ratchet files and in-memory keys for a single contact/JID.
+ * Forces WhatsApp to exchange a fresh PreKey bundle and resets Bad MAC loops immediately.
+ */
+export async function clearPairwiseSession(sessionId: string, jid: string): Promise<void> {
+  const session = sessions.get(sessionId);
+  if (!session) return;
+
+  try {
+    const rawNumber = jid
+      .replace('@s.whatsapp.net', '')
+      .replace('@c.us', '')
+      .replace('@g.us', '')
+      .replace('@lid', '')
+      .split(':')[0]
+      .split('.')[0];
+
+    const decoded = jid.includes('@') ? jidDecode(jid) : null;
+    const user = decoded?.user || rawNumber;
+    const device = decoded?.device || 0;
+
+    const keysToNull: Record<string, null> = {};
+    const baseAddresses = [
+      `${user}.0`,
+      `${user}.1`,
+      `${user}.2`,
+      `${user}.22`,
+      `${user}.${device}`,
+      `${user}_1.0`,
+      `${user}_1.1`,
+      `${user}_1.22`,
+      `${user}_1.${device}`,
+      rawNumber,
+      jid,
+    ];
+
+    for (const addr of baseAddresses) {
+      keysToNull[addr] = null;
+    }
+
+    if (session.sock?.authState?.keys) {
+      await session.sock.authState.keys.set({
+        session: keysToNull,
+        'sender-key': keysToNull,
+        'sender-key-memory': keysToNull,
+      });
+    }
+
+    // Also remove matching session files from disk
+    if (fs.existsSync(session.sessionDir)) {
+      const files = fs.readdirSync(session.sessionDir);
+      for (const f of files) {
+        if (
+          (f.startsWith('session-') || f.startsWith('sender-key-')) &&
+          (f.includes(user) || f.includes(rawNumber))
+        ) {
+          try {
+            fs.unlinkSync(path.join(session.sessionDir, f));
+            console.log(`[SELF-HEALING] 🧹 Fichier session corrompu purgé : ${f}`);
+          } catch {}
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[SELF-HEALING] Erreur clearPairwiseSession pour ${jid}:`, err?.message || err);
   }
 }
 

@@ -89,7 +89,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onCancel }) => 
               />
             </div>
             <p className="text-[10px] text-slate-500 font-mono">
-              Accès réservé exclusivement au compte de DEV KAYDO (+509 3597 5863)
+              Accès protégé par clé propriétaire (OWNER_PANEL_KEY).
             </p>
           </div>
 

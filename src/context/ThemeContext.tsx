@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type AccentTheme = 'purple' | 'cyan' | 'orange' | 'green';
+export type AccentTheme = 'red' | 'purple' | 'cyan' | 'orange' | 'green';
 
 export interface ThemeConfig {
   id: AccentTheme;
@@ -17,6 +17,19 @@ export interface ThemeConfig {
 }
 
 export const THEMES: Record<AccentTheme, ThemeConfig> = {
+  red: {
+    id: 'red',
+    name: 'Rouge Kaydo',
+    colorHex: '#e71919',
+    buttonGradient: 'from-red-600 via-rose-600 to-red-700 hover:from-red-500 hover:to-rose-600',
+    buttonGlow: 'shadow-[0_0_30px_rgba(231,25,25,0.45)]',
+    cardBorder: 'border-red-600/40 hover:border-red-500/60',
+    cardGlow: 'shadow-[0_0_40px_rgba(231,25,25,0.22)]',
+    textAccent: 'text-red-500',
+    bgSubtle: 'bg-red-950/30',
+    badgeBorder: 'border-red-500/40',
+    ringColor: 'focus:ring-red-500/50',
+  },
   purple: {
     id: 'purple',
     name: 'Violet Néon',
@@ -78,15 +91,15 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'purple',
+  theme: 'red',
   setTheme: () => {},
-  currentTheme: THEMES.purple,
+  currentTheme: THEMES.red,
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<AccentTheme>(() => {
     const saved = localStorage.getItem('shado_theme') as AccentTheme;
-    return saved && THEMES[saved] ? saved : 'purple';
+    return saved && THEMES[saved] ? saved : 'red';
   });
 
   const setTheme = (t: AccentTheme) => {
@@ -94,7 +107,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('shado_theme', t);
   };
 
-  const currentTheme = THEMES[theme] || THEMES.purple;
+  const currentTheme = THEMES[theme] || THEMES.red;
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, currentTheme }}>

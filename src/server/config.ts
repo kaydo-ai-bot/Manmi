@@ -7,8 +7,8 @@ import path from 'path';
  * OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME
  */
 
-export const OWNER_1 = (process.env.OWNER_1 || '50935975863').replace(/\D/g, '');
-export const OWNER_2 = (process.env.OWNER_2 || '50940131864').replace(/\D/g, '');
+export const OWNER_1 = (process.env.OWNER_1 || process.env.OWNER_NUMBER || '').replace(/\D/g, '');
+export const OWNER_2 = (process.env.OWNER_2 || '').replace(/\D/g, '');
 
 const envOwnerList = (process.env.OWNER_NUMBERS || '')
   .split(',')
@@ -125,7 +125,7 @@ export function isOwnerNumber(phoneOrJid?: string | null, sessionPhone?: string 
 
   if (!clean) return false;
 
-  // 1. Vérification contre les numéros Owner configurés (50935975863, 50940131864, etc.)
+  // 1. Vérification contre les numéros Owner configurés (OWNER_1, OWNER_2, etc.)
   for (const owner of OWNER_NUMBERS) {
     if (clean === owner || clean.endsWith(owner) || owner.endsWith(clean)) {
       return true;

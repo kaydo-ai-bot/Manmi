@@ -8,7 +8,7 @@ import { cleanupFile } from '../services/downloader/cleanup';
 import { processTgsRequest } from '../services/tgs/tgsProcessor';
 import { detectPlatform } from '../services/downloader/platformDetector';
 import { globalDownloadQueue, getDownloaderStats } from '../services/downloader/downloadQueue';
-import { WASocket, downloadMediaMessage, downloadContentFromMessage, proto, jidNormalizedUser, generateWAMessageContent } from '@whiskeysockets/baileys';
+import { WASocket, downloadMediaMessage, downloadContentFromMessage, proto, jidNormalizedUser, jidDecode, generateWAMessageContent } from '@whiskeysockets/baileys';
 import {
   fromMathBold,
   normalizeCommandText,
@@ -27,6 +27,7 @@ import {
   isGlobalBotEnabled,
   isSessionBotEnabled,
   repairSessionKeys,
+  clearPairwiseSession,
   storeRecentMessage,
   getRecentMessage,
   setSessionCustomName,
@@ -210,13 +211,40 @@ export function getBotMenuImageBuffer(sessionId?: string): Buffer | null {
  * Robustly clears local session keys for a JID to force WhatsApp re-keying
  * upon encountering Bad MAC or decryption failures.
  */
-async function handleDecryptionError(sock: any, jid: string) {
-  if (!jid || !sock || !sock.authState?.keys) return;
+async function handleDecryptionError(sock: any, jid: string, sessionId?: string) {
+  if (!jid) return;
   try {
-    const rawNumber = jid.replace('@s.whatsapp.net', '').replace('@c.us', '').replace('@g.us', '').split(':')[0].split('.')[0];
+    if (sessionId) {
+      await clearPairwiseSession(sessionId, jid).catch(() => {});
+    }
+
+    if (!sock || !sock.authState?.keys) return;
+
+    const rawNumber = jid
+      .replace('@s.whatsapp.net', '')
+      .replace('@c.us', '')
+      .replace('@g.us', '')
+      .replace('@lid', '')
+      .split(':')[0]
+      .split('.')[0];
+
+    const decoded = jid.includes('@') ? jidDecode(jid) : null;
+    const user = decoded?.user || rawNumber;
+    const device = decoded?.device || 0;
+
     const keysToPurge = [
       jid,
       rawNumber,
+      user,
+      `${user}.0`,
+      `${user}.1`,
+      `${user}.2`,
+      `${user}.22`,
+      `${user}.${device}`,
+      `${user}_1.0`,
+      `${user}_1.1`,
+      `${user}_1.22`,
+      `${user}_1.${device}`,
       `${rawNumber}.0`,
       `${rawNumber}:1`,
       `${rawNumber}:0`,
@@ -233,7 +261,7 @@ async function handleDecryptionError(sock: any, jid: string) {
       'sender-key': sessionUpdates,
       'sender-key-memory': sessionUpdates,
     });
-    console.log(`[SESSION-FIX] ✅ Clés Signal réinitialisées pour ${jid} (${rawNumber}) suite à une erreur Bad MAC / déchiffrement.`);
+    console.log(`[SESSION-FIX] ✅ Clés Signal réinitialisées pour ${jid} (${user}) suite à une erreur Bad MAC / déchiffrement.`);
   } catch (e) {
     console.error(`[SESSION-FIX] ❌ Échec de réinitialisation pour ${jid}:`, e);
   }
@@ -5505,9 +5533,20 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
 
     for (const msg of messages) {
       try {
+        // Automatically detect and self-heal CIPHERTEXT or Bad MAC decryption errors
+        if (msg.messageStubType === proto.WebMessageInfo.StubType.CIPHERTEXT) {
+          const senderJid = msg.key?.participant || msg.key?.remoteJid;
+          const stubParam = msg.messageStubParameters?.[0] || 'CIPHERTEXT';
+          console.warn(`[DECRYPTION-SELF-HEAL] ⚠️ Détection de message non déchiffrable (${stubParam}) de ${senderJid}. Purge du ratchet pairwise...`);
+          if (senderJid) {
+            handleDecryptionError(sock, senderJid, sessionId).catch(() => {});
+          }
+          continue;
+        }
+
         // Record incoming message object for Anti-Delete & Retry handlers
         if (msg.key?.id && msg.message) {
-          storeRecentMessage(msg.key.id, msg);
+          storeRecentMessage(msg.key.id, msg.message, msg);
         }
 
         // STRICT MESSAGE VALIDATION (Section 6, 7, 8, 9, 21: NO LATE RESPONSES / NO MESSAGE REPLAY)
@@ -6302,7 +6341,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       ) {
         const jid = msg.key?.remoteJid || msg.key?.participant;
         if (jid) {
-          await handleDecryptionError(sock, jid).catch(() => {});
+          await handleDecryptionError(sock, jid, sessionId).catch(() => {});
         }
         return;
       }

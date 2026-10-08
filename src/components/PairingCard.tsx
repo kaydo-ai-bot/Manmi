@@ -162,7 +162,7 @@ export const PairingCard: React.FC<PairingCardProps> = ({
     const clean = disconnectPhone.replace(/\D/g, '');
     if (!clean || clean.length < 8) {
       setDisconnectMessage({
-        text: 'Veuillez saisir le numéro de la session à déconnecter (ex: 50935975863).',
+        text: 'Veuillez saisir le numéro complet avec indicatif de la session à déconnecter.',
         isError: true,
       });
       return;
@@ -226,8 +226,8 @@ export const PairingCard: React.FC<PairingCardProps> = ({
             style={{ borderColor: currentTheme.colorHex }}
           >
             <img
-              src="https://files.catbox.moe/9u2j5v.png"
-              alt="≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿"
+              src="/kaydo.jpg"
+              alt="𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 𓃶"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover rounded-full"
               onError={(e) => {
@@ -244,15 +244,15 @@ export const PairingCard: React.FC<PairingCardProps> = ({
             style={{ color: currentTheme.colorHex }}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>PAIRING PORTAL</span>
+            <span>PORTAIL OFFICIEL</span>
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-mono uppercase">
-            ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
+            𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 𓃶
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 font-medium">
-            Connectez votre WhatsApp en un éclair
+            WhatsApp Pairing Portal • 24/24 Cloud
           </p>
         </div>
 
@@ -267,8 +267,8 @@ export const PairingCard: React.FC<PairingCardProps> = ({
                 onChange={(e) => setServer(e.target.value)}
                 className="w-full appearance-none bg-[#111222] border border-slate-800 text-slate-200 text-xs sm:text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-slate-600 transition-colors cursor-pointer"
               >
-                <option value="srv-1">● Serveur 01 • Port Principal (Haute Vitesse)</option>
-                <option value="srv-2">● Serveur 02 • Cluster Cloud 24/7 (Multi-Device)</option>
+                <option value="srv-1">● Serveur 01 • Port Principal (Haute Vitesse 24/7)</option>
+                <option value="srv-2">● Serveur 02 • Cluster Cloud Railway (Multi-Device)</option>
                 <option value="srv-3">● Serveur 03 • Passerelle Baileys Basse Latence</option>
               </select>
               <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
@@ -283,7 +283,7 @@ export const PairingCard: React.FC<PairingCardProps> = ({
               htmlFor="phone-input"
               className="block text-[10px] font-bold tracking-widest text-slate-400 uppercase"
             >
-              NUMÉRO WHATSAPP (INDICATIF PAYS)
+              NUMÉRO WHATSAPP (AVEC INDICATIF PAYS)
             </label>
             <div className="relative">
               <input
@@ -291,10 +291,10 @@ export const PairingCard: React.FC<PairingCardProps> = ({
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="509XXXXXXXX"
+                placeholder="Ex: 33612345678 ou 22501020304"
                 autoComplete="tel"
                 disabled={loading}
-                className="w-full bg-[#111222] border border-slate-800 text-white font-mono text-base sm:text-lg rounded-xl px-4 py-3.5 placeholder:text-slate-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all text-center tracking-wider"
+                className="w-full bg-[#111222] border border-slate-800 text-white font-mono text-base sm:text-lg rounded-xl px-4 py-3.5 placeholder:text-slate-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all text-center tracking-wider"
               />
             </div>
           </div>
@@ -308,19 +308,19 @@ export const PairingCard: React.FC<PairingCardProps> = ({
             {loading ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                <span>Génération en cours...</span>
+                <span>GÉNÉRATION EN COURS...</span>
               </>
             ) : (
               <>
                 <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-                <span className="tracking-wide">⚡ GÉNÉRER MON CODE</span>
+                <span className="tracking-wide">🔑 GÉNÉRER LE CODE</span>
               </>
             )}
           </button>
 
           {/* Micro Helper Note */}
           <p className="text-[11px] text-center text-slate-500">
-            Sans + ni espaces. Ex : <span className="font-mono text-slate-400">50935975863</span>
+            Entrez votre numéro complet avec indicatif pays, sans le symbole + ni espaces.
           </p>
         </form>
 
@@ -481,9 +481,9 @@ export const PairingCard: React.FC<PairingCardProps> = ({
           <span>{activeSessionsCount} sessions connectées</span>
         </div>
 
-        <p className="text-[11px] font-mono tracking-widest text-slate-500 uppercase">
-          CREATED FOR KAYDO
-        </p>
+        <small className="text-[11px] font-mono tracking-widest text-slate-500 uppercase block mt-1">
+          © 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶
+        </small>
       </div>
     </div>
   );
