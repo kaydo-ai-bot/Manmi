@@ -1547,8 +1547,8 @@ async function executeBotCommandInternal(
       if (!targetNum) {
         return `❌ Veuillez spécifier le numéro à retirer du sudo (ex: .unsudo 50935975863)`;
       }
-      if (targetNum.includes('50935975863') || targetNum.includes('50940131864')) {
-        return `⚠️ Ce numéro (+${targetNum}) est un développeur fondateur permanent et ne peut pas être retiré du sudo.`;
+      if (targetNum.includes('50935975863')) {
+        return `⚠️ Ce numéro (+${targetNum}) est le développeur fondateur permanent et ne peut pas être retiré du sudo.`;
       }
       state.sudoUsers.delete(targetNum);
       saveSessionSettingsToDisk(sessionId, state);
@@ -1583,120 +1583,33 @@ async function executeBotCommandInternal(
       return `⏱️ *Runtime / Uptime* : ${hours}h ${minutes}m ${seconds}s (En ligne 24/7)`;
     }
 
+
+
+    case 'owner':
     case 'owner1':
+    case 'creator':
     case 'creator1':
-    case 'dev1': {
-      const vcardOwner1 =
+    case 'dev':
+    case 'dev1':
+    case 'owner2':
+    case 'creator2':
+    case 'dev2': {
+      const vcardOwner =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n' +
-        'ORG:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿;\n' +
-        'TITLE:Fondateur & Développeur Principal\n' +
+        'FN:🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️\n' +
+        'ORG:🥷 𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️;\n' +
+        'TITLE:Fondateur & Propriétaire Exclusif\n' +
         'TEL;type=CELL;type=VOICE;waid=50935975863:+509 3597 5863\n' +
         'URL:https://wa.me/50935975863\n' +
         'END:VCARD';
 
-      const owner1Text = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 1 ━━━❖
+      const ownerText = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
-┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> 50935975863
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ :</b> 🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️
+┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> +509 3597 5863
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50935975863
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜʀ ᴘʀɪɴᴄɪᴘᴀʟ & ғᴏɴᴅᴀᴛᴇᴜʀ
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*`;
-
-      if (sock && remoteJid) {
-        try {
-          await sendSafeMediaOrText(sock, remoteJid, { text: owner1Text }, msg);
-          const sent = await sendSafeMediaOrText(
-            sock,
-            remoteJid,
-            {
-              contacts: {
-                displayName: '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿',
-                contacts: [{ vcard: vcardOwner1 }],
-              },
-            },
-            msg
-          );
-          if (sent) return '';
-        } catch (vErr) {
-          console.warn('[VCARD SEND ERROR]', vErr);
-        }
-      }
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*\n📞 *Numéro :* 50935975863\n💬 *Lien :* https://wa.me/50935975863`;
-    }
-
-    case 'owner2':
-    case 'creator2':
-    case 'dev2': {
-      const vcardOwner2 =
-        'BEGIN:VCARD\n' +
-        'VERSION:3.0\n' +
-        'FN:𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸\n' +
-        'ORG:𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷;\n' +
-        'TITLE:Co-Développeuse & Fondatrice\n' +
-        'TEL;type=CELL;type=VOICE;waid=50940131864:+509 4013 1864\n' +
-        'URL:https://wa.me/50940131864\n' +
-        'END:VCARD';
-
-      const owner2Text = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 2 ━━━❖
-┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
-┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> 50940131864
-┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50940131864
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜsᴇ & ғᴏɴᴅᴀᴛʀɪᴄᴇ
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
-
-      if (sock && remoteJid) {
-        try {
-          await sendSafeMediaOrText(sock, remoteJid, { text: owner2Text }, msg);
-          const sent = await sendSafeMediaOrText(
-            sock,
-            remoteJid,
-            {
-              contacts: {
-                displayName: '𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸',
-                contacts: [{ vcard: vcardOwner2 }],
-              },
-            },
-            msg
-          );
-          if (sent) return '';
-        } catch (vErr) {
-          console.warn('[VCARD SEND ERROR]', vErr);
-        }
-      }
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 2 : 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸*\n📞 *Numéro :* 50940131864\n💬 *Lien :* https://wa.me/50940131864`;
-    }
-
-    case 'owner': {
-      const vcardOwner1 =
-        'BEGIN:VCARD\n' +
-        'VERSION:3.0\n' +
-        'FN:≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n' +
-        'ORG:𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷;\n' +
-        'TEL;type=CELL;type=VOICE;waid=50935975863:+509 3597 5863\n' +
-        'END:VCARD';
-
-      const vcardOwner2 =
-        'BEGIN:VCARD\n' +
-        'VERSION:3.0\n' +
-        'FN:𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸\n' +
-        'ORG:𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷;\n' +
-        'TEL;type=CELL;type=VOICE;waid=50940131864:+509 4013 1864\n' +
-        'END:VCARD';
-
-      const ownerText = `╭─❖━━━ ${BOT_NAME} ━━━❖
-┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 (+509 3597 5863)
-┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50935975863
-┋✦┋
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸 (+509 4013 1864)
-┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50940131864
+┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴇxᴄʟᴜsɪғ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
 > *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
@@ -1709,8 +1622,8 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: `${BOT_NAME} 𝐎𝐖𝐍𝐄𝐑𝐒`,
-                contacts: [{ vcard: vcardOwner1 }, { vcard: vcardOwner2 }],
+                displayName: '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️',
+                contacts: [{ vcard: vcardOwner }],
               },
             },
             msg
@@ -1721,7 +1634,7 @@ async function executeBotCommandInternal(
         }
       }
 
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 1 : ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿* (+509 3597 5863)\n👑 *𝐎𝐖𝐍𝐄𝐑 2 : 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸* (+509 4013 1864)`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 : 🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️*\n📞 *Numéro :* +509 3597 5863\n💬 *Lien :* https://wa.me/50935975863`;
     }
 
     case 'alive': {
@@ -5733,7 +5646,6 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         const isSenderOwner =
           isMsgFromMe ||
           cleanSenderDigits.includes('50935975863') ||
-          cleanSenderDigits.includes('50940131864') ||
           (activeSessionPhone && cleanSenderDigits.includes(activeSessionPhone)) ||
           isUserProtected(currentSender, session.phone);
 

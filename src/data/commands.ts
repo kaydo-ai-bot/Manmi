@@ -135,7 +135,7 @@ export const INITIAL_NOTIFICATIONS = [
     timestamp: '2026-09-06 13:20:14',
     type: 'SYSTEM_INFO' as const,
     level: 'info' as const,
-    title: 'Serveur KAYDO BOT Initialisé',
+    title: 'Serveur 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ Initialisé',
     message: 'Passerelle WhatsApp Web multi-device active sur le port 3000. Protocol Signal v3 prêt.',
     read: false,
   },
@@ -145,7 +145,7 @@ export const INITIAL_NOTIFICATIONS = [
     type: 'AUTH_ALERT' as const,
     level: 'success' as const,
     title: 'Système de Sécurité Chiffré Actif',
-    message: 'Chiffrement de bout en bout (E2EE) synchronisé. Surveillance des clés de session démarrée pour KAYDO BOT.',
+    message: 'Chiffrement de bout en bout (E2EE) synchronisé. Surveillance des clés de session démarrée pour 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️.',
     read: false,
   },
   {
@@ -161,7 +161,7 @@ export const INITIAL_NOTIFICATIONS = [
 
 export const BOT_HEADER_ASCII = `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
 ┋🔹┋. ᴄᴏᴍᴍᴀɴᴅs: 300+
 ┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway / Linux
@@ -169,7 +169,7 @@ export const BOT_HEADER_ASCII = `*╭─━━━━━━━━━━━━━�
 *┇🔹╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
 
-export const BOT_FOOTER_ASCII = `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*
+export const BOT_FOOTER_ASCII = `*╭─❖━━━ ⟣ ⟣ ⟣  𝥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
 *┇*🔹┋. ®2026 © CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 *┇*🔹╰───────────────⊷

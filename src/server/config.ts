@@ -30,7 +30,7 @@ function loadPersistedBotName(): string {
       if (name) return name;
     }
   } catch {}
-  return process.env.BOT_NAME || '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷';
+  return process.env.BOT_NAME || '🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️';
 }
 
 function loadPersistedBotMode(): 'public' | 'private' {
@@ -65,6 +65,7 @@ export function setGlobalBotName(newName: string): void {
   const trimmed = newName.trim();
   if (!trimmed) return;
   activeBotName = trimmed;
+  BOT_NAME = trimmed;
   process.env.BOT_NAME = trimmed;
   try {
     const dataDir = path.join(process.cwd(), 'data');

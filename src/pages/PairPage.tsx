@@ -1,52 +1,26 @@
 import React from 'react';
-import { PairingCard } from '../components/PairingCard';
-import { StatusBadge } from '../components/StatusBadge';
-import { ThemeSelector } from '../components/ThemeSelector';
-import { useTheme } from '../context/ThemeContext';
+import { PairingSection } from '../components/PairingSection';
 import { BotStats } from '../types';
 
 interface PairPageProps {
   stats: BotStats | null;
   onNotificationTrigger?: () => void;
+  onGoToSessions?: () => void;
   onGoToOwner?: () => void;
 }
 
 export const PairPage: React.FC<PairPageProps> = ({
   stats,
   onNotificationTrigger,
+  onGoToSessions,
   onGoToOwner,
 }) => {
-  const { currentTheme } = useTheme();
-
   return (
-    <div className="w-full flex flex-col items-center justify-center min-h-[calc(100vh-160px)] px-3 py-6 sm:py-10">
-      {/* Top Floating Status Indicator */}
-      <div className="w-full max-w-[430px] flex justify-end mb-4 pr-1">
-        <StatusBadge status="ONLINE" isSocketOpen={stats?.status === 'ONLINE' || true} />
-      </div>
-
-      {/* Main Centered Pairing Card */}
-      <PairingCard
+    <div className="w-full space-y-6 pb-12 animate-in fade-in duration-200">
+      <PairingSection
         onNotificationTrigger={onNotificationTrigger}
-        onGoToOwner={onGoToOwner}
-        activeSessionsCount={stats?.activeSessionsCount || 0}
+        onGoToSessions={onGoToSessions}
       />
-
-      {/* Bottom Floating Control Bar */}
-      <div className="w-full max-w-[430px] flex items-center justify-between mt-6 px-1">
-        {/* Left: Theme color circles */}
-        <ThemeSelector />
-
-        {/* Right: Quick action icon to Owner Dashboard */}
-        <button
-          type="button"
-          onClick={onGoToOwner}
-          className={`w-10 h-10 rounded-full bg-[#0d0d18]/90 border border-slate-800 flex items-center justify-center ${currentTheme.textAccent} hover:text-white hover:border-red-500/50 transition-all shadow-lg active:scale-95 cursor-pointer`}
-          title="Accès rapide Propriétaire (Owner)"
-        >
-          <span className="font-mono text-sm font-bold">𓃶</span>
-        </button>
-      </div>
     </div>
   );
 };

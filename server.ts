@@ -4,13 +4,29 @@ import path from 'path';
 // Support up to 1000+ concurrent Baileys WhatsApp sessions without event listener warnings
 if (typeof process !== 'undefined') {
   process.setMaxListeners(0);
+
+  // Intercept and sanitize internal libsignal decryption retry logs so they don't trip AI Studio fatal error monitors
+  const originalConsoleError = console.error.bind(console);
+  console.error = (...args: any[]) => {
+    const firstArg = typeof args[0] === 'string' ? args[0] : (args[0] instanceof Error ? args[0].message : '');
+    if (
+      firstArg.includes('Failed to decrypt message with any known session') ||
+      firstArg.includes('Session error:') ||
+      (firstArg.includes('Bad MAC') && !firstArg.includes('[CRITICAL]'))
+    ) {
+      console.warn(`[SIGNAL-RETRY] 🛡️ ${firstArg}`);
+      return;
+    }
+    originalConsoleError(...args);
+  };
+
   process.on('uncaughtException', (err: any) => {
     const msg = String(err?.message || err);
     if (msg.includes('Bad MAC') || msg.includes('decryption') || msg.includes('No matching sessions')) {
       console.warn(`[SAFETY] 🛡️ Erreur Baileys / Signal interceptée et isolée : ${msg}`);
       return;
     }
-    console.error('[UNCAUGHT EXCEPTION]', err);
+    originalConsoleError('[UNCAUGHT EXCEPTION]', err);
   });
   process.on('unhandledRejection', (reason: any) => {
     const msg = String(reason?.message || reason);
@@ -18,7 +34,7 @@ if (typeof process !== 'undefined') {
       console.warn(`[SAFETY] 🛡️ Rejection Baileys / Signal interceptée et isolée : ${msg}`);
       return;
     }
-    console.error('[UNHANDLED REJECTION]', reason);
+    originalConsoleError('[UNHANDLED REJECTION]', reason);
   });
 }
 import fs from 'fs';

@@ -4,13 +4,9 @@ import { Telegraf } from 'telegraf';
 
 import { BOT_NAME as CONFIG_BOT_NAME, OWNER_1, OWNER_2 } from './src/server/config';
 
-const BOT_NAME = CONFIG_BOT_NAME || '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷';
-const OWNER_1_NAME = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿';
-const OWNER_1_CONTACT = OWNER_1;
-const OWNER_2_NAME = '𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸';
-const OWNER_2_CONTACT = OWNER_2;
-const OWNER_NAME = '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸';
-const OWNER_CONTACT = `+${OWNER_1} / +${OWNER_2}`;
+const BOT_NAME = CONFIG_BOT_NAME || '🥷 𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️';
+const OWNER_NAME = '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️';
+const OWNER_CONTACT = `+${OWNER_1}`;
 
 const NEW_OFFICIAL_PHOTO_PATH = path.join(process.cwd(), 'src', 'assets', 'images', 'kaydo_law_bot_official_1790678745856.jpg');
 const OFFICIAL_PHOTO_PATH = path.join(process.cwd(), 'public', 'menu_image.jpg');
@@ -160,45 +156,14 @@ Tapez /menu pour voir la liste des commandes.`;
       await replyWithOfficialPhoto(ctx, caption);
     });
 
-    // /owner1
-    bot.command(['owner1', 'creator1', 'dev1'], async (ctx) => {
-      const caption = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 1 ━━━❖
+    // /owner & /creator & /dev
+    bot.command(['owner', 'owner1', 'owner2', 'creator', 'creator1', 'creator2', 'dev', 'dev1', 'dev2'], async (ctx) => {
+      const caption = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ${OWNER_1_NAME}
-┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> ${OWNER_1_CONTACT}
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ :</b> ${OWNER_NAME}
+┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> ${OWNER_CONTACT}
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50935975863
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜʀ ᴘʀɪɴᴄɪᴘᴀʟ & ғᴏɴᴅᴀᴛᴇᴜʀ
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
-      await replyWithOfficialPhoto(ctx, caption);
-    });
-
-    // /owner2
-    bot.command(['owner2', 'creator2', 'dev2'], async (ctx) => {
-      const caption = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 2 ━━━❖
-┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ${OWNER_2_NAME}
-┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> ${OWNER_2_CONTACT}
-┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50940131864
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴄᴏ-ᴅᴇ́ᴠᴇʟᴏᴘᴘᴇᴜsᴇ & ғᴏɴᴅᴀᴛʀɪᴄᴇ
-┇✦╰───────────────⊷
-╰━━━━━━━━━━━━━━━━━❖
-> *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
-      await replyWithOfficialPhoto(ctx, caption);
-    });
-
-    // /owner
-    bot.command(['owner', 'creator', 'dev'], async (ctx) => {
-      const caption = `╭─❖━━━ ${BOT_NAME} ━━━❖
-┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 1 :</b> ${OWNER_1_NAME} (+509 3597 5863)
-┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50935975863
-┋✦┋
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ 2 :</b> ${OWNER_2_NAME} (+509 4013 1864)
-┋✦┋. 💬 <b>wa.me :</b> https://wa.me/50940131864
-┋✦┋
-┋✦┋. 🌐 <b>ᴘᴏʀᴛᴀɪʟ :</b> ᴋᴀʏᴅᴏ ʙᴏᴛ ᴘᴏʀᴛᴀʟ
+┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴇxᴄʟᴜsɪғ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
 > *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;

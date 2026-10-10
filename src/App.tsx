@@ -148,7 +148,7 @@ function MainApp() {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* TAB: PAIRING (Centered Futuristic Card matching the screenshot) */}
+        {/* TAB: PAIRING */}
         {activeTab === 'pair' && (
           <PairPage
             stats={stats}
@@ -164,7 +164,7 @@ function MainApp() {
           </div>
         )}
 
-        {/* TAB: OWNER DASHBOARD (Securely verified server-side) */}
+        {/* TAB: OWNER DASHBOARD */}
         {activeTab === 'owner' && (
           <OwnerPage
             onNotificationTrigger={fetchNotifications}

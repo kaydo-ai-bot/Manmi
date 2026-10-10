@@ -177,13 +177,13 @@ export function generateOfficialMenu(
   mode: string = 'PUBLIC 🟢',
   memory: string = getDynamicMemoryUsage(),
   prefix: string = '.',
-  botName: string = '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷'
+  botName: string = '🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️'
 ): string {
   const p = prefix || '';
 
   return `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${botName || '𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷'}
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${botName || '🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️'}
 ┋🔹┋. ᴄᴏᴍᴍᴀɴᴅs: 300+ ᴄᴍᴅs
 ┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway / Linux
@@ -361,12 +361,12 @@ export function generateOfficialMenu(
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*
 
-> *© 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷 • CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*`;
+> *© 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ • CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿*`;
 }
 
 /**
  * Formats any bot command text response in the user's requested card style:
- * *╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*
+ * *╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*
  * *┇*🔹╭───────────────
  * *┇*🔹┋. line1
  * *┇*🔹┋  line2
@@ -397,7 +397,7 @@ export function formatCommandCard(content: string): string {
     return `*┇*🔹┋  ${line}`;
   });
 
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n${formattedLines.join('\n')}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n${formattedLines.join('\n')}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
 
 /**
@@ -409,12 +409,12 @@ export function formatLoadingBox(cmdName: string): string {
   if (clean === 'ping') {
     displayName = 'ᴘᴏɴɢ';
   }
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${displayName} ʟᴏᴀᴅᴅɪɴɢ...\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }
 
 /**
  * Returns a success box formatted with the requested borders
  */
 export function formatSuccessBox(message: string): string {
-  return `*╭─❖━━━ ⟣ ⟣ ⟣  𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${message}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+  return `*╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ${message}\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
 }

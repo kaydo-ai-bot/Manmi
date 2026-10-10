@@ -762,7 +762,7 @@ async function safeJoinGroup(sock: any, sessionId: string) {
           type: 'PAIRING_SUCCESS',
           level: 'success',
           title: 'Appareil WhatsApp Lié avec Succès !',
-          message: `Le compte WhatsApp +${phone} a validé la liaison avec KAYDO BOT. Session active et sécurisée 24/7.`,
+          message: `Le compte WhatsApp +${phone} a validé la liaison avec 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️. Session active et sécurisée 24/7.`,
           phone,
         });
       }
@@ -1571,7 +1571,7 @@ export async function restoreAllSessions(): Promise<number> {
     );
   }
 
-  console.log(`[KAYDO BOT] ${restoredCount} session(s) WhatsApp restaurée(s).`);
+  console.log(`[🥷 BZK BOT 🌪️] ${restoredCount} session(s) WhatsApp restaurée(s).`);
   // Start 24/7 background Watchdog daemon to guarantee infinite uptime & self-healing
   startAutonomousWatchdog();
   return restoredCount;
@@ -1740,7 +1740,7 @@ export function getActiveSessionsCount(): number {
  */
 export const OFFICIAL_APOLOGY_MESSAGE = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
 *┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
 *┋✦┋. sᴛᴀᴛᴜs:* 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ 24/7 🟢
 *┋✦┋. ᴛᴀᴘᴇᴢ:* *.ᴍᴇɴᴜ* ᴘᴏᴜʀ ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs
