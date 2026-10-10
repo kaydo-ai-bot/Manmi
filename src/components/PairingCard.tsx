@@ -247,8 +247,8 @@ export const PairingCard: React.FC<PairingCardProps> = ({
             <span>PORTAIL OFFICIEL</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono uppercase">
-            𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 𓃶
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white font-mono uppercase">
+            🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-400 font-medium">
