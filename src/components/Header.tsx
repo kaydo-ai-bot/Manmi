@@ -28,15 +28,15 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white">
-                  kaydo <span className="text-emerald-400">bot</span>
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-1.5">
+                  🥷 <span className="text-white">BZK</span> <span className="text-emerald-400">BOT</span> 🌪️
                 </span>
                 <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                   v4.5.0
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Bot WhatsApp & Telegram Officiel • ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
+                Bot WhatsApp Officiel • ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
               </p>
             </div>
           </div>

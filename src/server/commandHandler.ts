@@ -20,6 +20,14 @@ import {
   formatSuccessBox,
 } from '../utils/textStyler';
 import {
+  formatUptimeDHM,
+  formatUptimeDHMS,
+  getSessionOutgoingQueue,
+  isBotSelfReplyOrEcho,
+  checkAntiSpamCommand,
+  canSendReaction,
+} from './antiBanGuard';
+import {
   OFFICIAL_APOLOGY_MESSAGE,
   OFFICIAL_WELCOME_MESSAGE,
   requestPairingCode,
@@ -288,68 +296,74 @@ export async function sendSafeMediaOrText(
     }
   }
 
-  const isFromMe = !!quotedMsg?.key?.fromMe;
-  let sent: any = null;
+  // Anti-Ban session key resolution
+  const sessionPhone = (sock.user?.id || '').split(':')[0].replace(/\D/g, '') || 'default_session';
+  const outQueue = getSessionOutgoingQueue(sessionPhone);
 
-  const isHeavyMedia = !!(content?.video || content?.audio || content?.sticker || content?.image || content?.document);
-  const defaultTimeout = isHeavyMedia ? 10000 : 5000;
+  return outQueue.enqueue(destJid, async () => {
+    const isFromMe = !!quotedMsg?.key?.fromMe;
+    let sent: any = null;
 
-  const withTimeout = async (promise: Promise<any>, timeoutMs: number = defaultTimeout): Promise<any> => {
-    let timer: any;
-    const timeoutPromise = new Promise((resolve) => {
-      timer = setTimeout(() => resolve(null), timeoutMs);
-    });
-    try {
-      return await Promise.race([promise, timeoutPromise]);
-    } finally {
-      clearTimeout(timer);
-    }
-  };
+    const isHeavyMedia = !!(content?.video || content?.audio || content?.sticker || content?.image || content?.document);
+    const defaultTimeout = isHeavyMedia ? 12000 : 6000;
 
-  // Ensure content.mimetype for images and videos is strictly standards-compliant for WhatsApp servers
-  if (content && typeof content === 'object') {
-    if (content.image && (!content.mimetype || content.mimetype === 'image/jpg')) {
-      content.mimetype = 'image/jpeg';
-    }
-    if (content.video && !content.mimetype) {
-      content.mimetype = 'video/mp4';
-    }
-  }
+    const withTimeout = async (promise: Promise<any>, timeoutMs: number = defaultTimeout): Promise<any> => {
+      let timer: any;
+      const timeoutPromise = new Promise((resolve) => {
+        timer = setTimeout(() => resolve(null), timeoutMs);
+      });
+      try {
+        return await Promise.race([promise, timeoutPromise]);
+      } finally {
+        clearTimeout(timer);
+      }
+    };
 
-  // 1. Try with quoted message if not sent by self
-  if (!isFromMe && quotedMsg) {
-    try {
-      sent = await withTimeout(sock.sendMessage(destJid, content as any, { quoted: quotedMsg as any }), defaultTimeout);
-    } catch (_) {
-      // ignore, fall through to direct send
-    }
-  }
-
-  // 2. Try directly without quoted
-  if (!sent) {
-    try {
-      sent = await withTimeout(sock.sendMessage(destJid, content as any), defaultTimeout);
-    } catch (err: any) {
-      // 3. If image/media failed, try sending caption as plain text so the user is never left without response
-      if ((content as any)?.caption) {
-        try {
-          sent = await withTimeout(sock.sendMessage(destJid, { text: (content as any).caption }), 4000);
-        } catch (_) {}
+    // Ensure content.mimetype for images and videos is strictly standards-compliant for WhatsApp servers
+    if (content && typeof content === 'object') {
+      if (content.image && (!content.mimetype || content.mimetype === 'image/jpg')) {
+        content.mimetype = 'image/jpeg';
+      }
+      if (content.video && !content.mimetype) {
+        content.mimetype = 'video/mp4';
       }
     }
-  }
 
-  // 4. Fallback if media upload timed out
-  if (!sent && (content as any)?.caption) {
-    try {
-      sent = await withTimeout(sock.sendMessage(destJid, { text: (content as any).caption }), 4000);
-    } catch (_) {}
-  }
+    // 1. Try with quoted message if not sent by self
+    if (!isFromMe && quotedMsg) {
+      try {
+        sent = await withTimeout(sock.sendMessage(destJid, content as any, { quoted: quotedMsg as any }), defaultTimeout);
+      } catch (_) {
+        // ignore, fall through to direct send
+      }
+    }
 
-  if (sent?.key?.id) {
-    botSentMessageIds.add(sent.key.id);
-  }
-  return sent;
+    // 2. Try directly without quoted
+    if (!sent) {
+      try {
+        sent = await withTimeout(sock.sendMessage(destJid, content as any), defaultTimeout);
+      } catch (err: any) {
+        // 3. If image/media failed, try sending caption as plain text so the user is never left without response
+        if ((content as any)?.caption) {
+          try {
+            sent = await withTimeout(sock.sendMessage(destJid, { text: (content as any).caption }), 4000);
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 4. Fallback if media upload timed out
+    if (!sent && (content as any)?.caption) {
+      try {
+        sent = await withTimeout(sock.sendMessage(destJid, { text: (content as any).caption }), 4000);
+      } catch (_) {}
+    }
+
+    if (sent?.key?.id) {
+      botSentMessageIds.add(sent.key.id);
+    }
+    return sent;
+  });
 }
 
 
@@ -847,38 +861,17 @@ export function getSessionState(sessionId: string): SessionState {
  * to the session owner's personal contact / self-chat.
  * NEVER overwrites an already configured or customized prefix!
  */
-export async function resetSessionPrefixAndNotify(sessionId: string, sock: any, phone?: string) {
+export async function resetSessionPrefixAndNotify(sessionId: string, _sock: any, _phone?: string) {
   if (!sessionId) return;
   const state = getSessionState(sessionId);
 
-  // If already notified or custom prefix already configured, NEVER modify prefix!
-  if (state.prefixResetNoticeSent) {
-    return;
-  }
-
-  // Only if prefix was never set, default to '.'
+  // Set default prefix if unset, without sending unsolicited spam to the user's phone
   if (state.prefix === undefined || state.prefix === null) {
     state.prefix = '.';
   }
-
-  if (sock) {
-    try {
-      const rawUserJid = sock.user?.id ? jidNormalizedUser(sock.user.id) : (phone ? `${phone}@s.whatsapp.net` : null);
-      if (rawUserJid) {
-        const messageText = `✨ *≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 • MISE À JOUR PRÉFIXE* ✨\n\n📌 *Nouveau préfixe défini* : [ . ]\n\n◈ Le préfixe de votre bot a été réinitialisé à *.* sur toutes vos sessions.\n◈ Toutes vos commandes s'utilisent désormais avec le point (ex: *.menu*, *.status*).\n◈ Vous pouvez rechanger votre préfixe à tout moment avec :\n  👉 *.setprefix <votre_prefixe>* (ex: *.setprefix !*)\n\n⚡ *Merci d'utiliser ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 !* 🥷`;
-        await sock.sendMessage(rawUserJid, { text: messageText }).catch(() => {});
-        console.log(`[PREFIX RESET] 📩 Notification de réinitialisation du préfixe envoyée à ${rawUserJid} pour ${sessionId}`);
-      }
-    } catch (e: any) {
-      console.warn(`[PREFIX RESET] Erreur d'envoi notification préfixe pour ${sessionId}:`, e?.message || e);
-    } finally {
-      state.prefixResetNoticeSent = true;
-      saveSessionSettingsToDisk(sessionId, state);
-    }
-  } else {
-    state.prefixResetNoticeSent = true;
-    saveSessionSettingsToDisk(sessionId, state);
-  }
+  state.prefixResetNoticeSent = true;
+  saveSessionSettingsToDisk(sessionId, state);
+  console.log(`[ANTI-SPAM] 🛡️ Session ${sessionId} préfixe initialisé sans message intrusif.`);
 }
 
 const lastPresenceTime = new Map<string, number>();
@@ -1564,11 +1557,11 @@ async function executeBotCommandInternal(
     }
 
     case 'ping': {
-      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿  ⟣ ⟣ ⟣━━━❖*
+      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
 *┇*🔹┋. ⚡ <b>ᴘᴏɴɢ !</b> 0.001s
 *┇*🔹┋. 🟢 <b>sᴛᴀᴛᴜᴛ :</b> ᴇɴ ʟɪɢɴᴇ 24/7
-*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🥷🏿
+*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return pingText;
@@ -1577,10 +1570,8 @@ async function executeBotCommandInternal(
     case 'runtime':
     case 'uptime': {
       const uptimeSec = Math.floor(process.uptime());
-      const hours = Math.floor(uptimeSec / 3600);
-      const minutes = Math.floor((uptimeSec % 3600) / 60);
-      const seconds = uptimeSec % 60;
-      return `⏱️ *Runtime / Uptime* : ${hours}h ${minutes}m ${seconds}s (En ligne 24/7)`;
+      const dhm = formatUptimeDHM(uptimeSec);
+      return `⏱️ *Runtime / Uptime* : ${dhm} (En ligne 24/7 🟢)`;
     }
 
 
@@ -1658,12 +1649,10 @@ async function executeBotCommandInternal(
     case 'help':
     case 'allcmd': {
       const uptimeSec = Math.floor(process.uptime());
-      const hours = Math.floor(uptimeSec / 3600);
-      const minutes = Math.floor((uptimeSec % 3600) / 60);
-      const seconds = uptimeSec % 60;
+      const formattedUptime = formatUptimeDHM(uptimeSec);
       const dynamicMemory = getDynamicMemoryUsage();
       const menuText = generateOfficialMenu(
-        `${hours}h ${minutes}m ${seconds}s`,
+        formattedUptime,
         (state.botMode || 'PUBLIC').toUpperCase(),
         dynamicMemory,
         state.prefix,
@@ -6080,7 +6069,6 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         isOwnerNumber(senderJid, session.phone) ||
         isOwnerNumber(cleanSender, session.phone) ||
         cleanSender.includes(OWNER_1) ||
-        cleanSender.includes(OWNER_2) ||
         (effectiveSessionPhone && cleanSender.includes(effectiveSessionPhone)) ||
         (!isGroup && effectiveSessionPhone && cleanSender === effectiveSessionPhone) ||
         isUserProtected(senderJid, session.phone) ||
@@ -6093,16 +6081,15 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       }
 
       // ----------------------------------------------------
-      // STRICT ANTI-SPAM COMMAND RATE LIMITING
+      // STRICT ANTI-SPAM & ANTI-BAN COMMAND RATE LIMITING
       // Prevents command flooding, self-loops, and rapid spamming
       // ----------------------------------------------------
-      const now = Date.now();
-      const lastExec = lastCommandExecutionTime.get(senderJid) || 0;
-      if (now - lastExec < 1500) {
-        console.log(`[ANTI-SPAM] Commande "${cmd}" ignorée pour ${senderJid} (cooldown: ${now - lastExec}ms < 1500ms)`);
+      const chatJid = msg.key.remoteJid || rawRemoteJid || targetJid;
+      const spamCheck = checkAntiSpamCommand(senderJid, chatJid);
+      if (!spamCheck.allowed) {
+        console.log(`[ANTI-SPAM] 🛡️ Commande "${cmd}" ignorée pour ${senderJid} dans ${chatJid} (${spamCheck.reason})`);
         continue;
       }
-      lastCommandExecutionTime.set(senderJid, now);
 
       // ANTI-DUPLICATION (Section 10)
       if (msg.key?.id && !checkAndRegisterIdempotency(sessionId, msg.key.id, cmd)) {
@@ -6114,32 +6101,23 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       if (msg.key?.id && botSentMessageIds.has(msg.key.id)) {
         continue;
       }
-      if (isFromMe && (
-        normalizedBody.includes('╭━━━〔') ||
-        normalizedBody.includes('𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓') ||
-        normalizedBody.includes('Official Menu') ||
-        normalizedBody.includes('≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿')
-      )) {
+      if (isFromMe && isBotSelfReplyOrEcho(normalizedBody)) {
+        console.log(`[ANTI-LOOP] 🛡️ Message ignoré (détection auto-réponse/écho) [MsgId: ${msg.key?.id}]`);
         continue;
       }
 
-      const chatJid = msg.key.remoteJid || rawRemoteJid || targetJid;
       console.log(`[WHATSAPP CMD] Reçu commande "${cmd}" de ${senderJid} dans ${chatJid} (args: "${args}") [fromMe: ${isFromMe}]`);
 
-      // REACTION 🥷 A CHAQUE COMMANDE (Exigence formelle de l'utilisateur)
-      if (sock && msg.key) {
+      // REACTION 🥷 A CHAQUE COMMANDE (avec protection anti-spam de débit)
+      if (sock && msg.key && canSendReaction(chatJid)) {
         try {
           sock.sendMessage(chatJid, {
             react: {
               text: '🥷',
               key: msg.key,
             },
-          }).catch((rErr: any) => {
-            console.warn('[REACTION 🥷] Notification échec:', rErr?.message || rErr);
-          });
-        } catch (e) {
-          // ignore
-        }
+          }).catch(() => {});
+        } catch (_) {}
       }
 
       // SILENT LEAVE: "quand on fait .left que le bot envoie pas de message il quitte simplement le group"

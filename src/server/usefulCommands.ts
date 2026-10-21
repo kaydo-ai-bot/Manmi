@@ -462,7 +462,12 @@ export function handleUsefulCommands(
     case 'sysinfo':
     case 'system': {
       const os = require('os');
-      return toSmallCaps(`💻 *ɪɴғᴏʀᴍᴀᴛɪᴏɴs sʏsᴛᴇ̀ᴍᴇ*\n\n◈ ᴏs : ${os.type()} ${os.release()}\n◈ ᴄᴘᴜ : ${os.cpus()[0]?.model || 'Cloud vCPU'}\n◈ ᴍᴇ́ᴍᴏɪʀᴇ ᴛᴏᴛᴀʟᴇ : ${(os.totalmem() / 1073741824).toFixed(1)} ɢʙ\n◈ ᴍᴇ́ᴍᴏɪʀᴇ ʟɪʙʀᴇ : ${(os.freemem() / 1073741824).toFixed(1)} ɢʙ\n◈ ᴜᴘᴛɪᴍᴇ sʏsᴛᴇ̀ᴍᴇ : ${(os.uptime() / 3600).toFixed(1)} ʜᴇᴜʀᴇs`);
+      const sysSec = Math.floor(os.uptime());
+      const sysDays = Math.floor(sysSec / 86400);
+      const sysHours = Math.floor((sysSec % 86400) / 3600);
+      const sysMins = Math.floor((sysSec % 3600) / 60);
+      const uptimeStr = `${sysDays} Jour${sysDays > 1 ? 's' : ''} / ${sysHours} Heure${sysHours > 1 ? 's' : ''} / ${sysMins} Minute${sysMins > 1 ? 's' : ''}`;
+      return toSmallCaps(`💻 *ɪɴғᴏʀᴍᴀᴛɪᴏɴs sʏsᴛᴇ̀ᴍᴇ*\n\n◈ ᴏs : ${os.type()} ${os.release()}\n◈ ᴄᴘᴜ : ${os.cpus()[0]?.model || 'Cloud vCPU'}\n◈ ᴍᴇ́ᴍᴏɪʀᴇ ᴛᴏᴛᴀʟᴇ : ${(os.totalmem() / 1073741824).toFixed(1)} ɢʙ\n◈ ᴍᴇ́ᴍᴏɪʀᴇ ʟɪʙʀᴇ : ${(os.freemem() / 1073741824).toFixed(1)} ɢʙ\n◈ ᴜᴘᴛɪᴍᴇ sʏsᴛᴇ̀ᴍᴇ : ${uptimeStr}`);
     }
 
     case 'pingip': {

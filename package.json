@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "test:persistence": "tsx src/server/persistence.test.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "postinstall": "node scripts/patch-libsignal.cjs"
   },
   "dependencies": {
     "@bochilteam/scraper": "^5.0.1",

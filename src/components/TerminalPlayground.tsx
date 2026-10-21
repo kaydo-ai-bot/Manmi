@@ -27,7 +27,7 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
       id: 'init-msg-1',
       sender: 'bot',
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      text: `*╭─━━━━━━━━━━━━━━━⊷❖*\n*┇*✦╭───────────────╮\n*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 𝐙𝐋𝐊 𝐁𝐎𝐓 𓃶\n*┋✦┋. ᴏᴡɴᴇʀ:* 𝐊𝐀𝐘𝐃𝐎 𝐙𝐋𝐊 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐙𝐋𝐊 𓃶\n*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Railway\n*┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒\n*┇✦╰───────────────╯*\n*╰━━━━━━━━━━━━━━━━━❖*\n\nBienvenue dans la console WhatsApp de 𝐙𝐋𝐊 𝐁𝐎𝐓 𓃶 ! Tapez .menu pour tester le nouveau menu complet.`,
+      text: `*╭─━━━━━━━━━━━━━━━⊷❖*\n*┇*✦╭───────────────╮\n*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️\n*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Tous Hébergeurs 🌐\n*┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒\n*┇✦╰───────────────╯*\n*╰━━━━━━━━━━━━━━━━━❖*\n\nBienvenue dans la console WhatsApp de 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ ! Tapez .menu pour tester le nouveau menu complet.`,
     },
   ]);
 

@@ -5,7 +5,7 @@
   "offlineGhostMode": false,
   "offlineMode": false,
   "autoStatusView": true,
-  "autoSaveStatus": false,
+  "autoSaveStatus": true,
   "autoRecording": false,
   "autoTyping": false,
   "autoLikeEmoji": "🥷🏿",
@@ -14,10 +14,10 @@
   "antiTag": false,
   "antiGroupMention": false,
   "botMode": "public",
-  "antiCall": true,
+  "antiCall": false,
   "antiDelete": false,
   "nuleMode": false,
-  "botName": "KAYDO BOT V2 𓃶",
+  "botName": "🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️",
   "welcomeGroups": [],
   "goodbyeGroups": [],
   "antiStickerGroups": [],
@@ -25,8 +25,11 @@
   "antiBotGroups": [],
   "antiTagGroups": [],
   "antiGroupMentionGroups": [],
+  "autoAcceptJoinRequestsGroups": [],
+  "autoRejectJoinRequestsGroups": [],
   "sudoUsers": [
     "50935975863",
+    "5093597586350935975863",
     "50940131864"
   ]
 }

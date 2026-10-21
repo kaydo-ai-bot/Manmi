@@ -673,13 +673,6 @@ async function safeJoinGroup(sock: any, sessionId: string) {
 // Inside initSessionSocket:
   session.sock = sock;
   
-  // Auto-join specific group when socket is connected
-  sock.ev.on('connection.update', async (update) => {
-    if (update.connection === 'open') {
-      safeJoinGroup(sock, sessionId);
-    }
-  });
-
   // Connection persistence: WebSocket ping/pong manages 24/7 connection automatically
   // Never spam repetitive presence updates every 20s (eliminates bot fingerprinting & ban risk)
   if (session.keepAliveInterval) {
@@ -1961,16 +1954,16 @@ export function getOfficialWelcomeMessage(): string {
   const publicUrl = getPublicPortalUrl();
   return `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
 *┋✦┋. ᴄᴏᴍᴍᴀɴᴅs:* 300+
-*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & ≛⃝🥷🏿 𝐒𝐇𝐀𝐊𝐀 ≛⃝🏿
-*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* ʟɪɴᴜx / ᴄʟᴏᴜᴅ
+*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* ᴛᴏᴜs ʜᴇ́ʙᴇʀɢᴇᴜʀs 🌐
 *┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒 / ᴘᴜʙʟɪᴄ 🟢
 *┋✦┋. ᴘʀᴇғɪx:* [ . ]
 *┋✦┋. ᴘᴏʀᴛᴀɪʟ:* ${publicUrl}
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-🎉 ʙɪᴇɴᴠᴇɴᴜᴇ sᴜʀ *≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿 !* ᴠᴏᴛʀᴇ ʙᴏᴛ ᴇsᴛ ᴄᴏɴɴᴇᴄᴛᴇ́ 24/7.
+🎉 ʙɪᴇɴᴠᴇɴᴜᴇ sᴜʀ *🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ !* ᴠᴏᴛʀᴇ ʙᴏᴛ ᴇsᴛ ᴄᴏɴɴᴇᴄᴛᴇ́ 24/7.
 ᴛᴀᴘᴇᴢ *.ᴍᴇɴᴜ* ᴘᴏᴜʀ ᴀғғɪᴄʜᴇʀ ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs.`;
 }
 
@@ -2084,9 +2077,10 @@ export async function getAllSessionsDetails(): Promise<DetailedSessionInfo[]> {
     }
 
     const uptimeMs = Date.now() - (s.createdAt || Date.now());
-    const hours = Math.floor(uptimeMs / 3600000);
-    const minutes = Math.floor((uptimeMs % 3600000) / 60000);
-    const seconds = Math.floor((uptimeMs % 60000) / 1000);
+    const uptimeSec = Math.floor(uptimeMs / 1000);
+    const days = Math.floor(uptimeSec / 86400);
+    const hours = Math.floor((uptimeSec % 86400) / 3600);
+    const minutes = Math.floor((uptimeSec % 3600) / 60);
 
     const sessionState = getSessionState(id);
     const isFunctional = isPaired || (registered && s.status !== 'loggedOut' && s.status !== 'failed');
@@ -2108,7 +2102,7 @@ export async function getAllSessionsDetails(): Promise<DetailedSessionInfo[]> {
       createdAt: s.createdAt || Date.now(),
       lastHeartbeat: Date.now(),
       pingMs: isSocketOpen ? Math.floor(18 + Math.random() * 22) : 25,
-      uptimeFormatted: `${hours}h ${minutes}m ${seconds}s`,
+      uptimeFormatted: `${days}j ${hours}h ${minutes}m`,
       reconnectAttempts: s.reconnectAttempts || 0,
       mode: '24/24 7/7 ACTIF',
       welcomeDelivered: isWelcomeAlreadyDelivered(id, s.phone),
