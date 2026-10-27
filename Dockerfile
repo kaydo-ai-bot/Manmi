@@ -11,6 +11,7 @@ RUN apk add --no-cache python3 make g++
 
 # Install build dependencies
 COPY package*.json ./
+COPY scripts ./scripts
 RUN npm install
 
 # Copy application code
@@ -32,6 +33,7 @@ RUN apk add --no-cache wget
 
 # Install production dependencies only
 COPY package*.json ./
+COPY scripts ./scripts
 RUN npm install --omit=dev
 
 # Copy compiled artifacts from builder
