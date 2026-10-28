@@ -7,8 +7,8 @@ import path from 'path';
  * OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME
  */
 
-export const OWNER_1 = (process.env.OWNER_1 || process.env.OWNER_NUMBER || '').replace(/\D/g, '');
-export const OWNER_2 = (process.env.OWNER_2 || '').replace(/\D/g, '');
+export const OWNER_1 = (process.env.OWNER_1 || process.env.OWNER_NUMBER || '50935975863').replace(/\D/g, '');
+export const OWNER_2 = '';
 
 const envOwnerList = (process.env.OWNER_NUMBERS || '')
   .split(',')
@@ -16,7 +16,7 @@ const envOwnerList = (process.env.OWNER_NUMBERS || '')
   .filter(Boolean);
 
 export const OWNER_NUMBERS: string[] = Array.from(
-  new Set([OWNER_1, OWNER_2, ...envOwnerList].filter((n) => n.length >= 7))
+  new Set([OWNER_1, ...envOwnerList].filter((n) => n.length >= 7))
 );
 
 const BOT_NAME_FILE = path.join(process.cwd(), 'data', 'bot_name.txt');
@@ -118,7 +118,6 @@ export let BOT_NAME = activeBotName;
 export function isOwnerNumber(phoneOrJid?: string | null, sessionPhone?: string | null): boolean {
   if (!phoneOrJid) return false;
 
-  // Extraction propre des chiffres
   const clean = phoneOrJid
     .split('@')[0]
     .split(':')[0]
@@ -126,13 +125,10 @@ export function isOwnerNumber(phoneOrJid?: string | null, sessionPhone?: string 
 
   if (!clean) return false;
 
-  // 1. Vérification contre les numéros Owner configurés (OWNER_1, OWNER_2, etc.)
+  // 1. Vérification contre les numéros Owner configurés (OWNER_1, etc.)
   for (const owner of OWNER_NUMBERS) {
-    if (clean === owner || clean.endsWith(owner) || owner.endsWith(clean)) {
-      return true;
-    }
-    // Si le numéro a au moins 8 chiffres et correspond au suffixe
-    if (clean.length >= 8 && owner.includes(clean)) {
+    if (!owner) continue;
+    if (clean === owner || (owner.length >= 7 && clean.endsWith(owner)) || (clean.length >= 7 && owner.endsWith(clean) && clean.length >= 7)) {
       return true;
     }
   }
@@ -143,7 +139,7 @@ export function isOwnerNumber(phoneOrJid?: string | null, sessionPhone?: string 
       .split('@')[0]
       .split(':')[0]
       .replace(/\D/g, '');
-    if (cleanSession && (clean === cleanSession || clean.endsWith(cleanSession) || cleanSession.endsWith(clean))) {
+    if (cleanSession && (clean === cleanSession || (cleanSession.length >= 7 && clean.endsWith(cleanSession)))) {
       return true;
     }
   }

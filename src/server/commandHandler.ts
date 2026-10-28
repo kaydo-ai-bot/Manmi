@@ -1632,14 +1632,13 @@ async function executeBotCommandInternal(
       const aliveText = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
 ┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${state.botName || BOT_NAME}
-┋🔹┋. ᴏᴡɴᴇʀ 1: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
-┋🔹┋. ᴏᴡɴᴇʀ 2: 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
-┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Railway Cloud
+┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 (+509 3597 5863)
+┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Cloud 24/7
 ┋🔹┋. ᴍᴏᴅᴇ: ᴘᴜʙʟɪᴄ 🟢
 ┋🔹┋. ᴜᴘᴛɪᴍᴇ: 24/7 ᴄʟᴏᴜᴅ ᴅᴀᴇᴍᴏɴ
 *┇🔹╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-⚡ ${state.botName || BOT_NAME} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ !
+⚡ ${state.botName || BOT_NAME} ᴇsᴛ 100% ᴏᴘᴇ́ʀᴀ-ᴛɪᴏɴɴᴇʟ !
 > *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 ${state.botName || BOT_NAME}*`);
 
       return aliveText;
@@ -1708,7 +1707,7 @@ async function executeBotCommandInternal(
 *┇*✦╭───────────────╮
 *┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* ${state.botName || BOT_NAME}
 *┋✦┋. ᴍᴏᴅᴜʟᴇs:* 8 ᴄᴀᴛᴇ́ɢᴏʀɪᴇs
-*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
+*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 (+509 3597 5863)
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return listText;
@@ -6107,18 +6106,6 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
       }
 
       console.log(`[WHATSAPP CMD] Reçu commande "${cmd}" de ${senderJid} dans ${chatJid} (args: "${args}") [fromMe: ${isFromMe}]`);
-
-      // REACTION 🥷 A CHAQUE COMMANDE (avec protection anti-spam de débit)
-      if (sock && msg.key && canSendReaction(chatJid)) {
-        try {
-          sock.sendMessage(chatJid, {
-            react: {
-              text: '🥷',
-              key: msg.key,
-            },
-          }).catch(() => {});
-        } catch (_) {}
-      }
 
       // SILENT LEAVE: "quand on fait .left que le bot envoie pas de message il quitte simplement le group"
       if (cmd === 'left' || cmd === 'leave' || cmd === 'sortir' || cmd === 'quitter') {
