@@ -80,6 +80,57 @@ import {
 
 let cachedMenuImageBuffer: Buffer | null = null;
 
+export interface CustomCommand {
+  name: string;
+  description: string;
+  createdAt: string;
+}
+
+// Active state memory per session
+export interface SessionState {
+  prefix: string;
+  prefixResetNoticeSent?: boolean;
+  alwaysOnline: boolean;
+  offlineGhostMode: boolean;
+  offlineMode: boolean;
+  autoStatusView: boolean;
+  autoSaveStatus: boolean;
+  autoRecording: boolean;
+  recordingInterval?: NodeJS.Timeout;
+  recordingJids: Set<string>;
+  autoTyping: boolean;
+  typingInterval?: NodeJS.Timeout;
+  typingJids: Set<string>;
+  autoLikeEmoji: string;
+  autoLikeEnabled: boolean;
+  antiDelete: boolean;
+  antiLink: boolean;
+  antiTag: boolean;
+  antiGroupMention: boolean;
+  botMode: 'public' | 'private';
+  antiCall: boolean;
+  welcomeGroups: Set<string>;
+  goodbyeGroups: Set<string>;
+  antiStickerGroups: Set<string>;
+  antiMessageGroups: Set<string>;
+  antiBotGroups: Set<string>;
+  antiTagGroups: Set<string>;
+  antiGroupMentionGroups: Set<string>;
+  customCommands: Map<string, CustomCommand>;
+  nuleMode: boolean;
+  botName?: string;
+  customMenuImageBuffer?: Buffer;
+  sudoUsers: Set<string>;
+  autoStatusReply?: boolean;
+  statusReplyText?: string;
+  autoReadMsg?: boolean;
+  rejectCallMsg?: string;
+  autoAcceptJoinRequestsGroups: Set<string>;
+  autoRejectJoinRequestsGroups: Set<string>;
+}
+
+export const sessionStates = new Map<string, SessionState>();
+
 export function performOneTimeSessionResetIfPending(): void {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
   const RESET_FLAG_FILE = path.join(SESSIONS_ROOT, '.kaydo_bot_v2_sessions_menu_video_refresh_v4');
@@ -367,56 +418,6 @@ export async function sendSafeMediaOrText(
 }
 
 
-export interface CustomCommand {
-  name: string;
-  description: string;
-  createdAt: string;
-}
-
-// Active state memory per session
-interface SessionState {
-  prefix: string;
-  prefixResetNoticeSent?: boolean;
-  alwaysOnline: boolean;
-  offlineGhostMode: boolean;
-  offlineMode: boolean;
-  autoStatusView: boolean;
-  autoSaveStatus: boolean;
-  autoRecording: boolean;
-  recordingInterval?: NodeJS.Timeout;
-  recordingJids: Set<string>;
-  autoTyping: boolean;
-  typingInterval?: NodeJS.Timeout;
-  typingJids: Set<string>;
-  autoLikeEmoji: string;
-  autoLikeEnabled: boolean;
-  antiDelete: boolean;
-  antiLink: boolean;
-  antiTag: boolean;
-  antiGroupMention: boolean;
-  botMode: 'public' | 'private';
-  antiCall: boolean;
-  welcomeGroups: Set<string>;
-  goodbyeGroups: Set<string>;
-  antiStickerGroups: Set<string>;
-  antiMessageGroups: Set<string>;
-  antiBotGroups: Set<string>;
-  antiTagGroups: Set<string>;
-  antiGroupMentionGroups: Set<string>;
-  customCommands: Map<string, CustomCommand>;
-  nuleMode: boolean;
-  botName?: string;
-  customMenuImageBuffer?: Buffer;
-  sudoUsers: Set<string>;
-  autoStatusReply?: boolean;
-  statusReplyText?: string;
-  autoReadMsg?: boolean;
-  rejectCallMsg?: string;
-  autoAcceptJoinRequestsGroups: Set<string>;
-  autoRejectJoinRequestsGroups: Set<string>;
-}
-
-export const sessionStates = new Map<string, SessionState>();
 
 // Persistent group warnings store: JID of group -> JID of member -> warning count
 const groupWarningsFile = path.join(process.cwd(), 'sessions', 'group_warnings.json');
@@ -2189,13 +2190,44 @@ async function executeBotCommandInternal(
       try {
         const groupMeta = await sock.groupMetadata(remoteJid);
 
+        const callerJid = senderJid || msg?.key?.participant || (msg?.key?.fromMe && sock.user?.id ? sock.user.id : '');
+        const normCaller = callerJid ? jidNormalizedUser(callerJid) : '';
+        const cleanCallerDigits = callerJid.split('@')[0].split(':')[0].replace(/\D/g, '');
+
+        // 1. Identifier l'utilisateur exécutant la commande et vérifier ses privilèges administrateur
+        const callerParticipant = groupMeta.participants.find((p) => {
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+          return (
+            (normCaller && normP === normCaller) ||
+            (cleanCallerDigits && pDigits === cleanCallerDigits) ||
+            (cleanCallerDigits && p.id.includes(cleanCallerDigits))
+          );
+        });
+
+        const isCallerAdmin = callerParticipant?.admin === 'admin' || callerParticipant?.admin === 'superadmin';
+        const isCallerOwner =
+          !!msg?.key?.fromMe ||
+          isOwnerNumber(callerJid, sessionPhone) ||
+          isOwnerNumber(cleanCallerDigits, sessionPhone) ||
+          isUserProtected(callerJid, sessionPhone) ||
+          isUserSudo(cleanCallerDigits, sessionId);
+
+        if (!isCallerAdmin && !isCallerOwner) {
+          const notAdminMsg = `❌ *Accès refusé* : Vous devez être administrateur du groupe pour exécuter la commande *.kickall*.`;
+          if (loadingMsg?.key) {
+            await sock.sendMessage(remoteJid, { text: notAdminMsg, edit: loadingMsg.key }).catch(() => {});
+            return '';
+          }
+          return notAdminMsg;
+        }
+
+        // 2. Identifier le bot et vérifier ses privilèges administrateur
         const cleanBotDigits = (sock.user?.id || '').split(':')[0].replace(/\D/g, '');
         const cleanSessionDigits = (sessionPhone || '').replace(/\D/g, '');
-        const cleanSenderDigits = (senderJid || '').replace(/\D/g, '');
         const botLid = sock.user?.lid ? jidNormalizedUser(sock.user.lid) : '';
         const botIdNormalized = sock.user?.id ? jidNormalizedUser(sock.user.id) : '';
 
-        // Vérification sécurisée : supporte les numéros normaux et les identifiants LID
         const botParticipant = groupMeta.participants.find((p) => {
           const normP = jidNormalizedUser(p.id);
           const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
@@ -2209,23 +2241,40 @@ async function executeBotCommandInternal(
           );
         });
 
-        // Ne bloquer que si le bot est expressément identifié comme simple membre
-        if (botParticipant && botParticipant.admin !== 'admin' && botParticipant.admin !== 'superadmin') {
-          const failMsg = `❌ *Kickall failed* : Le bot doit être nommé administrateur du groupe pour pouvoir expulser des membres.`;
+        const isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+        if (botParticipant && !isBotAdmin) {
+          const botNotAdminMsg = `❌ *Échec* : Le bot doit être nommé administrateur du groupe pour pouvoir expulser des membres.`;
           if (loadingMsg?.key) {
-            await sock.sendMessage(remoteJid, { text: failMsg, edit: loadingMsg.key }).catch(() => {});
+            await sock.sendMessage(remoteJid, { text: botNotAdminMsg, edit: loadingMsg.key }).catch(() => {});
             return '';
           }
-          return failMsg;
+          return botNotAdminMsg;
         }
 
+        // 3. Filtrer les membres : exclure strictement les admins, le owner, le bot et l'exécutant
         const nonAdmins = groupMeta.participants.filter((p) => {
+          // Exclure tous les administrateurs et super-administrateurs
           if (p.admin === 'admin' || p.admin === 'superadmin') return false;
+
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+
+          // Exclure les propriétaires et numéros protégés
           if (isUserProtected(p.id, sessionPhone)) return false;
-          const pDigits = p.id.replace(/\D/g, '');
+          if (isOwnerNumber(p.id, sessionPhone)) return false;
+          if (pDigits && (isUserProtected(pDigits, sessionPhone) || isOwnerNumber(pDigits, sessionPhone))) return false;
+          if (pDigits && isUserSudo(pDigits, sessionId)) return false;
+
+          // Exclure le bot lui-même
+          if (botIdNormalized && normP === botIdNormalized) return false;
+          if (botLid && normP === botLid) return false;
           if (cleanBotDigits && pDigits === cleanBotDigits) return false;
           if (cleanSessionDigits && pDigits === cleanSessionDigits) return false;
-          if (cleanSenderDigits && pDigits === cleanSenderDigits) return false;
+
+          // Exclure l'expéditeur de la commande
+          if (normCaller && normP === normCaller) return false;
+          if (cleanCallerDigits && pDigits === cleanCallerDigits) return false;
+
           return true;
         });
 
@@ -2239,7 +2288,7 @@ async function executeBotCommandInternal(
         }
 
         let kickedCount = 0;
-        // Expulser les membres un par un avec cadence rapide (< 1 minute pour des dizaines de membres)
+        // Expulser les membres un par un avec cadence contrôlée
         for (const p of nonAdmins) {
           try {
             const res = await sock.groupParticipantsUpdate(remoteJid, [p.id], 'remove');
@@ -2255,7 +2304,6 @@ async function executeBotCommandInternal(
               break;
             }
           }
-          // 280ms de délai entre chaque membre : retire plus de 10 personnes en ~3s et 100 personnes en < 30s !
           await new Promise((r) => setTimeout(r, 280));
         }
 
@@ -2286,13 +2334,44 @@ async function executeBotCommandInternal(
       try {
         const groupMeta = await sock.groupMetadata(remoteJid);
 
+        const callerJid = senderJid || msg?.key?.participant || (msg?.key?.fromMe && sock.user?.id ? sock.user.id : '');
+        const normCaller = callerJid ? jidNormalizedUser(callerJid) : '';
+        const cleanCallerDigits = callerJid.split('@')[0].split(':')[0].replace(/\D/g, '');
+
+        // 1. Identifier l'utilisateur exécutant la commande et vérifier ses privilèges administrateur
+        const callerParticipant = groupMeta.participants.find((p) => {
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+          return (
+            (normCaller && normP === normCaller) ||
+            (cleanCallerDigits && pDigits === cleanCallerDigits) ||
+            (cleanCallerDigits && p.id.includes(cleanCallerDigits))
+          );
+        });
+
+        const isCallerAdmin = callerParticipant?.admin === 'admin' || callerParticipant?.admin === 'superadmin';
+        const isCallerOwner =
+          !!msg?.key?.fromMe ||
+          isOwnerNumber(callerJid, sessionPhone) ||
+          isOwnerNumber(cleanCallerDigits, sessionPhone) ||
+          isUserProtected(callerJid, sessionPhone) ||
+          isUserSudo(cleanCallerDigits, sessionId);
+
+        if (!isCallerAdmin && !isCallerOwner) {
+          const notAdminMsg = `❌ *Accès refusé* : Vous devez être administrateur du groupe pour exécuter la commande *.purge*.`;
+          if (loadingMsg?.key) {
+            await sock.sendMessage(remoteJid, { text: notAdminMsg, edit: loadingMsg.key }).catch(() => {});
+            return '';
+          }
+          return notAdminMsg;
+        }
+
+        // 2. Identifier le bot et vérifier ses privilèges administrateur
         const cleanBotDigits = (sock.user?.id || '').split(':')[0].replace(/\D/g, '');
         const cleanSessionDigits = (sessionPhone || '').replace(/\D/g, '');
-        const cleanSenderDigits = (senderJid || '').replace(/\D/g, '');
         const botLid = sock.user?.lid ? jidNormalizedUser(sock.user.lid) : '';
         const botIdNormalized = sock.user?.id ? jidNormalizedUser(sock.user.id) : '';
 
-        // Vérification sécurisée : supporte les numéros normaux et les identifiants LID
         const botParticipant = groupMeta.participants.find((p) => {
           const normP = jidNormalizedUser(p.id);
           const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
@@ -2306,23 +2385,40 @@ async function executeBotCommandInternal(
           );
         });
 
-        // Ne bloquer que si le bot est expressément identifié comme simple membre
-        if (botParticipant && botParticipant.admin !== 'admin' && botParticipant.admin !== 'superadmin') {
-          const failMsg = `❌ *Purge failed* : Le bot doit être nommé administrateur du groupe pour pouvoir purger des membres.`;
+        const isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+        if (botParticipant && !isBotAdmin) {
+          const botNotAdminMsg = `❌ *Échec* : Le bot doit être nommé administrateur du groupe pour pouvoir purger des membres.`;
           if (loadingMsg?.key) {
-            await sock.sendMessage(remoteJid, { text: failMsg, edit: loadingMsg.key }).catch(() => {});
+            await sock.sendMessage(remoteJid, { text: botNotAdminMsg, edit: loadingMsg.key }).catch(() => {});
             return '';
           }
-          return failMsg;
+          return botNotAdminMsg;
         }
 
+        // 3. Filtrer les membres : exclure strictement les admins, le owner, le bot et l'exécutant
         const nonAdmins = groupMeta.participants.filter((p) => {
+          // Exclure tous les administrateurs et super-administrateurs
           if (p.admin === 'admin' || p.admin === 'superadmin') return false;
+
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+
+          // Exclure les propriétaires et numéros protégés
           if (isUserProtected(p.id, sessionPhone)) return false;
-          const pDigits = p.id.replace(/\D/g, '');
+          if (isOwnerNumber(p.id, sessionPhone)) return false;
+          if (pDigits && (isUserProtected(pDigits, sessionPhone) || isOwnerNumber(pDigits, sessionPhone))) return false;
+          if (pDigits && isUserSudo(pDigits, sessionId)) return false;
+
+          // Exclure le bot lui-même
+          if (botIdNormalized && normP === botIdNormalized) return false;
+          if (botLid && normP === botLid) return false;
           if (cleanBotDigits && pDigits === cleanBotDigits) return false;
           if (cleanSessionDigits && pDigits === cleanSessionDigits) return false;
-          if (cleanSenderDigits && pDigits === cleanSenderDigits) return false;
+
+          // Exclure l'expéditeur de la commande
+          if (normCaller && normP === normCaller) return false;
+          if (cleanCallerDigits && pDigits === cleanCallerDigits) return false;
+
           return true;
         });
 
@@ -2348,7 +2444,7 @@ async function executeBotCommandInternal(
           }
         } catch (purgeErr: any) {
           console.warn('[PURGE BULK] Erreur retrait global, repli par lot:', purgeErr?.message || purgeErr);
-          // Fallback ultra-rapide par lots de 50 si le serveur refuse > 50 à la fois
+          // Fallback par lots de 50 si le serveur refuse > 50 à la fois
           for (let i = 0; i < nonAdminIds.length; i += 50) {
             const chunk = nonAdminIds.slice(i, i + 50);
             try {
