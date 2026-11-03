@@ -26,6 +26,12 @@ import {
   isBotSelfReplyOrEcho,
   checkAntiSpamCommand,
   canSendReaction,
+  isUserOptedOut,
+  addOptOutUser,
+  removeOptOutUser,
+  isDuplicateEventOrMessage,
+  recordLogEvent,
+  recordErrorDetected,
 } from './antiBanGuard';
 import {
   OFFICIAL_APOLOGY_MESSAGE,
@@ -492,6 +498,42 @@ export function saveCustomCommandsToDisk(sessionId: string, commands: Map<string
   }
 }
 
+export function getCustomCommands(sessionId: string = 'default'): CustomCommand[] {
+  const map = loadCustomCommandsFromDisk(sessionId);
+  return Array.from(map.values());
+}
+
+export function addOrUpdateCustomCommand(sessionId: string = 'default', cmd: { name: string; description: string }): CustomCommand {
+  const map = loadCustomCommandsFromDisk(sessionId);
+  const cleanName = cmd.name.toLowerCase().replace(/^\./, '').trim();
+  const newCmd: CustomCommand = {
+    name: cleanName,
+    description: cmd.description.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  map.set(cleanName, newCmd);
+  saveCustomCommandsToDisk(sessionId, map);
+  const state = sessionStates.get(sessionId);
+  if (state) {
+    state.customCommands.set(cleanName, newCmd);
+  }
+  return newCmd;
+}
+
+export function removeCustomCommand(sessionId: string = 'default', name: string): boolean {
+  const map = loadCustomCommandsFromDisk(sessionId);
+  const cleanName = name.toLowerCase().replace(/^\./, '').trim();
+  const existed = map.delete(cleanName);
+  if (existed) {
+    saveCustomCommandsToDisk(sessionId, map);
+    const state = sessionStates.get(sessionId);
+    if (state) {
+      state.customCommands.delete(cleanName);
+    }
+  }
+  return existed;
+}
+
 function getSettingsFilePath(sessionId: string): string {
   const SESSIONS_ROOT = process.env.SESSIONS_DIR || path.join(process.cwd(), 'sessions');
   const sessionDir = path.join(SESSIONS_ROOT, sessionId);
@@ -780,29 +822,31 @@ import { OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME, getBotName, setGlobalBotName
 export function isUserProtected(targetJid: string, sessionPhone?: string): boolean {
   if (!targetJid) return false;
   if (isOwnerNumber(targetJid, sessionPhone)) return true;
-  const clean = targetJid.split('@')[0].replace(/\D/g, '');
-  if (!clean) return false;
+  const clean = targetJid.split('@')[0].split(':')[0].replace(/\D/g, '');
+  if (!clean || clean.length < 7) return false;
   // Creator / Owner official numbers
-  if (clean.includes(OWNER_1) || clean.includes(OWNER_2)) return true;
+  if (OWNER_1 && (clean === OWNER_1 || clean.endsWith(OWNER_1) || OWNER_1.endsWith(clean))) return true;
+  if (OWNER_2 && (clean === OWNER_2 || clean.endsWith(OWNER_2) || OWNER_2.endsWith(clean))) return true;
   for (const o of OWNER_NUMBERS) {
-    if (clean === o || clean.endsWith(o) || o.endsWith(clean)) return true;
+    if (o && (clean === o || clean.endsWith(o) || o.endsWith(clean))) return true;
   }
   // Connected session phone
   if (sessionPhone) {
-    const cleanSession = sessionPhone.replace(/\D/g, '');
-    if (cleanSession && (clean.includes(cleanSession) || cleanSession.includes(clean))) return true;
+    const cleanSession = sessionPhone.split('@')[0].split(':')[0].replace(/\D/g, '');
+    if (cleanSession && cleanSession.length >= 7 && (clean === cleanSession || clean.endsWith(cleanSession) || cleanSession.endsWith(clean))) return true;
   }
   return false;
 }
 
 export function isUserSudo(cleanSender: string, sessionId?: string): boolean {
   if (!cleanSender) return false;
-  const clean = cleanSender.replace(/\D/g, '');
-  if (!clean) return false;
+  const clean = cleanSender.split('@')[0].split(':')[0].replace(/\D/g, '');
+  if (!clean || clean.length < 7) return false;
   if (isOwnerNumber(clean)) return true;
-  if (clean.includes(OWNER_1) || clean.includes(OWNER_2)) return true;
+  if (OWNER_1 && (clean === OWNER_1 || clean.endsWith(OWNER_1) || OWNER_1.endsWith(clean))) return true;
+  if (OWNER_2 && (clean === OWNER_2 || clean.endsWith(OWNER_2) || OWNER_2.endsWith(clean))) return true;
   for (const o of OWNER_NUMBERS) {
-    if (clean === o || clean.endsWith(o) || o.endsWith(clean)) return true;
+    if (o && (clean === o || clean.endsWith(o) || o.endsWith(clean))) return true;
   }
   if (sessionId) {
     const state = getSessionState(sessionId);
@@ -1572,7 +1616,7 @@ async function executeBotCommandInternal(
     case 'uptime': {
       const uptimeSec = Math.floor(process.uptime());
       const dhm = formatUptimeDHM(uptimeSec);
-      return `⏱️ *Runtime / Uptime* : ${dhm} (En ligne 24/7 🟢)`;
+      return `╭─❖━━━ ᴜᴘᴛɪᴍᴇ ━━━❖\n┇✦╭───────────────\n┇✦┋. ⏱️ ʀᴜɴᴛɪᴍᴇ : ${dhm}\n┇✦┋. 🟢 sᴛᴀᴛᴜᴛ : ᴇɴ ʟɪɢɴᴇ 24ʜ/24\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
     }
 
 
@@ -2180,7 +2224,7 @@ async function executeBotCommandInternal(
     // ----------------------------------------------------
     case 'kickall': {
       if (!sock || !remoteJid) {
-        return `╭━━━━━━━━━━━━━━━━━━━━━┈⊷\n┃✮│➣ .ᴋɪᴄᴋᴀʟʟ s'ᴜᴛɪʟɪsᴇ ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ\n╰━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+        return `╭─❖━━━ ᴋɪᴄᴋᴀʟʟ ━━━❖\n┇✦╭───────────────\n┇✦┋. .ᴋɪᴄᴋᴀʟʟ s'ᴜᴛɪʟɪsᴇ ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
       }
 
       if (!remoteJid.endsWith('@g.us')) {
@@ -2288,10 +2332,11 @@ async function executeBotCommandInternal(
         }
 
         let kickedCount = 0;
-        // Expulser les membres un par un avec cadence contrôlée
+        // Expulser les membres un par un avec cadence contrôlée et JID normalisé
         for (const p of nonAdmins) {
           try {
-            const res = await sock.groupParticipantsUpdate(remoteJid, [p.id], 'remove');
+            const targetJid = jidNormalizedUser(p.id);
+            const res = await sock.groupParticipantsUpdate(remoteJid, [targetJid], 'remove');
             if (Array.isArray(res) && res.some((r) => String(r?.status) === '200' || !r?.status)) {
               kickedCount++;
             } else {
@@ -2308,7 +2353,7 @@ async function executeBotCommandInternal(
         }
 
         const finishBox = kickedCount > 0
-          ? `╭━━━━━━━━━━━━━━━━━━━━━┈⊷\n┃✮│➣ ᴋɪᴄᴋᴀʟʟ sᴜᴄᴄᴇ̀s ! (${kickedCount} membre(s) retiré(s) un par un)\n╰━━━━━━━━━━━━━━━━━━━━━┈⊷`
+          ? `╭─❖━━━ ᴋɪᴄᴋᴀʟʟ ━━━❖\n┇✦╭───────────────\n┇✦┋. ᴋɪᴄᴋᴀʟʟ sᴜᴄᴄᴇ̀s !\n┇✦┋. ${kickedCount} membre(s) retiré(s) un par un.\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`
           : `❌ *Kickall failed* : Aucune personne n'a pu être supprimée du groupe.`;
 
         if (loadingMsg?.key) {
@@ -2324,7 +2369,7 @@ async function executeBotCommandInternal(
 
     case 'purge': {
       if (!sock || !remoteJid) {
-        return `╭━━━━━━━━━━━━━━━━━━━━━┈⊷\n┃✮│➣ .ᴘᴜʀɢᴇ s'ᴜᴛɪʟɪsᴇ ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ\n╰━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+        return `╭─❖━━━ ᴘᴜʀɢᴇ ━━━❖\n┇✦╭───────────────\n┇✦┋. .ᴘᴜʀɢᴇ s'ᴜᴛɪʟɪsᴇ ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
       }
 
       if (!remoteJid.endsWith('@g.us')) {
@@ -2431,8 +2476,8 @@ async function executeBotCommandInternal(
           return failMsg;
         }
 
-        // Retirer jusqu'à 1024 membres d'un seul coup (bulk remove instantané)
-        const nonAdminIds = nonAdmins.map((p) => p.id).slice(0, 1024);
+        // Retirer jusqu'à 1024 membres d'un seul coup (bulk remove instantané) avec JID normalisé
+        const nonAdminIds = nonAdmins.map((p) => jidNormalizedUser(p.id)).slice(0, 1024);
         let purgedCount = 0;
         try {
           const res = await sock.groupParticipantsUpdate(remoteJid, nonAdminIds, 'remove');
@@ -2460,7 +2505,7 @@ async function executeBotCommandInternal(
         }
 
         const successBox = purgedCount > 0
-          ? `╭━━━━━━━━━━━━━━━━━━━━━┈⊷\n┃✮│➣ ᴘᴜʀɢᴇ sᴜᴄᴄᴇ̀s ! (${purgedCount} membre(s) retiré(s) d'un seul coup)\n╰━━━━━━━━━━━━━━━━━━━━━┈⊷`
+          ? `╭─❖━━━ ᴘᴜʀɢᴇ ━━━❖\n┇✦╭───────────────\n┇✦┋. ᴘᴜʀɢᴇ sᴜᴄᴄᴇ̀s !\n┇✦┋. ${purgedCount} membre(s) retiré(s) d'un seul coup.\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`
           : `❌ *Purge failed* : Aucune personne n'a pu être supprimée du groupe.`;
 
         if (loadingMsg?.key) {
@@ -2528,27 +2573,85 @@ async function executeBotCommandInternal(
     case 'promoteall':
     case 'promote': {
       if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
-        return `❌ La commande *.promote* s'utilise dans un groupe.`;
+        return `╭─❖━━━ ᴘʀᴏᴍᴏᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. .ᴘʀᴏᴍᴏᴛᴇ s'ᴜᴛɪʟɪsᴇ ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
       }
       try {
         const groupMeta = await sock.groupMetadata(remoteJid);
-        const isPromoteAll = cleanCmd === 'promoteall' || cleanArgs.toLowerCase() === 'all';
+        const callerJid = senderJid || msg?.key?.participant || (msg?.key?.fromMe && sock.user?.id ? sock.user.id : '');
+        const normCaller = callerJid ? jidNormalizedUser(callerJid) : '';
+        const cleanCallerDigits = callerJid.split('@')[0].split(':')[0].replace(/\D/g, '');
 
+        // 1. Vérification des permissions de l'exécutant
+        const callerParticipant = groupMeta.participants.find((p) => {
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+          return (
+            (normCaller && normP === normCaller) ||
+            (cleanCallerDigits && pDigits === cleanCallerDigits) ||
+            (cleanCallerDigits && p.id.includes(cleanCallerDigits))
+          );
+        });
+
+        const isCallerAdmin = callerParticipant?.admin === 'admin' || callerParticipant?.admin === 'superadmin';
+        const isCallerOwner =
+          !!msg?.key?.fromMe ||
+          isOwnerNumber(callerJid, sessionPhone) ||
+          isOwnerNumber(cleanCallerDigits, sessionPhone) ||
+          isUserProtected(callerJid, sessionPhone) ||
+          isUserSudo(cleanCallerDigits, sessionId);
+
+        if (!isCallerAdmin && !isCallerOwner) {
+          const notAdminMsg = `❌ *Accès refusé* : Vous devez être administrateur du groupe pour exécuter la commande *.promote*.`;
+          if (loadingMsg?.key) {
+            await sock.sendMessage(remoteJid, { text: notAdminMsg, edit: loadingMsg.key }).catch(() => {});
+            return '';
+          }
+          return notAdminMsg;
+        }
+
+        // 2. Vérification des permissions du bot
+        const cleanBotDigits = (sock.user?.id || '').split(':')[0].replace(/\D/g, '');
+        const cleanSessionDigits = (sessionPhone || '').replace(/\D/g, '');
+        const botLid = sock.user?.lid ? jidNormalizedUser(sock.user.lid) : '';
+        const botIdNormalized = sock.user?.id ? jidNormalizedUser(sock.user.id) : '';
+
+        const botParticipant = groupMeta.participants.find((p) => {
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+          return (
+            (botLid && normP === botLid) ||
+            (botIdNormalized && normP === botIdNormalized) ||
+            (cleanBotDigits && pDigits === cleanBotDigits) ||
+            (cleanSessionDigits && pDigits === cleanSessionDigits)
+          );
+        });
+
+        const isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+        if (botParticipant && !isBotAdmin) {
+          const botNotAdminMsg = `❌ *Échec* : Le bot doit être nommé administrateur du groupe pour pouvoir promouvoir des membres.`;
+          if (loadingMsg?.key) {
+            await sock.sendMessage(remoteJid, { text: botNotAdminMsg, edit: loadingMsg.key }).catch(() => {});
+            return '';
+          }
+          return botNotAdminMsg;
+        }
+
+        const isPromoteAll = cleanCmd === 'promoteall' || cleanArgs.toLowerCase() === 'all';
         let targetsToPromote: string[] = [];
 
         if (isPromoteAll) {
           targetsToPromote = groupMeta.participants
             .filter((p) => !p.admin)
-            .map((p) => p.id);
+            .map((p) => jidNormalizedUser(p.id));
         } else {
           const contextInfo = (msg?.message as any)?.extendedTextMessage?.contextInfo ||
                               (msg?.message as any)?.imageMessage?.contextInfo ||
                               (msg?.message as any)?.videoMessage?.contextInfo;
           const mentions = contextInfo?.mentionedJid || [];
           if (mentions.length > 0) {
-            targetsToPromote = mentions;
+            targetsToPromote = mentions.map((m: string) => jidNormalizedUser(m));
           } else if (contextInfo?.participant) {
-            targetsToPromote = [contextInfo.participant];
+            targetsToPromote = [jidNormalizedUser(contextInfo.participant)];
           } else if (cleanArgs) {
             const matches = cleanArgs.match(/(\d{8,15})/g);
             if (matches && matches.length > 0) {
@@ -2563,7 +2666,7 @@ async function executeBotCommandInternal(
             : `📌 Mentionnez ou répondez aux membres à promouvoir (ex: *.promote @user1 @user2 ...* ou *.promoteall*)`;
         }
 
-        targetsToPromote = Array.from(new Set(targetsToPromote));
+        targetsToPromote = Array.from(new Set(targetsToPromote.map((id) => jidNormalizedUser(id))));
 
         let promotedCount = 0;
         for (let i = 0; i < targetsToPromote.length; i += 5) {
@@ -2586,12 +2689,15 @@ async function executeBotCommandInternal(
           await new Promise((r) => setTimeout(r, 300));
         }
 
-        const tagList = targetsToPromote.slice(0, 10).map((id) => `@${id.split('@')[0]}`).join(', ');
-        const extraText = targetsToPromote.length > 10 ? ` et ${targetsToPromote.length - 10} autre(s)` : '';
+        const promoBox = `╭─❖━━━ ᴘʀᴏᴍᴏᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. ᴘʀᴏᴍᴏᴛɪᴏɴ sᴜᴄᴄᴇ̀s !\n┇✦┋. ${promotedCount}/${targetsToPromote.length} membre(s) nommé(s) admin.\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
 
-        return `👑 *Promotions réussies* (${promotedCount}/${targetsToPromote.length}) :\n${tagList}${extraText} ${targetsToPromote.length > 1 ? 'ont été nommés' : 'a été nommé'} *Administrateur* !`;
+        if (loadingMsg?.key) {
+          await sock.sendMessage(remoteJid, { text: promoBox, edit: loadingMsg.key }).catch(() => {});
+          return '';
+        }
+        return promoBox;
       } catch (e: any) {
-        return `❌ Erreur : Le bot doit être administrateur du groupe.`;
+        return `❌ Erreur lors de la promotion : ${e?.message || 'Le bot doit être administrateur du groupe.'}`;
       }
     }
 
@@ -2599,14 +2705,70 @@ async function executeBotCommandInternal(
     case 'demoter':
     case 'demote': {
       if (!sock || !remoteJid || !remoteJid.endsWith('@g.us')) {
-        return `❌ La commande *.demote* s'utilise dans un groupe.`;
+        return `╭─❖━━━ ᴅᴇ́ᴍᴏᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. .ᴅᴇᴍᴏᴛᴇ s'ᴜᴛɪʟɪsᴇ ᴅᴀɴs ᴜɴ ɢʀᴏᴜᴘᴇ\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
       }
       try {
         const groupMeta = await sock.groupMetadata(remoteJid);
+        const callerJid = senderJid || msg?.key?.participant || (msg?.key?.fromMe && sock.user?.id ? sock.user.id : '');
+        const normCaller = callerJid ? jidNormalizedUser(callerJid) : '';
+        const cleanCallerDigits = callerJid.split('@')[0].split(':')[0].replace(/\D/g, '');
+
+        // 1. Vérification des permissions de l'exécutant
+        const callerParticipant = groupMeta.participants.find((p) => {
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+          return (
+            (normCaller && normP === normCaller) ||
+            (cleanCallerDigits && pDigits === cleanCallerDigits) ||
+            (cleanCallerDigits && p.id.includes(cleanCallerDigits))
+          );
+        });
+
+        const isCallerAdmin = callerParticipant?.admin === 'admin' || callerParticipant?.admin === 'superadmin';
+        const isCallerOwner =
+          !!msg?.key?.fromMe ||
+          isOwnerNumber(callerJid, sessionPhone) ||
+          isOwnerNumber(cleanCallerDigits, sessionPhone) ||
+          isUserProtected(callerJid, sessionPhone) ||
+          isUserSudo(cleanCallerDigits, sessionId);
+
+        if (!isCallerAdmin && !isCallerOwner) {
+          const notAdminMsg = `❌ *Accès refusé* : Vous devez être administrateur du groupe pour exécuter la commande *.demote*.`;
+          if (loadingMsg?.key) {
+            await sock.sendMessage(remoteJid, { text: notAdminMsg, edit: loadingMsg.key }).catch(() => {});
+            return '';
+          }
+          return notAdminMsg;
+        }
+
+        // 2. Vérification des permissions du bot
         const cleanBotDigits = (sock.user?.id || '').split(':')[0].replace(/\D/g, '');
         const cleanSessionDigits = (sessionPhone || '').replace(/\D/g, '');
-        const isDemoteAll = cleanCmd === 'demoteall' || cleanCmd === 'demoter' || cleanArgs.toLowerCase() === 'all';
+        const botLid = sock.user?.lid ? jidNormalizedUser(sock.user.lid) : '';
+        const botIdNormalized = sock.user?.id ? jidNormalizedUser(sock.user.id) : '';
 
+        const botParticipant = groupMeta.participants.find((p) => {
+          const normP = jidNormalizedUser(p.id);
+          const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+          return (
+            (botLid && normP === botLid) ||
+            (botIdNormalized && normP === botIdNormalized) ||
+            (cleanBotDigits && pDigits === cleanBotDigits) ||
+            (cleanSessionDigits && pDigits === cleanSessionDigits)
+          );
+        });
+
+        const isBotAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+        if (botParticipant && !isBotAdmin) {
+          const botNotAdminMsg = `❌ *Échec* : Le bot doit être nommé administrateur du groupe pour pouvoir rétrograder des membres.`;
+          if (loadingMsg?.key) {
+            await sock.sendMessage(remoteJid, { text: botNotAdminMsg, edit: loadingMsg.key }).catch(() => {});
+            return '';
+          }
+          return botNotAdminMsg;
+        }
+
+        const isDemoteAll = cleanCmd === 'demoteall' || cleanCmd === 'demoter' || cleanArgs.toLowerCase() === 'all';
         let targetsToDemote: string[] = [];
 
         if (isDemoteAll) {
@@ -2614,21 +2776,27 @@ async function executeBotCommandInternal(
             .filter((p) => {
               if (!p.admin) return false;
               if (isUserProtected(p.id, sessionPhone)) return false;
-              const pDigits = p.id.replace(/\D/g, '');
+              if (isOwnerNumber(p.id, sessionPhone)) return false;
+              const normP = jidNormalizedUser(p.id);
+              const pDigits = p.id.split('@')[0].split(':')[0].replace(/\D/g, '');
+              if (botIdNormalized && normP === botIdNormalized) return false;
+              if (botLid && normP === botLid) return false;
               if (cleanBotDigits && pDigits === cleanBotDigits) return false;
               if (cleanSessionDigits && pDigits === cleanSessionDigits) return false;
+              if (normCaller && normP === normCaller) return false;
+              if (cleanCallerDigits && pDigits === cleanCallerDigits) return false;
               return true;
             })
-            .map((p) => p.id);
+            .map((p) => jidNormalizedUser(p.id));
         } else {
           const contextInfo = (msg?.message as any)?.extendedTextMessage?.contextInfo ||
                               (msg?.message as any)?.imageMessage?.contextInfo ||
                               (msg?.message as any)?.videoMessage?.contextInfo;
           const mentions = contextInfo?.mentionedJid || [];
           if (mentions.length > 0) {
-            targetsToDemote = mentions;
+            targetsToDemote = mentions.map((m: string) => jidNormalizedUser(m));
           } else if (contextInfo?.participant) {
-            targetsToDemote = [contextInfo.participant];
+            targetsToDemote = [jidNormalizedUser(contextInfo.participant)];
           } else if (cleanArgs) {
             const matches = cleanArgs.match(/(\d{8,15})/g);
             if (matches && matches.length > 0) {
@@ -2643,7 +2811,7 @@ async function executeBotCommandInternal(
             : `📌 Mentionnez ou répondez aux administrateurs à rétrograder (ex: *.demote @user1 @user2 ...* ou *.demoteall*)`;
         }
 
-        targetsToDemote = Array.from(new Set(targetsToDemote));
+        targetsToDemote = Array.from(new Set(targetsToDemote.map((id) => jidNormalizedUser(id))));
 
         let demotedCount = 0;
         for (let i = 0; i < targetsToDemote.length; i += 5) {
@@ -2666,12 +2834,15 @@ async function executeBotCommandInternal(
           await new Promise((r) => setTimeout(r, 300));
         }
 
-        const tagList = targetsToDemote.slice(0, 10).map((id) => `@${id.split('@')[0]}`).join(', ');
-        const extraText = targetsToDemote.length > 10 ? ` et ${targetsToDemote.length - 10} autre(s)` : '';
+        const demoBox = `╭─❖━━━ ᴅᴇ́ᴍᴏᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. ᴅᴇ́ᴍᴏᴛɪᴏɴ sᴜᴄᴄᴇ̀s !\n┇✦┋. ${demotedCount}/${targetsToDemote.length} membre(s) rétrogradé(s).\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
 
-        return `🔻 *Rétrogradations réussies* (${demotedCount}/${targetsToDemote.length}) :\n${tagList}${extraText} ${targetsToDemote.length > 1 ? 'ont été rétrogradés' : 'a été rétrogradé'} en simple membre !`;
+        if (loadingMsg?.key) {
+          await sock.sendMessage(remoteJid, { text: demoBox, edit: loadingMsg.key }).catch(() => {});
+          return '';
+        }
+        return demoBox;
       } catch (e: any) {
-        return `❌ Erreur lors de la rétrogradation : Le bot doit être administrateur du groupe.`;
+        return `❌ Erreur lors de la rétrogradation : ${e?.message || 'Le bot doit être administrateur du groupe.'}`;
       }
     }
 
@@ -3231,9 +3402,9 @@ async function executeBotCommandInternal(
         const isOwner =
           isOwnerNumber(senderJid, sessionPhone) ||
           isOwnerNumber(cleanSender, sessionPhone) ||
-          cleanSender.includes(OWNER_1) ||
-          cleanSender.includes(OWNER_2) ||
-          (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
+          (OWNER_1 && cleanSender.length >= 7 && (cleanSender === OWNER_1 || cleanSender.endsWith(OWNER_1) || OWNER_1.endsWith(cleanSender))) ||
+          (OWNER_2 && cleanSender.length >= 7 && (cleanSender === OWNER_2 || cleanSender.endsWith(OWNER_2) || OWNER_2.endsWith(cleanSender))) ||
+          (sessionPhone && cleanSender.length >= 7 && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
           isUserProtected(senderJid, sessionPhone);
 
         const groupMeta = await sock.groupMetadata(remoteJid);
@@ -3317,9 +3488,9 @@ async function executeBotCommandInternal(
         const isOwner =
           isOwnerNumber(senderJid, sessionPhone) ||
           isOwnerNumber(cleanSender, sessionPhone) ||
-          cleanSender.includes(OWNER_1) ||
-          cleanSender.includes(OWNER_2) ||
-          (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
+          (OWNER_1 && cleanSender.length >= 7 && (cleanSender === OWNER_1 || cleanSender.endsWith(OWNER_1) || OWNER_1.endsWith(cleanSender))) ||
+          (OWNER_2 && cleanSender.length >= 7 && (cleanSender === OWNER_2 || cleanSender.endsWith(OWNER_2) || OWNER_2.endsWith(cleanSender))) ||
+          (sessionPhone && cleanSender.length >= 7 && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
           isUserProtected(senderJid, sessionPhone);
 
         const groupMeta = await sock.groupMetadata(remoteJid);
@@ -3404,9 +3575,9 @@ async function executeBotCommandInternal(
         const isOwner =
           isOwnerNumber(senderJid, sessionPhone) ||
           isOwnerNumber(cleanSender, sessionPhone) ||
-          cleanSender.includes(OWNER_1) ||
-          cleanSender.includes(OWNER_2) ||
-          (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
+          (OWNER_1 && cleanSender.length >= 7 && (cleanSender === OWNER_1 || cleanSender.endsWith(OWNER_1) || OWNER_1.endsWith(cleanSender))) ||
+          (OWNER_2 && cleanSender.length >= 7 && (cleanSender === OWNER_2 || cleanSender.endsWith(OWNER_2) || OWNER_2.endsWith(cleanSender))) ||
+          (sessionPhone && cleanSender.length >= 7 && cleanSender.includes(sessionPhone.replace(/\D/g, ''))) ||
           isUserProtected(senderJid, sessionPhone);
 
         const groupMeta = await sock.groupMetadata(remoteJid);
@@ -4745,9 +4916,9 @@ async function isParticipantAdmin(sock: any, groupJid: string, participantJid: s
     if (
       isOwnerNumber(normParticipant, sessionPhone) ||
       isOwnerNumber(cleanSender, sessionPhone) ||
-      cleanSender.includes(OWNER_1) ||
-      cleanSender.includes(OWNER_2) ||
-      (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, '')))
+      (OWNER_1 && cleanSender.length >= 7 && (cleanSender === OWNER_1 || cleanSender.endsWith(OWNER_1) || OWNER_1.endsWith(cleanSender))) ||
+      (OWNER_2 && cleanSender.length >= 7 && (cleanSender === OWNER_2 || cleanSender.endsWith(OWNER_2) || OWNER_2.endsWith(cleanSender))) ||
+      (sessionPhone && cleanSender.length >= 7 && cleanSender.includes(sessionPhone.replace(/\D/g, '')))
     ) {
       return true;
     }
@@ -4793,9 +4964,9 @@ function isParticipantAdminSync(groupJid: string, participantJid: string, sessio
     if (
       isOwnerNumber(normParticipant, sessionPhone) ||
       isOwnerNumber(cleanSender, sessionPhone) ||
-      cleanSender.includes(OWNER_1) ||
-      cleanSender.includes(OWNER_2) ||
-      (sessionPhone && cleanSender.includes(sessionPhone.replace(/\D/g, '')))
+      (OWNER_1 && cleanSender.length >= 7 && (cleanSender === OWNER_1 || cleanSender.endsWith(OWNER_1) || OWNER_1.endsWith(cleanSender))) ||
+      (OWNER_2 && cleanSender.length >= 7 && (cleanSender === OWNER_2 || cleanSender.endsWith(OWNER_2) || OWNER_2.endsWith(cleanSender))) ||
+      (sessionPhone && cleanSender.length >= 7 && cleanSender.includes(sessionPhone.replace(/\D/g, '')))
     ) {
       return true;
     }
@@ -5530,6 +5701,11 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
 
     for (const msg of messages) {
       try {
+        // Protection contre les doubles événements et messages répétés
+        if (msg.key?.id && isDuplicateEventOrMessage(msg.key.id)) {
+          continue;
+        }
+
         // Automatically detect and self-heal CIPHERTEXT or Bad MAC decryption errors
         if (msg.messageStubType === proto.WebMessageInfo.StubType.CIPHERTEXT) {
           const senderJid = msg.key?.participant || msg.key?.remoteJid;
@@ -5732,6 +5908,49 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
           cleanSenderDigits.includes('50935975863') ||
           (activeSessionPhone && cleanSenderDigits.includes(activeSessionPhone)) ||
           isUserProtected(currentSender, session.phone);
+
+        // ----------------------------------------------------
+        // DÉSINCRIPTION / OPT-OUT & STOP LIST (Section 3)
+        // ----------------------------------------------------
+        const uppercaseText = (normalizedBody || rawBody || '').trim().toUpperCase();
+        if (
+          uppercaseText === 'STOP' ||
+          uppercaseText === 'ARRET' ||
+          uppercaseText === 'ARRÊT' ||
+          uppercaseText === 'DESINSCRIPTION' ||
+          uppercaseText === 'DÉSINSCRIPTION' ||
+          uppercaseText === 'UNSUBSCRIBE' ||
+          normalizedBody === '.optout'
+        ) {
+          addOptOutUser(currentSender, 'Mot-clé de désinscription reçu');
+          if (sock && rawRemoteJid) {
+            await sock.sendMessage(rawRemoteJid, {
+              text: `╭─❖━━━ ᴅᴇ́sɪɴsᴄʀɪᴘᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. 🛡️ ᴠᴏᴜs ᴀᴠᴇᴢ ᴇ́ᴛᴇ́ ᴅᴇ́sɪɴsᴄʀɪᴛ ᴀᴠᴇᴄ sᴜᴄᴄᴇ̀s.\n┇✦┋. ʟᴇ ʙᴏᴛ ɴᴇ ᴠᴏᴜs ᴇɴᴠᴇʀʀᴀ ᴘʟᴜs ᴀᴜᴄᴜɴ ᴍᴇssᴀɢᴇ ᴀᴜᴛᴏᴍᴀᴛɪǫᴜᴇ.\n┇✦┋. (ᴇɴᴠᴏʏᴇᴢ sᴛᴀʀᴛ ᴘᴏᴜʀ ʀᴇ́ᴀᴄᴛɪᴠᴇʀ)\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`,
+            }).catch(() => {});
+          }
+          continue;
+        }
+
+        if (
+          uppercaseText === 'START' ||
+          uppercaseText === 'COMMENCER' ||
+          uppercaseText === 'REPRENDRE' ||
+          normalizedBody === '.optin'
+        ) {
+          removeOptOutUser(currentSender);
+          if (sock && rawRemoteJid) {
+            await sock.sendMessage(rawRemoteJid, {
+              text: `╭─❖━━━ ʀᴇ́ᴀᴄᴛɪᴠᴀᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. 🟢 ᴠᴏᴜs ᴀᴠᴇᴢ ᴇ́ᴛᴇ́ ʀᴇ́ᴀᴄᴛɪᴠᴇ́ ᴀᴠᴇᴄ sᴜᴄᴄᴇ̀s.\n┇✦┋. ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs ᴇᴛ sᴇʀᴠɪᴄᴇs sᴏɴᴛ ᴀ̀ ɴᴏᴜᴠᴇᴀᴜ ᴅɪsᴘᴏɴɪʙʟᴇs.\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`,
+            }).catch(() => {});
+          }
+          continue;
+        }
+
+        // Si le numéro est dans la liste de désinscription, ignorer tout envoi
+        if (isUserOptedOut(currentSender)) {
+          console.log(`[OPT-OUT] Message ignoré de ${currentSender} (numéro désinscrit)`);
+          continue;
+        }
 
         // ====================================================
         // AUTOMATED GROUP MODERATION (ANTITAG, ANTILINK, ANTISTICKER, ANTIMESSAGE, ANTIGROUPMENTION, ANTIBOT)
@@ -6163,8 +6382,8 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         isFromMe ||
         isOwnerNumber(senderJid, session.phone) ||
         isOwnerNumber(cleanSender, session.phone) ||
-        cleanSender.includes(OWNER_1) ||
-        (effectiveSessionPhone && cleanSender.includes(effectiveSessionPhone)) ||
+        (OWNER_1 && cleanSender.length >= 7 && (cleanSender === OWNER_1 || cleanSender.endsWith(OWNER_1) || OWNER_1.endsWith(cleanSender))) ||
+        (effectiveSessionPhone && cleanSender.length >= 7 && cleanSender.includes(effectiveSessionPhone)) ||
         (!isGroup && effectiveSessionPhone && cleanSender === effectiveSessionPhone) ||
         isUserProtected(senderJid, session.phone) ||
         isSudoUser;

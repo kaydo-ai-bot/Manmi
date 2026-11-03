@@ -28,6 +28,12 @@ import {
 import { getNextBotPhoto } from './botPhotoManager';
 import { SessionTaskQueue } from './sessionQueue';
 import { sessionStartLimiter, downloadLimiter, databaseLimiter, apiLimiter } from './concurrencyLimiter';
+import {
+  isUserOptedOut,
+  getSessionOutgoingQueue,
+  recordErrorDetected,
+  tripCircuitBreaker,
+} from './antiBanGuard';
 
 const NodeCache = (NodeCacheModule as any)?.default || NodeCacheModule;
 
@@ -2807,8 +2813,15 @@ export async function sendMessageFromSession(
       }
     }
 
+    if (isUserOptedOut(recipientJid)) {
+      return { success: false, message: `Envoi annulé : le numéro ${recipientJid} est sur la liste de désinscription (Opt-Out).` };
+    }
+
     const styledText = toSmallCaps(text);
-    await session.sock.sendMessage(recipientJid, { text: styledText });
+    const outQueue = getSessionOutgoingQueue(session.phone || sessionId);
+    await outQueue.enqueue(recipientJid, async () => {
+      return session.sock.sendMessage(recipientJid, { text: styledText });
+    });
 
     return {
       success: true,

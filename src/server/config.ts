@@ -7,8 +7,8 @@ import path from 'path';
  * OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME
  */
 
-export const OWNER_1 = (process.env.OWNER_1 || process.env.OWNER_NUMBER || '50935975863').replace(/\D/g, '');
-export const OWNER_2 = '';
+export const OWNER_1: string = (process.env.OWNER_1 || process.env.OWNER_NUMBER || '50935975863').replace(/\D/g, '');
+export const OWNER_2: string = (process.env.OWNER_2 || '').replace(/\D/g, '');
 
 const envOwnerList = (process.env.OWNER_NUMBERS || '')
   .split(',')

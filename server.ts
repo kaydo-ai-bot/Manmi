@@ -106,7 +106,31 @@ import {
   isGlobalBotEnabled,
   getSessionsSummary,
 } from './src/server/sessionManager';
-import { executeBotCommand, getSessionState, saveSessionSettingsToDisk } from './src/server/commandHandler';
+import {
+  executeBotCommand,
+  getSessionState,
+  saveSessionSettingsToDisk,
+  getCustomCommands,
+  addOrUpdateCustomCommand,
+  removeCustomCommand,
+} from './src/server/commandHandler';
+import {
+  getBotMetrics,
+  getRecentEventLogs,
+  getAllOptOutList,
+  addOptOutUser,
+  removeOptOutUser,
+  isCircuitBreakerActive,
+  recordLogEvent,
+} from './src/server/antiBanGuard';
+import {
+  getBotName,
+  setGlobalBotName,
+  getGlobalBotMode,
+  setGlobalBotMode,
+  getGlobalPrefix,
+  setGlobalPrefix,
+} from './src/server/config';
 import {
   getAllCommandImageUrls,
   setCommandImageUrl,
@@ -328,22 +352,36 @@ const handleStatusRequest = (req: Request, res: Response) => {
     const heapUsedMb = Math.round(mem.heapUsed / (1024 * 1024));
     const dynamicUsedMb = Math.max(122, Math.min(288, heapUsedMb + ((Math.floor(Date.now() / 2000) * 7) % 29) - 14));
     const totalMemMb = 16384;
+    const activeCount = getActiveSessionsCount();
+    const metrics = getBotMetrics(activeCount);
 
     res.setHeader('Content-Type', 'application/json');
     res.json({
-      user: 'KAYDO BOT 𓃶',
-      botName: 'KAYDO BOT 𓃶',
-      prefix: process.env.PREFIX || '.',
+      user: 'KAYDO BOT',
+      botName: getBotName() || 'KAYDO BOT',
+      prefix: getGlobalPrefix() || '.',
+      botMode: getGlobalBotMode() || 'public',
       uptime: getFormattedUptime(),
+      uptimeDHM: metrics.uptimeDHM,
       memory: `${dynamicUsedMb} MB`,
       totalMemory: `${totalMemMb} MB`,
-      commandsCount: 295,
-      owner: 'KAYDO DEV 𓃶',
+      commandsCount: 300,
+      owner: 'KAYDO DEV',
       siteUrl: process.env.CHANNEL_LINK || '/',
       pingMs: Math.floor(Math.random() * 15) + 20,
-      status: 'ONLINE',
-      activeSessionsCount: getActiveSessionsCount(),
+      status: metrics.isCircuitBreakerActive ? 'RESTRICTED' : 'ONLINE',
+      activeSessionsCount: activeCount,
       unreadNotifications: notifications.filter(n => !n.read).length,
+      metrics: {
+        messagesSent: metrics.messagesSent,
+        messagesFailed: metrics.messagesFailed,
+        messagesBlocked: metrics.messagesBlocked,
+        errorsDetected: metrics.errorsDetected,
+        circuitBreakerTrips: metrics.circuitBreakerTrips,
+        systemHealth: metrics.systemHealth,
+        optOutCount: metrics.optOutCount,
+        isCircuitBreakerActive: metrics.isCircuitBreakerActive,
+      },
       watchdog: {
         status: watchdogState.status,
         autoRestartEnabled: watchdogState.autoRestartEnabled,
@@ -364,6 +402,127 @@ const handleStatusRequest = (req: Request, res: Response) => {
 
 app.get('/api/status', handleStatusRequest);
 app.get('/api/bot-status', handleStatusRequest);
+
+// 1.1 Enterprise Bot Metrics Endpoint
+app.get('/api/bot/metrics', (req: Request, res: Response) => {
+  const activeCount = getActiveSessionsCount();
+  const metrics = getBotMetrics(activeCount);
+  res.json({
+    success: true,
+    metrics,
+    timestamp: Date.now(),
+  });
+});
+
+// 1.2 System Event & Security Logs Endpoint
+app.get('/api/bot/logs', (req: Request, res: Response) => {
+  const limit = Math.min(200, parseInt((req.query.limit as string) || '50', 10));
+  const filter = (req.query.filter as string) || 'all';
+  const logs = getRecentEventLogs(limit, filter);
+  res.json({
+    success: true,
+    count: logs.length,
+    logs,
+  });
+});
+
+// 1.3 Opt-Out / Désinscription Protection Endpoints
+app.get('/api/bot/optout', (req: Request, res: Response) => {
+  const list = getAllOptOutList();
+  res.json({
+    success: true,
+    count: list.length,
+    optOutList: list,
+  });
+});
+
+app.post('/api/bot/optout', (req: Request, res: Response) => {
+  const { action, phone } = req.body;
+  if (!phone) {
+    return res.status(400).json({ success: false, message: 'Numéro de téléphone requis.' });
+  }
+
+  if (action === 'remove') {
+    const removed = removeOptOutUser(phone);
+    return res.json({ success: true, message: `Numéro +${phone} retiré de la liste de désinscription.`, removed });
+  } else {
+    const added = addOptOutUser(phone, 'Ajouté manuellement depuis le Dashboard');
+    return res.json({ success: true, message: `Numéro +${phone} ajouté à la liste de désinscription.`, added });
+  }
+});
+
+// 1.4 Global Bot Settings (Read & Update)
+app.get('/api/bot/settings', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    botName: getBotName(),
+    botMode: getGlobalBotMode(),
+    prefix: getGlobalPrefix(),
+    isGlobalEnabled: isGlobalBotEnabled(),
+    optOutCount: getAllOptOutList().length,
+  });
+});
+
+app.post('/api/bot/settings', (req: Request, res: Response) => {
+  const { botName, botMode, prefix, isGlobalEnabled } = req.body;
+  if (botName && typeof botName === 'string') {
+    setGlobalBotName(botName);
+  }
+  if (botMode === 'public' || botMode === 'private') {
+    setGlobalBotMode(botMode);
+  }
+  if (prefix && typeof prefix === 'string') {
+    setGlobalPrefix(prefix);
+  }
+  if (typeof isGlobalEnabled === 'boolean') {
+    setGlobalBotEnabled(isGlobalEnabled);
+  }
+  recordLogEvent('info', 'COMMAND', `Paramètres du bot mis à jour depuis le Dashboard`);
+  res.json({
+    success: true,
+    message: 'Paramètres mis à jour avec succès.',
+    botName: getBotName(),
+    botMode: getGlobalBotMode(),
+    prefix: getGlobalPrefix(),
+    isGlobalEnabled: isGlobalBotEnabled(),
+  });
+});
+
+// 1.5 Custom Commands CRUD
+app.get('/api/custom-commands', (req: Request, res: Response) => {
+  const sessionId = (req.query.sessionId as string) || 'default';
+  const commands = getCustomCommands(sessionId);
+  res.json({
+    success: true,
+    count: commands.length,
+    commands,
+  });
+});
+
+app.post('/api/custom-commands', (req: Request, res: Response) => {
+  const { name, description, sessionId } = req.body;
+  if (!name || !description) {
+    return res.status(400).json({ success: false, message: 'Nom et réponse de la commande requis.' });
+  }
+  const cmd = addOrUpdateCustomCommand(sessionId || 'default', { name, description });
+  recordLogEvent('info', 'COMMAND', `Commande personnalisée .${cmd.name} créée/mise à jour`);
+  res.json({
+    success: true,
+    message: `Commande personnalisée .${cmd.name} enregistrée avec succès.`,
+    command: cmd,
+  });
+});
+
+app.delete('/api/custom-commands/:name', (req: Request, res: Response) => {
+  const name = req.params.name;
+  const sessionId = (req.query.sessionId as string) || 'default';
+  const deleted = removeCustomCommand(sessionId, name);
+  if (deleted) {
+    recordLogEvent('info', 'COMMAND', `Commande personnalisée .${name} supprimée`);
+    return res.json({ success: true, message: `Commande .${name} supprimée avec succès.` });
+  }
+  res.status(404).json({ success: false, message: 'Commande non trouvée.' });
+});
 
 // Watchdog manual test trigger
 app.post('/api/watchdog/test-restart', (req: Request, res: Response) => {
