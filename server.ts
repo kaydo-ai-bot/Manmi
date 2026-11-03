@@ -124,8 +124,6 @@ import {
 } from './src/server/commandImageManager';
 import axios from 'axios';
 import { getNextBotPhoto } from './src/server/botPhotoManager';
-import { getBotStatsSnapshot } from './src/server/botStats';
-import { getOptOutList, addOptOut, removeOptOut, getOptOutCount } from './src/server/optOutManager';
 import { initTelegramBot } from './telegramBot';
 
 // Start Telegram Bot
@@ -591,57 +589,6 @@ app.post('/api/notifications/test', (req: Request, res: Response) => {
     message: message || 'Vérification du canal de notification sécurisé réussie. Système de surveillance opérationnel.',
   });
   res.json({ success: true, notification: created });
-});
-
-// 5b. Centralized Bot Statistics & Metrics Dashboard API
-app.get('/api/stats', (_req: Request, res: Response) => {
-  try {
-    const activeSessions = getActiveSessionsCount();
-    const optOutCount = getOptOutCount();
-    const snapshot = getBotStatsSnapshot(activeSessions, optOutCount);
-    res.json({
-      success: true,
-      ...snapshot,
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err?.message || 'Erreur stats' });
-  }
-});
-
-// 5c. Opt-Out / Unsubscribe List Management API
-app.get('/api/opt-out', (req: Request, res: Response) => {
-  try {
-    const list = getOptOutList();
-    res.json({ success: true, count: list.length, optOutList: list });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err?.message });
-  }
-});
-
-app.post('/api/opt-out/add', (req: Request, res: Response) => {
-  try {
-    const { phone, reason } = req.body || {};
-    if (!phone) {
-      return res.status(400).json({ success: false, error: 'Numéro de téléphone requis.' });
-    }
-    addOptOut(phone, reason || 'Manual Owner Opt-Out');
-    res.json({ success: true, message: `Numéro +${phone} ajouté à la liste de désinscription avec succès.` });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err?.message });
-  }
-});
-
-app.post('/api/opt-out/remove', (req: Request, res: Response) => {
-  try {
-    const { phone } = req.body || {};
-    if (!phone) {
-      return res.status(400).json({ success: false, error: 'Numéro de téléphone requis.' });
-    }
-    const removed = removeOptOut(phone);
-    res.json({ success: true, removed, message: `Numéro +${phone} retiré de la liste de désinscription.` });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err?.message });
-  }
 });
 
 // 6. Interactive Command Execution Simulator & Direct Dispatcher

@@ -1,14 +1,11 @@
 /**
- * 🥷 KAYDO BOT - Anti-Ban, Anti-Spam & Humanized Traffic Guard
+ * 🥷 BZK BOT 🌪️ - Anti-Ban, Anti-Spam & Humanized Traffic Guard
  * 
  * Strict protections to guarantee the bot NEVER spams the owner or user accounts,
  * never triggers WhatsApp anti-abuse filters (no bans, no 403 restrictions),
  * prevents infinite echo loops, enforces human-like outgoing message throttling,
- * checks opt-out blacklists, and tracks anti-spam blocked statistics.
+ * and formats uptime / runtime in Jour / Heure / Minute.
  */
-
-import { isOptedOut } from './optOutManager';
-import { recordMessageBlockedAntiSpam } from './botStats';
 
 // ----------------------------------------------------
 // 1. UPTIME & RUNTIME FORMATTER (Jour / Heure / Minute)
@@ -62,14 +59,6 @@ class SessionOutgoingQueue {
 
   public enqueue<T = any>(destJid: string, fn: () => Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      // 1. Opt-Out Check: Never send messages to numbers on the blacklist
-      const cleanPhone = destJid.replace(/\D/g, '');
-      if (isOptedOut(cleanPhone)) {
-        console.warn(`[ANTI-SPAM] 🛑 Message bloqué pour ${destJid}: destinataire sur la liste de désinscription (Opt-Out).`);
-        recordMessageBlockedAntiSpam();
-        return reject(new Error('Destinataire désinscrit (Opt-Out). Aucun message ne peut lui être envoyé.'));
-      }
-
       // Memory safety: Drop oldest task if queue grows beyond 80 tasks
       if (this.queue.length >= 80) {
         const dropped = this.queue.shift();
@@ -112,20 +101,18 @@ class SessionOutgoingQueue {
       // Check per-JID flood protection (max 6 messages per 20 seconds to same chat)
       if (jidTimestamps.length >= 6) {
         console.warn(`[ANTI-BAN] 🛡️ Throttle pour ${task.destJid} sur ${this.sessionId}: trop de messages récents.`);
-        recordMessageBlockedAntiSpam();
         await new Promise((r) => setTimeout(r, 2000));
       }
 
       // Check global session flood protection (max 30 messages per minute)
       if (this.globalMessageTimestamps.length >= 30) {
         console.warn(`[ANTI-BAN] 🛡️ Global session rate limit atteinte pour ${this.sessionId}. Pause de sécurité 3s.`);
-        recordMessageBlockedAntiSpam();
         await new Promise((r) => setTimeout(r, 3000));
       }
 
-      // Enforce human-like delay between messages (minimum 800ms - 1300ms + random jitter)
+      // Enforce human-like delay between messages (minimum 750ms - 1300ms + random jitter)
       const elapsedSinceLast = Date.now() - this.lastSentTime;
-      const targetMinDelay = 800 + Math.floor(Math.random() * 500); // 800ms - 1300ms
+      const targetMinDelay = 800 + Math.floor(Math.random() * 450); // 800ms - 1250ms
       if (elapsedSinceLast < targetMinDelay) {
         const waitMs = targetMinDelay - elapsedSinceLast;
         await new Promise((r) => setTimeout(r, waitMs));
@@ -176,7 +163,7 @@ const knownBotOutputSignatures = [
   '⚡ *ᴘᴏɴɢ !*',
   'ʙᴏᴛ ɴᴀᴍᴇ:',
   'ʙᴏᴛ:',
-  '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝑴𝑲 🌪️',
+  '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️',
   '🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️',
   '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿',
   '✨ *≛⃝🥷🏿',
@@ -212,7 +199,6 @@ export function checkAntiSpamCommand(
   if (chatJid.endsWith('@g.us')) {
     const lastGroupCmd = groupLastCommandTimes.get(chatJid) || 0;
     if (now - lastGroupCmd < 1400) {
-      recordMessageBlockedAntiSpam();
       return { allowed: false, reason: 'Group command cooldown' };
     }
     groupLastCommandTimes.set(chatJid, now);
@@ -221,7 +207,6 @@ export function checkAntiSpamCommand(
   // 2. Sender level rate limit (max 1 command every 1.8s per user)
   const lastUserCmd = senderLastCommandTimes.get(senderJid) || 0;
   if (now - lastUserCmd < 1800) {
-    recordMessageBlockedAntiSpam();
     return { allowed: false, reason: 'User command cooldown' };
   }
   senderLastCommandTimes.set(senderJid, now);
@@ -234,7 +219,6 @@ export function checkAntiSpamCommand(
   } else {
     tracker.count++;
     if (tracker.count > 5) {
-      recordMessageBlockedAntiSpam();
       return { allowed: false, reason: 'User burst limit exceeded' };
     }
   }
@@ -251,7 +235,6 @@ export function canSendReaction(chatJid: string): boolean {
   const now = Date.now();
   const last = chatLastReactionTimes.get(chatJid) || 0;
   if (now - last < 2000) {
-    recordMessageBlockedAntiSpam();
     return false; // Skip reaction to avoid spamming WhatsApp stanzas
   }
   chatLastReactionTimes.set(chatJid, now);

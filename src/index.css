@@ -1,77 +1,34 @@
 @import "tailwindcss";
 
 @layer base {
-  :root {
-    --bg-main: #080F1F;
-    --card-bg: #111C32;
-    --primary-blue: #3478F6;
-    --secondary-cyan: #16D9E8;
-    --text-primary: #F5F7FF;
-    --text-secondary: #8E9EB5;
-    --success: #10B981;
-    --error: #EF4444;
-  }
-
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #080F1F;
-    color: #F5F7FF;
+    background-color: #0b0f17;
+    color: #f1f5f9;
     overflow-x: hidden;
   }
 
   code, pre, .font-mono {
     font-family: 'Fira Code', ui-monospace, SFMono-Regular, monospace;
-    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Glassmorphism & Custom Card Helpers */
-.glass-panel {
-  background: rgba(17, 28, 50, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(52, 120, 246, 0.15);
-}
-
-.glass-card {
-  background: #111C32;
-  border: 1px solid rgba(52, 120, 246, 0.12);
-  box-shadow: 0 4px 20px -2px rgba(8, 15, 31, 0.5);
-}
-
-.glass-card-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card-hover:hover {
-  border-color: rgba(22, 217, 232, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px -4px rgba(52, 120, 246, 0.15);
-}
-
-.glow-blue {
-  box-shadow: 0 0 25px rgba(52, 120, 246, 0.25);
-}
-
-.glow-cyan {
-  box-shadow: 0 0 25px rgba(22, 217, 232, 0.25);
-}
-
-/* Custom Scrollbar */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #080F1F;
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1B2B4A;
+  background: #2563eb;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3478F6;
+  background: #3b82f6;
 }
+

@@ -26,12 +26,6 @@ import {
   isBotSelfReplyOrEcho,
   checkAntiSpamCommand,
   canSendReaction,
-  isUserOptedOut,
-  addOptOutUser,
-  removeOptOutUser,
-  isDuplicateEventOrMessage,
-  recordLogEvent,
-  recordErrorDetected,
 } from './antiBanGuard';
 import {
   OFFICIAL_APOLOGY_MESSAGE,
@@ -496,42 +490,6 @@ export function saveCustomCommandsToDisk(sessionId: string, commands: Map<string
   } catch (e) {
     console.error(`[CUSTOM CMDS] Erreur lors de la sauvegarde pour session ${sessionId}:`, e);
   }
-}
-
-export function getCustomCommands(sessionId: string = 'default'): CustomCommand[] {
-  const map = loadCustomCommandsFromDisk(sessionId);
-  return Array.from(map.values());
-}
-
-export function addOrUpdateCustomCommand(sessionId: string = 'default', cmd: { name: string; description: string }): CustomCommand {
-  const map = loadCustomCommandsFromDisk(sessionId);
-  const cleanName = cmd.name.toLowerCase().replace(/^\./, '').trim();
-  const newCmd: CustomCommand = {
-    name: cleanName,
-    description: cmd.description.trim(),
-    createdAt: new Date().toISOString(),
-  };
-  map.set(cleanName, newCmd);
-  saveCustomCommandsToDisk(sessionId, map);
-  const state = sessionStates.get(sessionId);
-  if (state) {
-    state.customCommands.set(cleanName, newCmd);
-  }
-  return newCmd;
-}
-
-export function removeCustomCommand(sessionId: string = 'default', name: string): boolean {
-  const map = loadCustomCommandsFromDisk(sessionId);
-  const cleanName = name.toLowerCase().replace(/^\./, '').trim();
-  const existed = map.delete(cleanName);
-  if (existed) {
-    saveCustomCommandsToDisk(sessionId, map);
-    const state = sessionStates.get(sessionId);
-    if (state) {
-      state.customCommands.delete(cleanName);
-    }
-  }
-  return existed;
 }
 
 function getSettingsFilePath(sessionId: string): string {
@@ -5701,11 +5659,6 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
 
     for (const msg of messages) {
       try {
-        // Protection contre les doubles événements et messages répétés
-        if (msg.key?.id && isDuplicateEventOrMessage(msg.key.id)) {
-          continue;
-        }
-
         // Automatically detect and self-heal CIPHERTEXT or Bad MAC decryption errors
         if (msg.messageStubType === proto.WebMessageInfo.StubType.CIPHERTEXT) {
           const senderJid = msg.key?.participant || msg.key?.remoteJid;
@@ -5908,49 +5861,6 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
           cleanSenderDigits.includes('50935975863') ||
           (activeSessionPhone && cleanSenderDigits.includes(activeSessionPhone)) ||
           isUserProtected(currentSender, session.phone);
-
-        // ----------------------------------------------------
-        // DÉSINCRIPTION / OPT-OUT & STOP LIST (Section 3)
-        // ----------------------------------------------------
-        const uppercaseText = (normalizedBody || rawBody || '').trim().toUpperCase();
-        if (
-          uppercaseText === 'STOP' ||
-          uppercaseText === 'ARRET' ||
-          uppercaseText === 'ARRÊT' ||
-          uppercaseText === 'DESINSCRIPTION' ||
-          uppercaseText === 'DÉSINSCRIPTION' ||
-          uppercaseText === 'UNSUBSCRIBE' ||
-          normalizedBody === '.optout'
-        ) {
-          addOptOutUser(currentSender, 'Mot-clé de désinscription reçu');
-          if (sock && rawRemoteJid) {
-            await sock.sendMessage(rawRemoteJid, {
-              text: `╭─❖━━━ ᴅᴇ́sɪɴsᴄʀɪᴘᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. 🛡️ ᴠᴏᴜs ᴀᴠᴇᴢ ᴇ́ᴛᴇ́ ᴅᴇ́sɪɴsᴄʀɪᴛ ᴀᴠᴇᴄ sᴜᴄᴄᴇ̀s.\n┇✦┋. ʟᴇ ʙᴏᴛ ɴᴇ ᴠᴏᴜs ᴇɴᴠᴇʀʀᴀ ᴘʟᴜs ᴀᴜᴄᴜɴ ᴍᴇssᴀɢᴇ ᴀᴜᴛᴏᴍᴀᴛɪǫᴜᴇ.\n┇✦┋. (ᴇɴᴠᴏʏᴇᴢ sᴛᴀʀᴛ ᴘᴏᴜʀ ʀᴇ́ᴀᴄᴛɪᴠᴇʀ)\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`,
-            }).catch(() => {});
-          }
-          continue;
-        }
-
-        if (
-          uppercaseText === 'START' ||
-          uppercaseText === 'COMMENCER' ||
-          uppercaseText === 'REPRENDRE' ||
-          normalizedBody === '.optin'
-        ) {
-          removeOptOutUser(currentSender);
-          if (sock && rawRemoteJid) {
-            await sock.sendMessage(rawRemoteJid, {
-              text: `╭─❖━━━ ʀᴇ́ᴀᴄᴛɪᴠᴀᴛɪᴏɴ ━━━❖\n┇✦╭───────────────\n┇✦┋. 🟢 ᴠᴏᴜs ᴀᴠᴇᴢ ᴇ́ᴛᴇ́ ʀᴇ́ᴀᴄᴛɪᴠᴇ́ ᴀᴠᴇᴄ sᴜᴄᴄᴇ̀s.\n┇✦┋. ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs ᴇᴛ sᴇʀᴠɪᴄᴇs sᴏɴᴛ ᴀ̀ ɴᴏᴜᴠᴇᴀᴜ ᴅɪsᴘᴏɴɪʙʟᴇs.\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`,
-            }).catch(() => {});
-          }
-          continue;
-        }
-
-        // Si le numéro est dans la liste de désinscription, ignorer tout envoi
-        if (isUserOptedOut(currentSender)) {
-          console.log(`[OPT-OUT] Message ignoré de ${currentSender} (numéro désinscrit)`);
-          continue;
-        }
 
         // ====================================================
         // AUTOMATED GROUP MODERATION (ANTITAG, ANTILINK, ANTISTICKER, ANTIMESSAGE, ANTIGROUPMENTION, ANTIBOT)

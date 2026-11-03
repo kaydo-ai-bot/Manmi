@@ -10,7 +10,6 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "test:persistence": "tsx src/server/persistence.test.ts",
-    "test:stability": "tsx src/server/stability.test.ts",
     "lint": "tsc --noEmit",
     "postinstall": "node scripts/patch-libsignal.cjs"
   },
