@@ -1,1 +1,1 @@
-prive
+public

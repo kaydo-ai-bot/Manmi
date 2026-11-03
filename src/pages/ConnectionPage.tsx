@@ -13,6 +13,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { BotStats, PairingResponse } from '../types';
+import { saveMySession } from '../utils/userSessions';
 
 interface ConnectionPageProps {
   stats: BotStats | null;
@@ -120,6 +121,9 @@ export const ConnectionPage: React.FC<ConnectionPageProps> = ({ stats, onRefresh
       }
 
       setPairingData(data);
+      if (data.sessionId) {
+        saveMySession(data.sessionId, fullPhone);
+      }
       setSecondsRemaining(data.expiresInSeconds || 180);
     } catch (err: any) {
       setErrorMsg(err.message || 'Impossible de joindre le serveur WhatsApp.');
@@ -150,6 +154,7 @@ export const ConnectionPage: React.FC<ConnectionPageProps> = ({ stats, onRefresh
       setQrDataUrl(data.qrDataUrl);
       if (data.sessionId) {
         setPairingData({ success: true, sessionId: data.sessionId, status: 'connecting' });
+        saveMySession(data.sessionId, data.sessionId);
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Erreur lors de la génération du QR Code.');

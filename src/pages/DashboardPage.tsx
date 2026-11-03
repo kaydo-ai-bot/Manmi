@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { BotStats, DetailedSessionInfo, SystemEventLog } from '../types';
 
+import { getMySessionIds, saveMySession } from '../utils/userSessions';
+
 interface DashboardPageProps {
   stats: BotStats | null;
   onRefresh: () => void;
@@ -40,8 +42,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const fetchDashboardData = async () => {
     setIsLoadingSessions(true);
     try {
+      const myIds = getMySessionIds().join(',');
+      const token = sessionStorage.getItem('kaydo_owner_token') || '';
       const [sessRes, logsRes] = await Promise.all([
-        fetch('/api/owner/sessions'),
+        fetch(`/api/sessions/list?ids=${encodeURIComponent(myIds)}&all=true`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }),
         fetch('/api/bot/logs?limit=8'),
       ]);
 
@@ -326,24 +332,63 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
           </div>
 
-          {/* Session Cards or Empty */}
-          {sessions.length === 0 ? (
-            <div className="py-10 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#3478F6]/10 text-[#3478F6] mx-auto flex items-center justify-center">
-                <Smartphone className="w-6 h-6" />
+          {/* Prominent New Session Banner */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-[#3478F6]/20 via-[#111C32] to-[#16D9E8]/20 border border-[#16D9E8]/30 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg shadow-[#3478F6]/10">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <div className="w-10 h-10 rounded-xl bg-[#3478F6]/20 text-[#16D9E8] flex items-center justify-center shrink-0 mx-auto sm:mx-0">
+                <Smartphone className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-[#F5F7FF]">Aucune session WhatsApp liée</h4>
-                <p className="text-xs text-[#8E9EB5] max-w-sm mx-auto mt-1">
-                  Connectez votre compte WhatsApp via Pairing Code ou QR Code pour activer les commandes 24/7.
+                <h4 className="text-sm font-bold text-white">Créer ou Lier une Nouvelle Session WhatsApp</h4>
+                <p className="text-xs text-[#8E9EB5]">Connectez un autre numéro instantanément avec le code de pairage (Pair Code).</p>
+              </div>
+            </div>
+            <button
+              onClick={onNavigateToConnection}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3478F6] to-[#16D9E8] text-white text-xs font-bold shadow-md shadow-[#3478F6]/30 hover:brightness-110 active:scale-98 transition-all whitespace-nowrap w-full sm:w-auto text-center"
+            >
+              + Nouvelle Session WhatsApp
+            </button>
+          </div>
+
+          {/* Session Cards or Empty */}
+          {sessions.length === 0 ? (
+            <div className="py-8 px-4 text-center space-y-4 bg-[#080F1F]/60 rounded-2xl border border-[#3478F6]/20">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3478F6] to-[#16D9E8] text-white mx-auto flex items-center justify-center shadow-lg shadow-[#3478F6]/30 animate-pulse">
+                <Smartphone className="w-7 h-7" />
+              </div>
+              <div className="space-y-1 max-w-md mx-auto">
+                <h4 className="text-base font-bold text-white">Aucun Numéro Connecté pour le Moment</h4>
+                <p className="text-xs text-[#8E9EB5]">
+                  Suivez ces 3 étapes simples pour lier votre WhatsApp et obtenir votre code de liaison :
                 </p>
               </div>
-              <button
-                onClick={onNavigateToConnection}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#3478F6] to-[#16D9E8] text-white text-xs font-semibold shadow-md shadow-[#3478F6]/25 hover:brightness-110"
-              >
-                Lier mon Numéro Maintenant
-              </button>
+
+              {/* Steps Guide */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left max-w-xl mx-auto text-xs text-[#8E9EB5]">
+                <div className="p-3 rounded-xl bg-[#111C32] border border-[#3478F6]/15 space-y-1">
+                  <span className="font-bold text-[#16D9E8] block">Étape 1</span>
+                  Cliquez sur le bouton ci-dessous pour ouvrir l'écran de liaison.
+                </div>
+                <div className="p-3 rounded-xl bg-[#111C32] border border-[#3478F6]/15 space-y-1">
+                  <span className="font-bold text-[#16D9E8] block">Étape 2</span>
+                  Entrez votre numéro WhatsApp (indicatif + numéro).
+                </div>
+                <div className="p-3 rounded-xl bg-[#111C32] border border-[#3478F6]/15 space-y-1">
+                  <span className="font-bold text-[#16D9E8] block">Étape 3</span>
+                  Copiez le code à 8 chiffres et entrez-le dans WhatsApp.
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={onNavigateToConnection}
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#3478F6] via-[#1e58c8] to-[#16D9E8] text-white text-sm font-bold shadow-xl shadow-[#3478F6]/40 hover:brightness-110 active:scale-98 transition-all flex items-center gap-2 mx-auto"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>📲 Entrer mon Numéro & Obtenir mon Code</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-2.5">
