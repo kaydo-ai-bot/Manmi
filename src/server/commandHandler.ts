@@ -796,16 +796,105 @@ export function isUserProtected(targetJid: string, sessionPhone?: string): boole
   return false;
 }
 
-export function isUserSudo(cleanSender: string, sessionId?: string): boolean {
+export function isMainOwner(cleanSender: string, isFromMe?: boolean, sessionPhone?: string): boolean {
+  if (isFromMe) return true;
   if (!cleanSender) return false;
   const clean = cleanSender.split('@')[0].split(':')[0].replace(/\D/g, '');
   if (!clean || clean.length < 7) return false;
-  if (isOwnerNumber(clean)) return true;
+  if (isOwnerNumber(clean, sessionPhone)) return true;
   if (OWNER_1 && (clean === OWNER_1 || clean.endsWith(OWNER_1) || OWNER_1.endsWith(clean))) return true;
   if (OWNER_2 && (clean === OWNER_2 || clean.endsWith(OWNER_2) || OWNER_2.endsWith(clean))) return true;
   for (const o of OWNER_NUMBERS) {
     if (o && (clean === o || clean.endsWith(o) || o.endsWith(clean))) return true;
   }
+  if (sessionPhone) {
+    const cleanSession = sessionPhone.split('@')[0].split(':')[0].replace(/\D/g, '');
+    if (cleanSession && cleanSession.length >= 7 && (clean === cleanSession || clean.endsWith(cleanSession) || cleanSession.endsWith(clean))) return true;
+  }
+  return false;
+}
+
+export function extractTargetPhoneNumber(rawInput: string, msg?: any): string {
+  const contextInfo = msg?.message?.extendedTextMessage?.contextInfo ||
+                      msg?.message?.imageMessage?.contextInfo ||
+                      msg?.message?.videoMessage?.contextInfo ||
+                      msg?.message?.stickerMessage?.contextInfo;
+  const mentions = contextInfo?.mentionedJid || [];
+  if (Array.isArray(mentions) && mentions.length > 0 && mentions[0]) {
+    const clean = mentions[0].split('@')[0].split(':')[0].replace(/\D/g, '');
+    if (clean.length >= 7) return clean;
+  }
+  const quotedParticipant = contextInfo?.participant;
+  if (quotedParticipant) {
+    const clean = quotedParticipant.split('@')[0].split(':')[0].replace(/\D/g, '');
+    if (clean.length >= 7) return clean;
+  }
+  if (rawInput && typeof rawInput === 'string') {
+    const cleanFromArgs = rawInput.replace(/\D/g, '');
+    if (cleanFromArgs.length >= 7) {
+      return cleanFromArgs;
+    }
+  }
+  return '';
+}
+
+export function normalizeSudoCommand(rawCmd: string, rawArgs: string): { cmd: string; args: string } {
+  const lowCmd = (rawCmd || '').toLowerCase().trim();
+  const lowArgs = (rawArgs || '').toLowerCase().trim();
+
+  // 1. .del sudo <number> / .delete sudo <number> / .remove sudo <number> / .rm sudo <number>
+  if (lowCmd === 'del' || lowCmd === 'delete' || lowCmd === 'remove' || lowCmd === 'rm') {
+    if (lowArgs.startsWith('sudo')) {
+      const remainingArgs = rawArgs.replace(/^sudo\s*/i, '').trim();
+      return { cmd: 'delsudo', args: remainingArgs };
+    }
+  }
+
+  // 2. .list sudo / .ls sudo / .show sudo / .get sudo
+  if (lowCmd === 'list' || lowCmd === 'ls' || lowCmd === 'show' || lowCmd === 'get') {
+    if (lowArgs.startsWith('sudo') || lowArgs === 'sudo') {
+      const remainingArgs = rawArgs.replace(/^sudo\s*/i, '').trim();
+      return { cmd: 'listsudo', args: remainingArgs };
+    }
+  }
+
+  // 3. .sudo del <number> / .sudo list / .sudo <number>
+  if (lowCmd === 'sudo' || lowCmd === 'setsudo') {
+    if (
+      lowArgs.startsWith('del ') ||
+      lowArgs.startsWith('delete ') ||
+      lowArgs.startsWith('remove ') ||
+      lowArgs.startsWith('rm ') ||
+      lowArgs === 'del' ||
+      lowArgs === 'delete' ||
+      lowArgs === 'remove' ||
+      lowArgs === 'rm'
+    ) {
+      const remainingArgs = rawArgs.replace(/^(?:del|delete|remove|rm)\s*/i, '').trim();
+      return { cmd: 'delsudo', args: remainingArgs };
+    }
+    if (lowArgs.startsWith('list') || lowArgs === 'list' || lowArgs === 'ls' || lowArgs === 'show') {
+      return { cmd: 'listsudo', args: '' };
+    }
+    return { cmd: 'sudo', args: rawArgs };
+  }
+
+  if (lowCmd === 'delsudo' || lowCmd === 'unsudo' || lowCmd === 'remsudo') {
+    return { cmd: 'delsudo', args: rawArgs };
+  }
+
+  if (lowCmd === 'listsudo' || lowCmd === 'sudolist') {
+    return { cmd: 'listsudo', args: rawArgs };
+  }
+
+  return { cmd: lowCmd, args: rawArgs };
+}
+
+export function isUserSudo(cleanSender: string, sessionId?: string): boolean {
+  if (!cleanSender) return false;
+  const clean = cleanSender.split('@')[0].split(':')[0].replace(/\D/g, '');
+  if (!clean || clean.length < 7) return false;
+  if (isMainOwner(clean)) return true;
   if (sessionId) {
     const state = getSessionState(sessionId);
     if (state?.sudoUsers && state.sudoUsers.has(clean)) return true;
@@ -845,7 +934,7 @@ export function getSessionState(sessionId: string): SessionState {
       antiGroupMentionGroups: new Set<string>(Array.isArray(saved.antiGroupMentionGroups) ? saved.antiGroupMentionGroups : []),
       autoAcceptJoinRequestsGroups: new Set<string>(Array.isArray((saved as any).autoAcceptJoinRequestsGroups) ? (saved as any).autoAcceptJoinRequestsGroups : []),
       autoRejectJoinRequestsGroups: new Set<string>(Array.isArray((saved as any).autoRejectJoinRequestsGroups) ? (saved as any).autoRejectJoinRequestsGroups : []),
-      sudoUsers: new Set<string>([...OWNER_NUMBERS, ...(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : [])]),
+      sudoUsers: new Set<string>(Array.isArray((saved as any).sudoUsers) ? (saved as any).sudoUsers : []),
       customCommands: loadCustomCommandsFromDisk(sessionId),
       nuleMode: saved.nuleMode !== undefined ? saved.nuleMode : false,
       botName: saved.botName || getBotName(),
@@ -1527,36 +1616,117 @@ async function executeBotCommandInternal(
     // MAIN COMMANDS
     // ----------------------------------------------------
     case 'sudo':
-    case 'setsudo': {
-      const targetNum = (cleanArgs || '').replace(/\D/g, '');
-      if (!targetNum || targetNum.length < 8) {
-        return `❌ Veuillez spécifier un numéro valide à ajouter en sudo (ex: .sudo 50935975863)`;
+    case 'setsudo':
+    case 'addsudo': {
+      // 1. Permission check: Only main owner can add a SUDO
+      const isMain = isMainOwner(senderJid, !!msg?.key?.fromMe, sessionPhone);
+      if (!isMain) {
+        return `❌ *Accès Refusé* : Seul le propriétaire principal (Main Owner) peut ajouter des administrateurs SUDO.`;
       }
+
+      // 2. Extract target phone number from arguments, mention, or quoted message
+      const targetNum = extractTargetPhoneNumber(rawArgs || args, msg);
+      if (!targetNum || targetNum.length < 7) {
+        return `❌ Veuillez spécifier un numéro valide à ajouter en SUDO.\n\n📌 *Exemple* : *.sudo 50935975863* ou mentionnez *@membre* ou répondez à son message.`;
+      }
+
+      // 3. Main owner check: Target is already a permanent main owner
+      if (isMainOwner(targetNum, false, sessionPhone)) {
+        return `⚠️ Le numéro *+${targetNum}* est déjà un propriétaire principal permanent de KAYDO MD.`;
+      }
+
+      // 4. Duplicate check
+      if (state.sudoUsers.has(targetNum)) {
+        return `⚠️ Le numéro *+${targetNum}* figure déjà dans la liste des administrateurs SUDO.`;
+      }
+
+      // 5. Add to state.sudoUsers and persist to disk & database
       state.sudoUsers.add(targetNum);
       saveSessionSettingsToDisk(sessionId, state);
-      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 *ɴᴜᴍᴇ́ʀᴏ :* +${targetNum}\n*┇*🔹┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴀᴄᴄᴇ̀s sᴜᴅᴏ ᴀᴄᴛɪᴠᴇ́ (ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs ᴇɴ ᴍᴏᴅᴇ ᴘʀɪᴠᴇ́)\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+
+      const count = state.sudoUsers.size;
+
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO AJOUTÉ  ⟣ ⟣ ⟣━━━❖*
+*┇*🔹╭───────────────
+*┇*🔹┋. 👑 *ɴᴜᴍᴇ́ʀᴏ :* +${targetNum}
+*┇*🔹┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴀᴄᴄᴇ̀s sᴜᴅᴏ ᴀᴄᴛɪᴠᴇ́
+*┇*🔹┋. 📊 *ᴛᴏᴛᴀʟ sᴜᴅᴏ :* ${count} administrateur(s) secondaire(s)
+*┇*🔹╰───────────────⊷
+*╰━━━━━━━━━━━━━━━━━❖*`;
     }
 
     case 'unsudo':
-    case 'delsudo': {
-      const targetNum = (cleanArgs || '').replace(/\D/g, '');
-      if (!targetNum) {
-        return `❌ Veuillez spécifier le numéro à retirer du sudo (ex: .unsudo 50935975863)`;
+    case 'delsudo':
+    case 'remsudo': {
+      // 1. Permission check: Only main owner can remove a SUDO
+      const isMain = isMainOwner(senderJid, !!msg?.key?.fromMe, sessionPhone);
+      if (!isMain) {
+        return `❌ *Accès Refusé* : Seul le propriétaire principal (Main Owner) peut supprimer des administrateurs SUDO.`;
       }
-      if (targetNum.includes('50935975863')) {
-        return `⚠️ Ce numéro (+${targetNum}) est le développeur fondateur permanent et ne peut pas être retiré du sudo.`;
+
+      // 2. Extract target phone number from arguments, mention, or quoted message
+      const targetNum = extractTargetPhoneNumber(rawArgs || args, msg);
+      if (!targetNum || targetNum.length < 7) {
+        return `❌ Veuillez spécifier un numéro valide à retirer du SUDO.\n\n📌 *Exemple* : *.del sudo 50935975863* ou *.unsudo 50935975863* ou répondez à son message.`;
       }
+
+      // 3. Main owner protection check: Main owner numbers cannot be removed!
+      if (isMainOwner(targetNum, false, sessionPhone)) {
+        return `⚠️ Le numéro *+${targetNum}* est un propriétaire principal permanent et ne peut pas être retiré des accès.`;
+      }
+
+      // 4. Existence check
+      if (!state.sudoUsers.has(targetNum)) {
+        return `⚠️ Le numéro *+${targetNum}* ne figure pas dans la liste des administrateurs SUDO.`;
+      }
+
+      // 5. Delete from state.sudoUsers and persist to disk & database
       state.sudoUsers.delete(targetNum);
       saveSessionSettingsToDisk(sessionId, state);
-      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ❌ *ɴᴜᴍᴇ́ʀᴏ :* +${targetNum}\n*┇*🔹┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴀᴄᴄᴇ̀s sᴜᴅᴏ ʀᴇᴛɪʀᴇ́\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+
+      const count = state.sudoUsers.size;
+
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO RETIRÉ  ⟣ ⟣ ⟣━━━❖*
+*┇*🔹╭───────────────
+*┇*🔹┋. ❌ *ɴᴜᴍᴇ́ʀᴏ :* +${targetNum}
+*┇*🔹┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴀᴄᴄᴇ̀s sᴜᴅᴏ ʀᴇᴛɪʀᴇ́
+*┇*🔹┋. 📊 *ᴛᴏᴛᴀʟ sᴜᴅᴏ :* ${count} administrateur(s) secondaire(s)
+*┇*🔹╰───────────────⊷
+*╰━━━━━━━━━━━━━━━━━❖*`;
     }
 
     case 'listsudo':
     case 'sudolist': {
-      const list = Array.from(state.sudoUsers || []);
-      return `*╭─❖━━━ ⟣ ⟣ ⟣  LISTE SUDO  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 +509 3597 5863 (Permanent)\n*┇*🔹┋. 👑 +509 4013 1864 (Permanent)\n` +
-        (list.length > 0 ? list.map((n) => `*┇*🔹┋. 👤 +${n}`).join('\n') : `*┇*🔹┋. *(Aucun sudo additionnel)*`) +
-        `\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+      // Reload up-to-date secondary sudo list from storage
+      const secondarySudos = Array.from(state.sudoUsers || []).filter(
+        (n) => !isMainOwner(n, false, sessionPhone)
+      );
+
+      const mainOwnerNum = sessionPhone ? sessionPhone.replace(/\D/g, '') : (OWNER_1 || '50935975863');
+
+      if (secondarySudos.length === 0) {
+        return `*╭─❖━━━ ⟣ ⟣ ⟣  LISTE SUDO  ⟣ ⟣ ⟣━━━❖*
+*┇*🔹╭───────────────
+*┇*🔹┋. 👑 *ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴘʀɪɴᴄɪᴘᴀʟ :* +${mainOwnerNum}
+*┇*🔹┋.
+*┇*🔹┋. 📋 *ᴀᴜᴄᴜɴ ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴇᴜʀ sᴇᴄᴏɴᴅᴀɪʀᴇ (sᴜᴅᴏ)*
+*┇*🔹┋. 📊 *ᴛᴏᴛᴀʟ sᴜᴅᴏ :* 0 administrateur(s)
+*┇*🔹╰───────────────⊷
+*╰━━━━━━━━━━━━━━━━━❖*`;
+      }
+
+      const formattedSudos = secondarySudos.map((n, i) => `*┇*🔹┋. ${i + 1}. 👤 +${n}`).join('\n');
+
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  LISTE SUDO  ⟣ ⟣ ⟣━━━❖*
+*┇*🔹╭───────────────
+*┇*🔹┋. 👑 *ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴘʀɪɴᴄɪᴘᴀʟ :* +${mainOwnerNum}
+*┇*🔹┋.
+*┇*🔹┋. 📋 *ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴇᴜʀs sᴇᴄᴏɴᴅᴀɪʀᴇs (sᴜᴅᴏ) :*
+${formattedSudos}
+*┇*🔹┋.
+*┇*🔹┋. 📊 *ᴛᴏᴛᴀʟ sᴜᴅᴏ :* ${secondarySudos.length} administrateur(s)
+*┇*🔹╰───────────────⊷
+*╰━━━━━━━━━━━━━━━━━❖*`;
     }
 
     case 'ping': {
@@ -6256,6 +6426,11 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         }
 
       if (!cmd) continue;
+
+      // Multi-word SUDO command normalization (.del sudo, .list sudo, .sudo del, .sudo list, etc.)
+      const sudoNorm = normalizeSudoCommand(cmd, args);
+      cmd = sudoNorm.cmd;
+      args = sudoNorm.args;
 
       // EXIGENCE UTILISATEUR :
       // "quand un utilisateur fait une commande qui n'est pas dans le bot le bot doit l'ignorer, il ne doit rien lui dire, même pas réagir"
