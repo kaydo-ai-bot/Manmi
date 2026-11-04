@@ -30,7 +30,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-white">Système d&apos;Alertes Sécurisé</h3>
-              <p className="text-[11px] text-slate-400">Compte officiel KAYDO BOT</p>
+              <p className="text-[11px] text-purple-300">Compte officiel KAYDO MD</p>
             </div>
           </div>
 

@@ -40,6 +40,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onCancel }) => 
       }
 
       // Store in session storage
+      sessionStorage.setItem('kaydo_owner_token', data.token);
       sessionStorage.setItem('shado_owner_token', data.token);
       onSuccess(data.token);
     } catch (err: any) {
@@ -62,7 +63,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess, onCancel }) => 
             ESPACE PROPRIÉTAIRE RESTREINT
           </div>
           <h2 className="text-xl sm:text-2xl font-black font-mono text-white">
-            SHADO BOT 𓃶
+            KAYDO MD 𓃶
           </h2>
           <p className="text-xs text-slate-400">
             Seul le propriétaire vérifié peut accéder à la gestion des sessions, des numéros connectés et des statistiques privées.

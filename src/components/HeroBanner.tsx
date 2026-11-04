@@ -14,8 +14,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ stats, onQuickTest }) =>
   const dynamicAscii = stats
     ? `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
-*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* KAYDO MD
+*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO DEV (+509 3597 5863)
 *┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Tous Hébergeurs 🌐
 *┋✦┋. ᴍᴏᴅᴇ:* ${stats.status === 'ONLINE' ? 'ᴘᴜʙʟɪᴄ 🟢' : 'ᴘʀɪᴠᴇ́ 🔒'}
 *┋✦┋. ᴜᴘᴛɪᴍᴇ:* ${stats.uptime || '24/7'}
@@ -32,10 +32,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ stats, onQuickTest }) =>
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-[#0c121e]/90 border border-emerald-500/20 shadow-2xl p-4 sm:p-6 mb-8">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-[#0c121e]/90 border border-purple-500/30 shadow-2xl p-4 sm:p-6 mb-8">
       {/* Background ambient glow */}
-      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10">
         {/* Top Header Row */}
@@ -45,8 +45,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ stats, onQuickTest }) =>
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
             </span>
-            <span className="text-xs font-mono tracking-wider uppercase text-emerald-400 font-semibold">
-              𝐙𝐋𝐊 𝐁𝐎𝐓 𓃶 • 2026
+            <span className="text-xs font-mono tracking-wider uppercase text-purple-400 font-semibold">
+              KAYDO MD 𓃶 • 2026
             </span>
             <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
               Signal Protocol v3

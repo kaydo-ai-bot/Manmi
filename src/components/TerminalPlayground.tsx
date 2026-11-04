@@ -27,7 +27,7 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
       id: 'init-msg-1',
       sender: 'bot',
       timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-      text: `*╭─━━━━━━━━━━━━━━━⊷❖*\n*┇*✦╭───────────────╮\n*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️\n*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿\n*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Tous Hébergeurs 🌐\n*┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒\n*┇✦╰───────────────╯*\n*╰━━━━━━━━━━━━━━━━━❖*\n\nBienvenue dans la console WhatsApp de 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ ! Tapez .menu pour tester le nouveau menu complet.`,
+      text: `*╭─━━━━━━━━━━━━━━━⊷❖*\n*┇*✦╭───────────────╮\n*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* KAYDO MD\n*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO DEV (+509 3597 5863)\n*┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* Tous Hébergeurs 🌐\n*┋✦┋. ᴍᴏᴅᴇ:* ᴘᴜʙʟɪᴄ 🟢\n*┇✦╰───────────────╯*\n*╰━━━━━━━━━━━━━━━━━❖*\n\nBienvenue dans la console WhatsApp de KAYDO MD ! Tapez .menu pour tester le nouveau menu complet.`,
     },
   ]);
 
@@ -139,8 +139,8 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-amber-400" />
-            Console Simulateur WhatsApp • KAYDO BOT
+            <Terminal className="w-5 h-5 text-purple-400" />
+            Console Simulateur WhatsApp • KAYDO MD
           </h2>
           <p className="text-sm text-slate-400 mt-1">
             Testez instantanément toutes les commandes (dont .❤️, .autolike, .online, .autorecording, .autotyping) et visualisez les réponses authentiques envoyées par le bot.
@@ -161,12 +161,12 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
         {/* WhatsApp Chat Header */}
         <div className="px-4 py-3 bg-[#111827] border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white font-bold text-base shadow-md ring-2 ring-emerald-500/30">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center text-white font-bold text-base shadow-md ring-2 ring-purple-500/30">
               👑
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="font-bold text-sm text-white">KAYDO BOT</h3>
+                <h3 className="font-bold text-sm text-white">KAYDO MD</h3>
                 <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               </div>
               <p className="text-[11px] text-emerald-400">en ligne • Multi-Device Bot</p>
@@ -200,8 +200,8 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
                   }`}
                 >
                   <div className="flex items-center justify-between gap-4 mb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
-                      {msg.sender === 'user' ? 'Vous' : '👑 KAYDO BOT'}
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300">
+                      {msg.sender === 'user' ? 'Vous' : '👑 KAYDO MD'}
                     </span>
                     <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
                       {msg.timestamp}
@@ -220,8 +220,8 @@ export const TerminalPlayground: React.FC<TerminalPlaygroundProps> = ({
           {executing && (
             <div className="flex justify-start">
               <div className="rounded-2xl rounded-tl-none p-3 bg-[#182234] text-slate-400 text-xs flex items-center space-x-2 border border-slate-700/80">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>KAYDO BOT est en train d&apos;écrire...</span>
+                <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+                <span>KAYDO MD est en train d&apos;écrire...</span>
               </div>
             </div>
           )}

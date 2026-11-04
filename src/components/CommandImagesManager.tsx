@@ -43,7 +43,7 @@ export const CommandImagesManager: React.FC = () => {
   };
 
   const getOwnerHeaders = () => {
-    const token = sessionStorage.getItem('shado_owner_token') || localStorage.getItem('shado_owner_token') || 'KAYDO2026';
+    const token = sessionStorage.getItem('kaydo_owner_token') || sessionStorage.getItem('shado_owner_token') || localStorage.getItem('kaydo_owner_token') || 'KAYDO2026';
     return {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

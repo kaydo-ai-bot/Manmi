@@ -938,11 +938,11 @@ async function handleAiQuery(prompt: string): Promise<string> {
         model: 'gemini-3.8-flash',
         contents: cleanPrompt,
         config: {
-          systemInstruction: 'Tu es ZLK AI, l\'intelligence artificielle officielle du bot WhatsApp 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷 créé par KAYDO DEV SCOFIELD. Réponds de façon concise, intelligente, amicale et experte en français.',
+          systemInstruction: 'Tu es l\'intelligence artificielle officielle du bot WhatsApp KAYDO MD créé par KAYDO DEV. Réponds de façon concise, intelligente, amicale et experte en français.',
         },
       });
       if (response.text) {
-        return `╭━━━〔 🤖 *ZLK AI (GEMINI 3.8 FLASH)* 〕━━━╮\n┃\n┃  ◈ 💬 *Question* : ${cleanPrompt}\n┃  ◈ ⚡ *Vitesse* : 0.0s (Temps réel)\n┃  ◈ 🌐 *Modèle* : Gemini 3.8 Flash\n┃\n┃  ✨ *RÉPONSE* :\n┃  ${response.text.trim().split('\n').join('\n┃  ')}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
+        return `╭━━━〔 🤖 *KAYDO MD AI* 〕━━━╮\n┃\n┃  ◈ 💬 *Question* : ${cleanPrompt}\n┃  ◈ ⚡ *Vitesse* : 0.0s (Temps réel)\n┃  ◈ 🌐 *Moteur* : KAYDO MD Core\n┃\n┃  ✨ *RÉPONSE* :\n┃  ${response.text.trim().split('\n').join('\n┃  ')}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
       }
     } catch (aiErr: any) {
       console.log('[AI] Quota API ou indisponibilité réseau, bascule sur le moteur local autonome:', aiErr?.message);
@@ -954,15 +954,15 @@ async function handleAiQuery(prompt: string): Promise<string> {
   let aiReply = '';
 
   if (lower.includes('qui') && (lower.includes('t\'a fait') || lower.includes('créé') || lower.includes('createur') || lower.includes('dev') || lower.includes('owner'))) {
-    aiReply = `Je suis l'intelligence artificielle officielle développée pour *𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🥷*, créée par *KAYDO DEV SCOFIELD* (+509 3597 5863).`;
+    aiReply = `Je suis l'intelligence artificielle officielle développée pour *KAYDO MD*, créée par *KAYDO DEV* (+509 3597 5863).`;
   } else if (lower.includes('bonjour') || lower.includes('salut') || lower.includes('hello') || lower.includes('hi') || lower.includes('yo')) {
-    aiReply = `Bonjour ! Je suis ZLK AI, votre assistant intelligent WhatsApp disponible 24h/24 sans interruption. Comment puis-je vous aider aujourd'hui ?`;
+    aiReply = `Bonjour ! Je suis l'assistant intelligent de KAYDO MD, disponible 24h/24 sans interruption. Comment puis-je vous aider aujourd'hui ?`;
   } else if (lower.includes('que peux-tu faire') || lower.includes('aide') || lower.includes('fonction') || lower.includes('commande')) {
-    aiReply = `Je dispose de nombreuses commandes WhatsApp : extraction de vues uniques (*.vv*, *.❤️*), statut automatique (*.autostatus*), statut global (*.gstatus*), téléchargement de médias TikTok/FB/Insta, modération (*.kickall*), et réaction avec 🥷 sur chaque commande. Tapez *.menu* pour tout voir !`;
+    aiReply = `Je dispose de plus de 300 commandes WhatsApp : extraction de vues uniques (*.vv*, *.❤️*), statut automatique (*.autostatus*), statut global (*.gstatus*), téléchargement de médias TikTok/FB/Insta, modération (*.kickall*), et bien plus. Tapez *.menu* pour tout voir !`;
   } else if (lower.includes('comment') && (lower.includes('vv') || lower.includes('vue unique'))) {
     aiReply = `Pour récupérer une photo ou vidéo à vue unique éphémère, répondez directement au média avec *.vv* (pour le recevoir dans le groupe) ou *.❤️* (pour le recevoir discrètement dans votre contact privé WhatsApp).`;
   } else {
-    aiReply = `J'ai bien analysé votre message : "${cleanPrompt}". En tant qu'assistant ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿, je reste à votre service pour exécuter toutes les commandes, gérer vos discussions et vous accompagner au quotidien !`;
+    aiReply = `J'ai bien analysé votre message : "${cleanPrompt}". En tant qu'assistant KAYDO MD, je reste à votre service pour exécuter toutes les commandes, gérer vos discussions et vous accompagner au quotidien !`;
   }
 
   return `╭━━━〔 🤖 *ZLK AI ASSISTANT (24/7)* 〕━━━╮\n┃\n┃  ◈ 💬 *Question* : ${cleanPrompt}\n┃  ◈ ⚡ *Vitesse* : 0.0s instantanée\n┃  ◈ 🌐 *Moteur* : Local autonome 24/7\n┃\n┃  ✨ *RÉPONSE* :\n┃  ${aiReply.split('\n').join('\n┃  ')}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
@@ -1560,11 +1560,11 @@ async function executeBotCommandInternal(
     }
 
     case 'ping': {
-      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*
+      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO MD  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
 *┇*🔹┋. ⚡ <b>ᴘᴏɴɢ !</b> 0.001s
 *┇*🔹┋. 🟢 <b>sᴛᴀᴛᴜᴛ :</b> ᴇɴ ʟɪɢɴᴇ 24/7
-*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> KAYDO DEV (+509 3597 5863)
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*`;
       return pingText;
@@ -1591,8 +1591,8 @@ async function executeBotCommandInternal(
       const vcardOwner =
         'BEGIN:VCARD\n' +
         'VERSION:3.0\n' +
-        'FN:🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️\n' +
-        'ORG:🥷 𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️;\n' +
+        'FN:KAYDO DEV\n' +
+        'ORG:KAYDO MD;\n' +
         'TITLE:Fondateur & Propriétaire Exclusif\n' +
         'TEL;type=CELL;type=VOICE;waid=50935975863:+509 3597 5863\n' +
         'URL:https://wa.me/50935975863\n' +
@@ -1600,7 +1600,7 @@ async function executeBotCommandInternal(
 
       const ownerText = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ :</b> 🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️
+┋✦┋. 👑 <b>ᴏᴡɴᴇʀ :</b> KAYDO DEV
 ┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> +509 3597 5863
 ┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50935975863
 ┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴇxᴄʟᴜsɪғ
@@ -1616,7 +1616,7 @@ async function executeBotCommandInternal(
             remoteJid,
             {
               contacts: {
-                displayName: '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️',
+                displayName: 'KAYDO DEV',
                 contacts: [{ vcard: vcardOwner }],
               },
             },
@@ -1628,7 +1628,7 @@ async function executeBotCommandInternal(
         }
       }
 
-      return `👑 *𝐎𝐖𝐍𝐄𝐑 : 🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️*\n📞 *Numéro :* +509 3597 5863\n💬 *Lien :* https://wa.me/50935975863`;
+      return `👑 *𝐎𝐖𝐍𝐄𝐑 : KAYDO DEV*\n📞 *Numéro :* +509 3597 5863\n💬 *Lien :* https://wa.me/50935975863`;
     }
 
     case 'alive': {

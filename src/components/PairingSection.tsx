@@ -233,7 +233,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
             <div className="flex items-center space-x-2">
               <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                 <Smartphone className="w-5 h-5 text-emerald-400" />
-                Jumelage Officiel WhatsApp • KAYDO BOT
+                Jumelage Officiel WhatsApp • KAYDO MD
               </h2>
             </div>
             <p className="text-sm text-slate-400 mt-1 max-w-2xl">
@@ -528,7 +528,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
                         <span>Compte WhatsApp Connecté avec Succès !</span>
                       </div>
                       <p className="text-xs text-slate-300">
-                        Votre bot KAYDO BOT est désormais actif 24h/24 & 7j/7 pour votre numéro.
+                        Votre bot KAYDO MD est désormais actif 24h/24 & 7j/7 pour votre numéro.
                       </p>
                       {onGoToSessions && (
                         <button
@@ -619,7 +619,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-white">Appareil Connecté à KAYDO BOT !</h4>
+                  <h4 className="text-base font-bold text-white">Appareil Connecté à KAYDO MD !</h4>
                   <p className="text-xs text-emerald-300">
                     Session multi-device active avec chiffrement E2EE de bout en bout.
                   </p>
@@ -683,7 +683,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
                   5
                 </span>
                 <span className="text-slate-300">
-                  Saisissez le code à 8 caractères généré par <strong>KAYDO BOT</strong>. La liaison se fera instantanément !
+                  Saisissez le code à 8 caractères généré par <strong>KAYDO MD</strong>. La liaison se fera instantanément !
                 </span>
               </li>
             </ol>
@@ -695,7 +695,7 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
                 <span>Sécurité Certifiée Signal Protocol</span>
               </div>
               <p className="text-[11px] text-slate-400">
-                Vos messages WhatsApp restent entièrement protégés par le chiffrement de bout en bout de Meta. Le bot KAYDO BOT n&apos;accède qu&apos;aux commandes précédées du préfixe <code className="text-emerald-300 font-mono">.</code>
+                Vos messages WhatsApp restent entièrement protégés par le chiffrement de bout en bout de Meta. Le bot KAYDO MD n&apos;accède qu&apos;aux commandes précédées du préfixe <code className="text-emerald-300 font-mono">.</code>
               </p>
             </div>
           </div>
@@ -775,10 +775,10 @@ export const PairingSection: React.FC<PairingSectionProps> = ({ onNotificationTr
               {`╭─━━━━━━━━━━━━━━━⊷❖
 ┇✦╭───────────────╮
 ┋✧┋. Désolé pour le retard temporaire !
-┋✧┋. ⚡ Le bot *𝐙𝐋𝐊 𝐁𝐎𝐓 𓃶* est en ligne
+┋✧┋. ⚡ Le bot *KAYDO MD 𓃶* est en ligne
 ┋✧┋. et 100% opérationnel 24h/24 & 7j/7.
 ┋✧┋. Tapez *.menu* pour afficher le menu.
-┋✧┋. 👑 _𝐊𝐀𝐘𝐃𝐎 𝐙𝐋𝐊 𓃶 & 𝐒𝐇𝐀𝐊𝐀 𝐙𝐋𝐊 𓃶_
+┋✧┋. 👑 _KAYDO DEV 𓃶_
 ┇✧╰───────────────╯
 ╰━━━━━━━━━━━━━━━━━❖`}
             </div>

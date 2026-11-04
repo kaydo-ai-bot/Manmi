@@ -3,7 +3,7 @@ import path from 'path';
 import axios from 'axios';
 
 /**
- * SHADO BOT 𓃶 / KAYDO BOT - Autonomous Command Image Manager
+ * KAYDO MD - Autonomous Command Image Manager
  * Manages per-command image URLs and buffers for WhatsApp bot command replies.
  * 
  * - Single point of configuration for all bot command images.

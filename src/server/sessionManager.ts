@@ -755,7 +755,7 @@ async function safeJoinGroup(sock: any, sessionId: string) {
           type: 'PAIRING_SUCCESS',
           level: 'success',
           title: 'Appareil WhatsApp Lié avec Succès !',
-          message: `Le compte WhatsApp +${phone} a validé la liaison avec 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️. Session active et sécurisée 24/7.`,
+          message: `Le compte WhatsApp +${phone} a validé la liaison avec KAYDO MD. Session active et sécurisée 24/7.`,
           phone,
         });
       }
@@ -1564,7 +1564,7 @@ export async function restoreAllSessions(): Promise<number> {
     );
   }
 
-  console.log(`[🥷 BZK BOT 🌪️] ${restoredCount} session(s) WhatsApp restaurée(s).`);
+  console.log(`[KAYDO MD] ${restoredCount} session(s) WhatsApp restaurée(s).`);
   // Start 24/7 background Watchdog daemon to guarantee infinite uptime & self-healing
   startAutonomousWatchdog();
   return restoredCount;
@@ -1733,8 +1733,8 @@ export function getActiveSessionsCount(): number {
  */
 export const OFFICIAL_APOLOGY_MESSAGE = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
-*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* KAYDO MD
+*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO DEV (+509 3597 5863)
 *┋✦┋. sᴛᴀᴛᴜs:* 100% ᴏᴘᴇ́ʀᴀᴛɪᴏɴɴᴇʟ 24/7 🟢
 *┋✦┋. ᴛᴀᴘᴇᴢ:* *.ᴍᴇɴᴜ* ᴘᴏᴜʀ ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs
 *┇✦╰───────────────╯*
@@ -1954,16 +1954,16 @@ export function getOfficialWelcomeMessage(): string {
   const publicUrl = getPublicPortalUrl();
   return `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*✦╭───────────────╮
-*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
+*┋✦┋. ʙᴏᴛ ɴᴀᴍᴇ:* KAYDO MD
 *┋✦┋. ᴄᴏᴍᴍᴀɴᴅs:* 300+
-*┋✦┋. ᴏᴡɴᴇʀ:* ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+*┋✦┋. ᴏᴡɴᴇʀ:* KAYDO DEV (+509 3597 5863)
 *┋✦┋. ᴘʟᴀᴛғᴏʀᴍ:* ᴛᴏᴜs ʜᴇ́ʙᴇʀɢᴇᴜʀs 🌐
-*┋✦┋. ᴍᴏᴅᴇ:* ᴘʀɪᴠᴇ́ 🔒 / ᴘᴜʙʟɪᴄ 🟢
+*┋✦┋. ᴍᴏᴅᴇ:* ᴘᴜʙʟɪᴄ 🟢
 *┋✦┋. ᴘʀᴇғɪx:* [ . ]
 *┋✦┋. ᴘᴏʀᴛᴀɪʟ:* ${publicUrl}
 *┇✦╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*
-🎉 ʙɪᴇɴᴠᴇɴᴜᴇ sᴜʀ *🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ !* ᴠᴏᴛʀᴇ ʙᴏᴛ ᴇsᴛ ᴄᴏɴɴᴇᴄᴛᴇ́ 24/7.
+🎉 ʙɪᴇɴᴠᴇɴᴜᴇ sᴜʀ *KAYDO MD !* ᴠᴏᴛʀᴇ ʙᴏᴛ ᴇsᴛ ᴄᴏɴɴᴇᴄᴛᴇ́ 24/7.
 ᴛᴀᴘᴇᴢ *.ᴍᴇɴᴜ* ᴘᴏᴜʀ ᴀғғɪᴄʜᴇʀ ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs.`;
 }
 

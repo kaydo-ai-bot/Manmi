@@ -24,7 +24,7 @@ export const BOT_COMMANDS: BotCommand[] = [
   { name: 'groupstats', prefix: '.', category: 'main', description: 'Rapport complet d\'activité et membres les plus actifs.', usage: '.groupstats' },
   { name: 'list', prefix: '.', category: 'main', description: 'Affiche la liste récapitulative des modules actifs du bot.', usage: '.list' },
   { name: 'menu', prefix: '.', category: 'main', description: 'Affiche le menu complet interactif avec toutes les sections.', usage: '.menu' },
-  { name: 'owner', prefix: '.', category: 'main', description: 'Envoie le contact WhatsApp officiel (+509 3597 5863) du propriétaire ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 & 𝑺𝑨𝑹𝑨𝑯 𝑩𝒁𝑲 🌸.', usage: '.owner' },
+  { name: 'owner', prefix: '.', category: 'main', description: 'Envoie le contact WhatsApp officiel (+509 3597 5863) du propriétaire KAYDO DEV.', usage: '.owner' },
   { name: 'ping', prefix: '.', category: 'main', description: 'Teste la vitesse de réaction et la latence du serveur en millisecondes.', usage: '.ping' },
   { name: 'qr', prefix: '.', category: 'main', description: 'Convertit n\'importe quel texte ou lien web en QR Code scannable.', usage: '.qr <texte ou URL>' },
   { name: 'simage', prefix: '.', category: 'main', description: 'Convertit un autocollant (sticker) en image standard téléchargeable.', usage: '.simage [répondre au sticker]' },
@@ -135,7 +135,7 @@ export const INITIAL_NOTIFICATIONS = [
     timestamp: '2026-09-06 13:20:14',
     type: 'SYSTEM_INFO' as const,
     level: 'info' as const,
-    title: 'Serveur 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️ Initialisé',
+    title: 'Serveur KAYDO MD Initialisé',
     message: 'Passerelle WhatsApp Web multi-device active sur le port 3000. Protocol Signal v3 prêt.',
     read: false,
   },
@@ -145,7 +145,7 @@ export const INITIAL_NOTIFICATIONS = [
     type: 'AUTH_ALERT' as const,
     level: 'success' as const,
     title: 'Système de Sécurité Chiffré Actif',
-    message: 'Chiffrement de bout en bout (E2EE) synchronisé. Surveillance des clés de session démarrée pour 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️.',
+    message: 'Chiffrement de bout en bout (E2EE) synchronisé. Surveillance des clés de session démarrée pour KAYDO MD.',
     read: false,
   },
   {
@@ -161,16 +161,16 @@ export const INITIAL_NOTIFICATIONS = [
 
 export const BOT_HEADER_ASCII = `*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
-┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: 🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️
+┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: KAYDO MD
 ┋🔹┋. ᴄᴏᴍᴍᴀɴᴅs: 300+
-┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+┋🔹┋. ᴏᴡɴᴇʀ: KAYDO DEV (+509 3597 5863)
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Tous Hébergeurs 🌐
-┋🔹┋. ᴍᴏᴅᴇ: ᴘʀɪᴠᴇ́ 🔒 / ᴘᴜʙʟɪᴄ 🟢
+┋🔹┋. ᴍᴏᴅᴇ: ᴘᴜʙʟɪᴄ 🟢
 *┇🔹╰───────────────╯*
 *╰━━━━━━━━━━━━━━━━━❖*`;
 
-export const BOT_FOOTER_ASCII = `*╭─❖━━━ ⟣ ⟣ ⟣  🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️  ⟣ ⟣ ⟣━━━❖*
+export const BOT_FOOTER_ASCII = `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO MD  ⟣ ⟣ ⟣━━━❖*
 *┇*🔹╭───────────────
-*┇*🔹┋. ®2026 © CREATED FOR ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+*┇*🔹┋. ®2026 © CREATED FOR KAYDO MD
 *┇*🔹╰───────────────⊷
 *╰━━━━━━━━━━━━━━━━━❖*`;

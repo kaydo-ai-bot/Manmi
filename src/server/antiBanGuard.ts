@@ -1,5 +1,5 @@
 /**
- * 🥷 BZK BOT 🌪️ - Anti-Ban, Anti-Spam & Humanized Traffic Guard
+ * KAYDO MD - Anti-Ban, Anti-Spam & Humanized Traffic Guard
  * 
  * Strict protections to guarantee the bot NEVER spams the owner or user accounts,
  * never triggers WhatsApp anti-abuse filters (no bans, no 403 restrictions),
@@ -163,6 +163,8 @@ const knownBotOutputSignatures = [
   '⚡ *ᴘᴏɴɢ !*',
   'ʙᴏᴛ ɴᴀᴍᴇ:',
   'ʙᴏᴛ:',
+  'KAYDO MD',
+  '𝑲𝑨𝒀𝑫𝑶 𝑴𝑫',
   '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️',
   '🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️',
   '≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿',

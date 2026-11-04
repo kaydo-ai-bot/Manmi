@@ -392,7 +392,7 @@ class ResilientDownloadQueue extends EventEmitter {
       const isAudio = job.mimeType?.startsWith('audio/');
       const isImage = job.mimeType?.startsWith('image/');
 
-      const captionText = `🎬 *KAYDO BOT* (${job.platform.toUpperCase()})\n⚡ Téléchargé avec succès (${(job.fileSizeMb || 0).toFixed(1)} MB)`;
+      const captionText = `🎬 *KAYDO MD* (${job.platform.toUpperCase()})\n⚡ Téléchargé avec succès (${(job.fileSizeMb || 0).toFixed(1)} MB)`;
 
       let contentPayload: any = {};
       if (isVideo) {
@@ -410,7 +410,7 @@ class ResilientDownloadQueue extends EventEmitter {
       } else if (isImage) {
         contentPayload = {
           image: buffer,
-          caption: `🖼️ *KAYDO BOT* (${job.platform.toUpperCase()})`,
+          caption: `🖼️ *KAYDO MD* (${job.platform.toUpperCase()})`,
         };
       } else {
         contentPayload = {

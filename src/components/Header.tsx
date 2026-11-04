@@ -23,20 +23,20 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold text-lg ring-1 ring-white/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20 text-white font-bold text-lg ring-1 ring-white/20">
               👑
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white flex items-center gap-1.5">
-                  🥷 <span className="text-white">BZK</span> <span className="text-emerald-400">BOT</span> 🌪️
+                  <span className="text-white">KAYDO</span> <span className="text-purple-400">MD</span> 𓃶
                 </span>
-                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                  v4.5.0
+                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                  v3.0
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Bot WhatsApp Officiel • ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿
+                Portail Officiel WhatsApp • KAYDO DEV
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-open-notifications"
               onClick={onOpenNotifications}
               className="relative p-2 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
-              title="Système de notifications sécurisé KAYDO BOT"
+              title="Système de notifications sécurisé KAYDO MD"
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (

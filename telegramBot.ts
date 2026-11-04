@@ -4,8 +4,8 @@ import { Telegraf } from 'telegraf';
 
 import { BOT_NAME as CONFIG_BOT_NAME, OWNER_1, OWNER_2 } from './src/server/config';
 
-const BOT_NAME = CONFIG_BOT_NAME || '🥷 𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️';
-const OWNER_NAME = '🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️';
+const BOT_NAME = CONFIG_BOT_NAME || 'KAYDO MD';
+const OWNER_NAME = 'KAYDO DEV';
 const OWNER_CONTACT = `+${OWNER_1}`;
 
 const NEW_OFFICIAL_PHOTO_PATH = path.join(process.cwd(), 'src', 'assets', 'images', 'kaydo_law_bot_official_1790678745856.jpg');
@@ -123,7 +123,7 @@ Tapez /menu pour voir la liste des commandes.`;
 ┇✦┋. /telegram <url>
 ╰━━━━━━━━━━━━━━━━━❖
 
-®2026 © MADE IN BY ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿`;
+®2026 © MADE IN BY KAYDO MD`;
       await replyWithOfficialPhoto(ctx, caption);
     });
 

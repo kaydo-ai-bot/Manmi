@@ -1421,7 +1421,7 @@ export const SessionManagerSection: React.FC<SessionManagerSectionProps> = ({
         <Activity className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
         <div className="space-y-1.5">
           <span className="font-bold text-slate-200 text-sm">
-            Garantie de Disponibilité Permanente (KAYDO BOT • 24/7) :
+            Garantie de Disponibilité Permanente (KAYDO MD • 24/7) :
           </span>
           <p className="leading-relaxed">
             Les sessions WhatsApp sont conservées de façon permanente sur disque dans le dossier chiffré des sessions. Même si votre téléphone est éteint, sans batterie ou hors réseau, le bot continue d&apos;exécuter les 295+ commandes de manière autonome sur nos serveurs Cloud. Si une coupure survient, le Watchdog autonome auto-rétablira le bot sous 2 minutes maximum.

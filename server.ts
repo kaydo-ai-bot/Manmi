@@ -331,8 +331,8 @@ const handleStatusRequest = (req: Request, res: Response) => {
 
     res.setHeader('Content-Type', 'application/json');
     res.json({
-      user: 'KAYDO BOT 𓃶',
-      botName: 'KAYDO BOT 𓃶',
+      user: 'KAYDO MD 𓃶',
+      botName: 'KAYDO MD',
       prefix: process.env.PREFIX || '.',
       uptime: getFormattedUptime(),
       memory: `${dynamicUsedMb} MB`,
@@ -459,7 +459,7 @@ app.get('/active', async (req: Request, res: Response) => {
 
 // GET /ping (Healthcheck)
 app.get('/ping', (req: Request, res: Response) => {
-  res.json({ status: 'active', message: 'KAYDO BOT is running 🔥', activeSessions: getActiveSessionsCount() });
+  res.json({ status: 'active', message: 'KAYDO MD is running 🔥', activeSessions: getActiveSessionsCount() });
 });
 
 // GET /connect-all (Trigger 24/7 reconnect of all saved sessions)
@@ -513,14 +513,50 @@ app.get('/owner/api/disconnect', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to disconnect', message: e?.message });
   }
 });
+
+// Rate limiting map for WhatsApp pairing code requests (Prevents abuse and WhatsApp IP block)
+const pairingRateLimitMap = new Map<string, { timestamp: number; count: number }>();
+
 app.post('/api/pair', async (req: Request, res: Response) => {
   const { phone } = req.body;
   if (!phone || typeof phone !== 'string') {
     return res.status(400).json({ success: false, error: 'Numéro de téléphone requis.' });
   }
 
+  const cleanPhone = phone.replace(/\D/g, '');
+  if (cleanPhone.length < 8 || cleanPhone.length > 15) {
+    return res.status(400).json({ success: false, error: 'Numéro de téléphone WhatsApp invalide. Veuillez renseigner l\'indicatif pays.' });
+  }
+
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+  const rateKey = `${clientIp}_${cleanPhone}`;
+  const now = Date.now();
+  const existing = pairingRateLimitMap.get(rateKey);
+
+  if (existing) {
+    const elapsedMs = now - existing.timestamp;
+    if (elapsedMs < 12000) {
+      const waitSec = Math.ceil((12000 - elapsedMs) / 1000);
+      return res.status(429).json({
+        success: false,
+        error: `Veuillez patienter ${waitSec}s avant de redemander un code de jumelage afin de protéger la liaison WhatsApp.`,
+      });
+    }
+    existing.timestamp = now;
+    existing.count++;
+  } else {
+    pairingRateLimitMap.set(rateKey, { timestamp: now, count: 1 });
+  }
+
+  // Periodic cleanup of rate limiting map
+  if (pairingRateLimitMap.size > 200) {
+    for (const [k, v] of pairingRateLimitMap.entries()) {
+      if (now - v.timestamp > 120000) pairingRateLimitMap.delete(k);
+    }
+  }
+
   try {
-    const result = await requestPairingCode(phone);
+    const result = await requestPairingCode(cleanPhone);
     return res.json(result);
   } catch (error: any) {
     console.error('[API /api/pair] Erreur de jumelage:', error);

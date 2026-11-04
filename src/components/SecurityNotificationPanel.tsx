@@ -30,13 +30,13 @@ export const SecurityNotificationPanel: React.FC<SecurityNotificationPanelProps>
   onSendTestNotification,
 }) => {
   const [filter, setFilter] = useState<'all' | 'success' | 'warning' | 'info'>('all');
-  const [testTitle, setTestTitle] = useState('Alerte de Sécurité KAYDO BOT');
+  const [testTitle, setTestTitle] = useState('Alerte de Sécurité KAYDO MD');
   const [testMessage, setTestMessage] = useState('Vérification de la passerelle de sécurité et du canal de notification WhatsApp.');
   const [testLevel, setTestLevel] = useState<'info' | 'success' | 'warning' | 'critical'>('warning');
   const [sendingTest, setSendingTest] = useState(false);
   const [testSentSuccess, setTestSentSuccess] = useState(false);
 
-  // Configuration state for the KAYDO BOT account notification targets
+  // Configuration state for the KAYDO MD account notification targets
   const [ownerPhone, setOwnerPhone] = useState('+509 3597 5863');
   const [autoAlertOnPair, setAutoAlertOnPair] = useState(true);
   const [autoAlertOnCommand, setAutoAlertOnCommand] = useState(true);
@@ -96,8 +96,8 @@ export const SecurityNotificationPanel: React.FC<SecurityNotificationPanelProps>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Shield className="w-5 h-5 text-blue-400" />
-              Système de Notification Sécurisé • Compte KAYDO BOT
+              <Shield className="w-5 h-5 text-purple-400" />
+              Système de Notification Sécurisé • Compte KAYDO MD
             </h2>
             <p className="text-sm text-slate-400 mt-1 max-w-2xl">
               Surveillance chiffrée en temps réel du compte bot WhatsApp KAYDO DEV. Réception instantanée des alertes de connexion, sessions suspectes et validation des clés de chiffrement Signal.
@@ -269,8 +269,8 @@ export const SecurityNotificationPanel: React.FC<SecurityNotificationPanelProps>
           {/* Account Security Target Settings */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-emerald-400" />
-              Paramètres Compte KAYDO BOT
+              <Sliders className="w-4 h-4 text-purple-400" />
+              Paramètres Compte KAYDO MD
             </h3>
 
             <form onSubmit={handleSaveSettings} className="space-y-3 text-xs">

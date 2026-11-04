@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Configuration des Propriétaires et Identité de ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿
+ * Configuration des Propriétaires et Identité Officielle de KAYDO MD
  * Modifiable directement via les variables d'environnement dans .env :
  * OWNER_1, OWNER_2, OWNER_NUMBERS, BOT_NAME
  */
@@ -30,7 +30,7 @@ function loadPersistedBotName(): string {
       if (name) return name;
     }
   } catch {}
-  return process.env.BOT_NAME || '🥷𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️';
+  return process.env.BOT_NAME || 'KAYDO MD';
 }
 
 function loadPersistedBotMode(): 'public' | 'private' {

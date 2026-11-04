@@ -284,8 +284,8 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
                 <BookOpen className="w-3.5 h-3.5" />
                 Rendu du Menu Officiel Étiré (.menu)
               </span>
-              <span className="flex items-center space-x-1 text-emerald-400 font-mono">
-                <span>KAYDO BOT • 24/24 Cloud</span>
+              <span className="flex items-center space-x-1 text-purple-400 font-mono">
+                <span>KAYDO MD • 24/24 Cloud</span>
               </span>
             </div>
             <pre className="whitespace-pre select-all text-[11px] leading-relaxed max-h-[500px] overflow-y-auto">
@@ -300,8 +300,8 @@ export const CommandsCatalogue: React.FC<CommandsCatalogueProps> = ({ onExecuteC
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-emerald-400" />
-              Catalogue des Commandes • KAYDO BOT (294)
+              <BookOpen className="w-5 h-5 text-purple-400" />
+              Catalogue des Commandes • KAYDO MD (300+)
             </h2>
             <p className="text-sm text-slate-400 mt-1">
               Explorez toutes les commandes intégrées avec préfixe officiel <code className="text-emerald-400 font-mono">.</code>

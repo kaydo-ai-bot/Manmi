@@ -1,4 +1,4 @@
-# 👑 kaydo bot — Multi-Device WhatsApp & Telegram Bot (24/7)
+# 👑 KAYDO MD — Multi-Device WhatsApp & Telegram Bot (24/7)
 
 Développé par **𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶**  
 Architecture Cloud & Déploiement 24/7 (Railway / VPS)
@@ -6,11 +6,11 @@ Architecture Cloud & Déploiement 24/7 (Railway / VPS)
 ---
 
 ## ⚡ Caractéristiques Principales
-- 🌹 **Réaction Automatique :** Réagit instantanément avec l'emoji `🌹` à chaque commande reçue.
-- 🖼️ **Photo Officielle Unique :** Envoi de l'avatar officiel Kaydo Bot avec les menus et commandes clés.
-- 🔄 **Connexion Baileys Multi-Device 24/7 :** Reconnexion automatique instantanée (codes 515, gestion des déconnexions réseau), persistance PostgreSQL & fichiers locaux.
+- 🌹 **Réaction Automatique :** Réagit instantanément à chaque commande reçue.
+- 🖼️ **Photo Officielle Unique :** Envoi de l'avatar officiel KAYDO MD avec les menus et commandes clés.
+- 🔄 **Connexion Baileys Multi-Device 24/7 :** Reconnexion automatique instantanée, persistance PostgreSQL & fichiers locaux.
 - 💬 **WhatsApp & Telegram Hybride :** Commandes WhatsApp (`.menu`, `.ping`, `.alive`, `.owner`, `.sticker`, etc.) et Telegram (`/start`, `/menu`, `/ping`, etc.).
-- 🚀 **Prêt pour GitHub & Cloud :** Déployable en 1 clic sur VPS (PM2/Docker), Koyeb, Render, Railway, Heroku.
+- 🚀 **Prêt pour GitHub & Cloud :** Déployable en 1 clic sur Railway, VPS (PM2/Docker), Koyeb, Render, Heroku.
 
 ---
 
@@ -23,10 +23,10 @@ Pour pousser votre projet sur GitHub :
 git add .
 
 # 2. Créer le commit
-git commit -m "feat: kaydo bot v4.5.0 official release 24/7"
+git commit -m "feat: kaydo md official release 24/7"
 
 # 3. Lier votre dépôt GitHub (remplacez par votre URL de dépôt)
-git remote add origin https://github.com/VOTRE_NOM/kaydo-bot.git
+git remote add origin https://github.com/VOTRE_NOM/kaydo-md.git
 
 # 4. Pousser vers GitHub
 git branch -M main
@@ -55,8 +55,8 @@ pm2 startup
 
 ### Option 2 : Avec Docker
 ```bash
-docker build -t kaydo-bot .
-docker run -d --name kaydo-bot -p 3000:3000 -v $(pwd)/sessions:/app/sessions kaydo-bot
+docker build -t kaydo-md .
+docker run -d --name kaydo-md -p 3000:3000 -v $(pwd)/sessions:/app/sessions kaydo-md
 ```
 
 ### Option 3 : En local / Node direct
@@ -74,9 +74,8 @@ Créez un fichier `.env` à la racine (ou définissez ces variables sur votre h�
 ```env
 PORT=3000
 NODE_ENV=production
-
-# Telegram (Optionnel)
-TELEGRAM_BOT_TOKEN=VOTRE_TOKEN_TELEGRAM_ICI
+BOT_NAME="KAYDO MD"
+OWNER_1=50935975863
 
 # Base de données PostgreSQL (Optionnel pour haute disponibilité multi-serveurs)
 DATABASE_URL=
@@ -85,7 +84,7 @@ DATABASE_URL=
 ---
 
 ## 🌹 Commandes WhatsApp Rapides
-- `.menu` : Affiche le menu complet officiel avec la photo de Kaydo Bot.
+- `.menu` : Affiche le menu complet officiel de KAYDO MD.
 - `.ping` : Teste la vitesse instantanée (0.0s).
 - `.alive` : Vérifie l'état opérationnel 24h/24 & 7j/7.
 - `.owner` : Envoie la fiche contact officielle de 𝐊𝐀𝐘𝐃𝐎 𝐃𝐄𝐕 𓃶.

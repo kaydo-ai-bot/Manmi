@@ -12,10 +12,11 @@ export const OwnerPage: React.FC<OwnerPageProps> = ({
   onNavigateToPairing,
 }) => {
   const [token, setToken] = useState<string>(() => {
-    return sessionStorage.getItem('shado_owner_token') || '';
+    return sessionStorage.getItem('kaydo_owner_token') || sessionStorage.getItem('shado_owner_token') || '';
   });
 
   const handleLogout = () => {
+    sessionStorage.removeItem('kaydo_owner_token');
     sessionStorage.removeItem('shado_owner_token');
     setToken('');
   };

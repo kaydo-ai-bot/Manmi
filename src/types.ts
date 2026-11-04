@@ -1,14 +1,31 @@
+export interface BotMetricsData {
+  messagesSent: number;
+  messagesFailed: number;
+  messagesBlocked: number;
+  errorsDetected: number;
+  circuitBreakerTrips: number;
+  systemHealth: 'EXCELLENT' | 'NOMINAL' | 'CAUTION' | 'RESTRICTED';
+  optOutCount: number;
+  isCircuitBreakerActive: boolean;
+}
+
 export interface BotStats {
   user: string;
+  botName?: string;
   prefix: string;
+  botMode?: 'public' | 'private';
   uptime: string;
+  uptimeDHM?: string;
   memory: string;
   totalMemory: string;
   commandsCount: number;
   owner: string;
   siteUrl: string;
   pingMs: number;
-  status: 'ONLINE' | 'STANDBY' | 'CONNECTING';
+  status: 'ONLINE' | 'STANDBY' | 'CONNECTING' | 'RESTRICTED';
+  activeSessionsCount?: number;
+  unreadNotifications?: number;
+  metrics?: BotMetricsData;
   watchdog?: {
     status: 'ACTIVE' | 'HEALING' | 'STANDBY';
     autoRestartEnabled: boolean;
@@ -17,6 +34,33 @@ export interface BotStats {
     lastHeartbeat: string;
     autonomyMode: string;
   };
+}
+
+export interface SystemEventLog {
+  id: string;
+  timestamp: string | number;
+  level: 'info' | 'success' | 'warn' | 'error' | 'spam_blocked' | 'antispam';
+  category: 'ANTI_SPAM' | 'CONNECTION' | 'MESSAGE' | 'COMMAND' | 'OPT_OUT' | 'SECURITY' | string;
+  message: string;
+  target?: string;
+  metadata?: any;
+}
+
+export interface CustomCommand {
+  name: string;
+  response: string;
+  description?: string;
+  createdAt: string | number;
+  createdBy?: string;
+  updatedAt?: number;
+}
+
+export interface BotSettings {
+  botName: string;
+  botMode: 'public' | 'private';
+  prefix: string;
+  isGlobalEnabled: boolean;
+  optOutCount: number;
 }
 
 export interface BotCommand {
@@ -103,3 +147,10 @@ export interface OwnerBroadcastRecord {
     error?: string;
   }>;
 }
+
+export interface OptOutRecord {
+  phone: string;
+  addedAt: string;
+  reason: string;
+}
+

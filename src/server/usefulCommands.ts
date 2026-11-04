@@ -530,7 +530,7 @@ export function handleUsefulCommands(
     case 'credits':
     case 'developer':
     case 'devinfo': {
-      return `👑 *ᴄʀᴇ́ᴅɪᴛs ᴏғғɪᴄɪᴇʟs 🥷 𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️*\n\n◈ ᴏᴡɴᴇʀ : 🥷 𝑲𝑨𝒀𝑫𝑶 𝑩𝒁𝑲 🌪️ (wa.me/50935975863)\n◈ ᴘʟᴀᴛғᴏʀᴍᴇ : Cloud 24/7\n◈ ᴠᴇʀsɪᴏɴ : 𝑩𝒁𝑲 𝐄𝐃𝐈𝐓𝐈𝐎𝐍\n◈ ᴅᴇᴠɪsᴇ : ᴅᴏᴍɪɴᴀᴛɪᴏɴ • ɪɴɴᴏᴠᴀᴛɪᴏɴ • sᴀɴs ʟɪᴍɪᴛᴇs\n\n> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 🥷 𝑩𝒁𝑲 𝑩𝑶𝑻 🌪️*`;
+      return `👑 *ᴄʀᴇ́ᴅɪᴛs ᴏғғɪᴄɪᴇʟs KAYDO MD*\n\n◈ ᴏᴡɴᴇʀ : KAYDO DEV (wa.me/50935975863)\n◈ ᴘʟᴀᴛғᴏʀᴍᴇ : Cloud 24/7\n◈ ᴠᴇʀsɪᴏɴ : KAYDO MD PRO\n◈ ᴅᴇᴠɪsᴇ : ᴅᴏᴍɪɴᴀᴛɪᴏɴ • ɪɴɴᴏᴠᴀᴛɪᴏɴ • sᴀɴs ʟɪᴍɪᴛᴇs\n\n> *© 𝙼𝙰𝙳𝙴 𝙸𝙽 𝙱𝚈 KAYDO MD*`;
     }
 
     default:

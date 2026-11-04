@@ -181,10 +181,10 @@ export function generateOfficialMenu(
   mode: string = 'PUBLIC 🟢',
   memory: string = getDynamicMemoryUsage(),
   prefix: string = '.',
-  botName: string = 'ᴋᴀʏᴅᴏ ᴍɪɴɪ ʙᴏᴛ'
+  botName: string = 'KAYDO MD'
 ): string {
   const p = prefix || '.';
-  const name = botName || 'ᴋᴀʏᴅᴏ ᴍɪɴɪ ʙᴏᴛ';
+  const name = botName || 'KAYDO MD';
 
   return `╭─━━━━━━━━━━━━━━━⊷❖
 ┇✦╭───────────────╮

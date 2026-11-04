@@ -82,18 +82,18 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
   const PRESETS = [
     {
       label: '🚀 Mise à Jour v4.5',
-      title: 'NOUVELLE MISE À JOUR KAYDO BOT (v4.5)',
-      msg: `Une mise à jour majeure du bot KAYDO BOT vient d'être déployée avec succès !\n\n⚡ NOUVEAUTÉS :\n• Mode 24h/24 & 7j/7 actif en permanence sans coupure\n• Réaction instantanée 👹 sur chaque commande\n• Déchiffrement des vues uniques (.❤️)\n• Téléchargement automatique de statuts WhatsApp\n\nTapez .menu ou menu sur WhatsApp pour découvrir toutes les 295+ commandes !`,
+      title: 'NOUVELLE MISE À JOUR KAYDO MD (v4.5)',
+      msg: `Une mise à jour majeure du bot KAYDO MD vient d'être déployée avec succès !\n\n⚡ NOUVEAUTÉS :\n• Mode 24h/24 & 7j/7 actif en permanence sans coupure\n• Réaction instantanée 👹 sur chaque commande\n• Déchiffrement des vues uniques (.❤️)\n• Téléchargement automatique de statuts WhatsApp\n\nTapez .menu ou menu sur WhatsApp pour découvrir toutes les 295+ commandes !`,
     },
     {
       label: '🛡️ Disponibilité 24/7',
       title: 'ÉTAT DU SERVICE 24/7 & STABILITÉ',
-      msg: `Le serveur WhatsApp KAYDO BOT est 100% opérationnel.\n\n✅ Connexion continue maintenue 24h/24 & 7j/7\n✅ Gardien cloud anti-sommeil actif\n✅ Aucune interruption de service prévue\n\nMerci de faire confiance à KAYDO BOT !`,
+      msg: `Le serveur WhatsApp KAYDO MD est 100% opérationnel.\n\n✅ Connexion continue maintenue 24h/24 & 7j/7\n✅ Gardien cloud anti-sommeil actif\n✅ Aucune interruption de service prévue\n\nMerci de faire confiance à KAYDO MD !`,
     },
     {
       label: '👑 Message du Développeur',
       title: 'MESSAGE OFFICIEL DU CRÉATEUR KAYDO DEV',
-      msg: `Chers utilisateurs de KAYDO BOT,\n\nVotre session est activement connectée à nos serveurs. Pour toute demande, commande personnalisée ou assistance, contactez le développeur officiel via le portail ou sur WhatsApp.\n\n🌐 Portail Web Public : ${publicUrl}`,
+      msg: `Chers utilisateurs de KAYDO MD,\n\nVotre session est activement connectée à nos serveurs. Pour toute demande, commande personnalisée ou assistance, contactez le développeur officiel via le portail ou sur WhatsApp.\n\n🌐 Portail Web Public : ${publicUrl}`,
     },
     {
       label: '⚠️ Maintenance Rapide',
@@ -358,7 +358,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
                 Accès Restreint • Owner Only
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-3 tracking-tight">
-                Espace Propriétaire KAYDO BOT
+                Espace Propriétaire KAYDO MD
               </h2>
               <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
                 Cet espace est strictement réservé au créateur du bot (<strong className="text-amber-300">+509 3597 5863</strong>). Vous seul pouvez voir toutes les sessions actives et diffuser des messages collectifs à tous les utilisateurs.
@@ -503,7 +503,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                🌐 URL Publique Officielle du Portail KAYDO BOT
+                🌐 URL Publique Officielle du Portail KAYDO MD
               </h3>
             </div>
             <p className="text-xs text-slate-400">
@@ -614,7 +614,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Tableau de bord en temps réel des comptes WhatsApp reliés à KAYDO BOT.
+              Tableau de bord en temps réel des comptes WhatsApp reliés à KAYDO MD.
             </p>
           </div>
 
@@ -946,7 +946,7 @@ export const OwnerControlPanel: React.FC<OwnerControlPanelProps> = ({
               {broadcastMessage}
               <br />
               <br />
-              <span className="text-slate-400">👑 *KAYDO BOT • Système 24h/24 & 7j/7*</span>
+              <span className="text-slate-400">👑 *KAYDO MD • Système 24h/24 & 7j/7*</span>
             </div>
           </div>
         )}
