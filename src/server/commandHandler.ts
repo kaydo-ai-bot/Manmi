@@ -965,7 +965,7 @@ async function handleAiQuery(prompt: string): Promise<string> {
     aiReply = `J'ai bien analysé votre message : "${cleanPrompt}". En tant qu'assistant KAYDO MD, je reste à votre service pour exécuter toutes les commandes, gérer vos discussions et vous accompagner au quotidien !`;
   }
 
-  return `╭━━━〔 🤖 *ZLK AI ASSISTANT (24/7)* 〕━━━╮\n┃\n┃  ◈ 💬 *Question* : ${cleanPrompt}\n┃  ◈ ⚡ *Vitesse* : 0.0s instantanée\n┃  ◈ 🌐 *Moteur* : Local autonome 24/7\n┃\n┃  ✨ *RÉPONSE* :\n┃  ${aiReply.split('\n').join('\n┃  ')}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
+  return `╭━━━〔 🤖 *KAYDO MD AI ASSISTANT (24/7)* 〕━━━╮\n┃\n┃  ◈ 💬 *Question* : ${cleanPrompt}\n┃  ◈ ⚡ *Vitesse* : 0.0s instantanée\n┃  ◈ 🌐 *Moteur* : Local autonome 24/7\n┃\n┃  ✨ *RÉPONSE* :\n┃  ${aiReply.split('\n').join('\n┃  ')}\n┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
 }
 
 /**
@@ -1534,7 +1534,7 @@ async function executeBotCommandInternal(
       }
       state.sudoUsers.add(targetNum);
       saveSessionSettingsToDisk(sessionId, state);
-      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 <b>ɴᴜᴍᴇ́ʀᴏ :</b> +${targetNum}\n*┇*🔹┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴀᴄᴄᴇ̀s sᴜᴅᴏ ᴀᴄᴛɪᴠᴇ́ (ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs ᴇɴ ᴍᴏᴅᴇ ᴘʀɪᴠᴇ́)\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. 👑 *ɴᴜᴍᴇ́ʀᴏ :* +${targetNum}\n*┇*🔹┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴀᴄᴄᴇ̀s sᴜᴅᴏ ᴀᴄᴛɪᴠᴇ́ (ᴛᴏᴜᴛᴇs ʟᴇs ᴄᴏᴍᴍᴀɴᴅᴇs ᴇɴ ᴍᴏᴅᴇ ᴘʀɪᴠᴇ́)\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
     }
 
     case 'unsudo':
@@ -1548,7 +1548,7 @@ async function executeBotCommandInternal(
       }
       state.sudoUsers.delete(targetNum);
       saveSessionSettingsToDisk(sessionId, state);
-      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ❌ <b>ɴᴜᴍᴇ́ʀᴏ :</b> +${targetNum}\n*┇*🔹┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴀᴄᴄᴇ̀s sᴜᴅᴏ ʀᴇᴛɪʀᴇ́\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
+      return `*╭─❖━━━ ⟣ ⟣ ⟣  SUDO ACCESS  ⟣ ⟣ ⟣━━━❖*\n*┇*🔹╭───────────────\n*┇*🔹┋. ❌ *ɴᴜᴍᴇ́ʀᴏ :* +${targetNum}\n*┇*🔹┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴀᴄᴄᴇ̀s sᴜᴅᴏ ʀᴇᴛɪʀᴇ́\n*┇*🔹╰───────────────⊷\n*╰━━━━━━━━━━━━━━━━━❖*`;
     }
 
     case 'listsudo':
@@ -1560,13 +1560,9 @@ async function executeBotCommandInternal(
     }
 
     case 'ping': {
-      const pingText = `*╭─❖━━━ ⟣ ⟣ ⟣  KAYDO MD  ⟣ ⟣ ⟣━━━❖*
-*┇*🔹╭───────────────
-*┇*🔹┋. ⚡ <b>ᴘᴏɴɢ !</b> 0.001s
-*┇*🔹┋. 🟢 <b>sᴛᴀᴛᴜᴛ :</b> ᴇɴ ʟɪɢɴᴇ 24/7
-*┇*🔹┋. 👑 <b>ᴏᴡɴᴇʀ :</b> KAYDO DEV (+509 3597 5863)
-*┇*🔹╰───────────────⊷
-*╰━━━━━━━━━━━━━━━━━❖*`;
+      const pingText = `⚡ *PONG !* 0.001s
+🟢 *STATUT :* EN LIGNE 24/7
+👑 *OWNER :* KAYDO DEV (+509 3597 5863)`;
       return pingText;
     }
 
@@ -1600,10 +1596,10 @@ async function executeBotCommandInternal(
 
       const ownerText = `╭─❖━━━ 👑 𝐎𝐖𝐍𝐄𝐑 ━━━❖
 ┇✦╭───────────────
-┋✦┋. 👑 <b>ᴏᴡɴᴇʀ :</b> KAYDO DEV
-┋✦┋. 📞 <b>ɴᴜᴍᴇ́ʀᴏ :</b> +509 3597 5863
-┋✦┋. 💬 <b>ᴡʜᴀᴛsᴀᴘᴘ :</b> https://wa.me/50935975863
-┋✦┋. ⚡ <b>sᴛᴀᴛᴜᴛ :</b> ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴇxᴄʟᴜsɪғ
+┋✦┋. 👑 *ᴏᴡɴᴇʀ :* KAYDO DEV
+┋✦┋. 📞 *ɴᴜᴍᴇ́ʀᴏ :* +509 3597 5863
+┋✦┋. 💬 *ᴡʜᴀᴛsᴀᴘᴘ :* https://wa.me/50935975863
+┋✦┋. ⚡ *sᴛᴀᴛᴜᴛ :* ᴘʀᴏᴘʀɪᴇ́ᴛᴀɪʀᴇ ᴇxᴄʟᴜsɪғ
 ┇✦╰───────────────⊷
 ╰━━━━━━━━━━━━━━━━━❖
 > *© 𝐌𝐀𝐃𝐄 𝐈𝐍 𝐁𝐘 ${BOT_NAME}*`;
@@ -1635,7 +1631,7 @@ async function executeBotCommandInternal(
       const aliveText = toSmallCaps(`*╭─━━━━━━━━━━━━━━━⊷❖*
 *┇*🔹╭───────────────╮
 ┋🔹┋. ʙᴏᴛ ɴᴀᴍᴇ: ${state.botName || BOT_NAME}
-┋🔹┋. ᴏᴡɴᴇʀ: ≛⃝🥷🏿 𝐊𝐀𝐘𝐃𝐎 ≛⃝🥷🏿 (+509 3597 5863)
+┋🔹┋. ᴏᴡɴᴇʀ: KAYDO DEV (+509 3597 5863)
 ┋🔹┋. ᴘʟᴀᴛғᴏʀᴍ: Cloud 24/7
 ┋🔹┋. ᴍᴏᴅᴇ: ᴘᴜʙʟɪᴄ 🟢
 ┋🔹┋. ᴜᴘᴛɪᴍᴇ: 24/7 ᴄʟᴏᴜᴅ ᴅᴀᴇᴍᴏɴ
@@ -3196,7 +3192,7 @@ async function executeBotCommandInternal(
     }
 
     case 'clean': {
-      return `🧹 *NETTOYAGE ≛⃝🥷🏿𝐊𝐀𝐘𝐃𝐎 𝐁𝐎𝐓 ≛⃝🥷🏿*\nTrace de commandes et messages de spam nettoyés avec succès.`;
+      return `🧹 *NETTOYAGE KAYDO MD*\nTrace de commandes et messages de spam nettoyés avec succès.`;
     }
 
     case 'warn': {
@@ -5919,7 +5915,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
             msgId.startsWith('1E') || 
             msgId.startsWith('2E') || 
             msgId.startsWith('KS') || 
-            msgId.startsWith('ZLK') || 
+            msgId.startsWith('KAYDO') || 
             msgId.startsWith('B1E') || 
             msgId.startsWith('M2K') || 
             msgId.startsWith('wamid.') || 
@@ -6365,7 +6361,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         const reply = await Promise.race([commandPromise, timeoutPromise]);
 
         if (reply) {
-          const formattedReply = formatCommandCard(reply);
+          const formattedReply = formatCommandCard(reply, cmd);
           
           let sentWithMedia = false;
           try {
@@ -6427,7 +6423,7 @@ ${isGroup ? `┋✧┋. 👥 *ɢʀᴏᴜᴘᴇ :* ${groupName}\n` : `┋✧┋. 
         }
       } catch (err: any) {
         console.error(`[WHATSAPP CMD] Erreur lors du traitement de ${cmd}:`, err);
-        const errMsg = formatCommandCard(`❌ Erreur : ${err?.message || "Erreur lors de l'exécution"}`);
+        const errMsg = formatCommandCard(`❌ Erreur : ${err?.message || "Erreur lors de l'exécution"}`, cmd);
         await sendSafeMediaOrText(sock, chatJid, { text: errMsg }, msg).catch(() => {});
       }
 

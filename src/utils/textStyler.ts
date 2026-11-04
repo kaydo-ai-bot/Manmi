@@ -1,5 +1,5 @@
 /**
- * Unicode Mathematical Bold Styler for KAYDO BOT
+ * Unicode Mathematical Bold Styler for KAYDO MD
  * Converts standard text to and from Mathematical Bold Serif Unicode characters:
  * A-Z -> 𝐀-𝐙 (U+1D400 - U+1D419)
  * a-z -> 𝐀-𝐙 (Mathematical Bold uppercase requested by user)
@@ -368,31 +368,71 @@ export function generateOfficialMenu(
 }
 
 /**
- * Formats any bot command text response in the user's requested card style:
- * ╭─❖━━━ ᴄᴏᴍᴍᴀɴᴅᴇ ━━━❖
+ * Converts any HTML tags (<b>, <i>, <code>, <pre>, <strike>, <br>) into standard WhatsApp formatting (*text*, _text_, etc.)
+ * Strictly prevents raw HTML tags like <b> from ever reaching WhatsApp chats.
+ */
+export function cleanHtmlToWhatsApp(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/<\s*br\s*\/?>/gi, '\n')
+    .replace(/<\s*(?:b|strong)\s*>([\s\S]*?)<\s*\/\s*(?:b|strong)\s*>/gi, '*$1*')
+    .replace(/<\s*(?:i|em)\s*>([\s\S]*?)<\s*\/\s*(?:i|em)\s*>/gi, '_$1_')
+    .replace(/<\s*(?:strike|del|s)\s*>([\s\S]*?)<\s*\/\s*(?:strike|del|s)\s*>/gi, '~$1~')
+    .replace(/<\s*code\s*>([\s\S]*?)<\s*\/\s*code\s*>/gi, '`$1`')
+    .replace(/<\s*pre\s*>([\s\S]*?)<\s*\/\s*pre\s*>/gi, '```$1```')
+    .replace(/<\/?(?:b|strong)>/gi, '*')
+    .replace(/<[^>]+>/g, '');
+}
+
+/**
+ * Formats any bot command text response in the official KAYDO MD card style:
+ * ╭─❖━━━ ⟣ ⟣ ⟣  <NOM DE COMMANDE>  ⟣ ⟣ ⟣━━━❖
  * ┇✦╭───────────────
  * ┇✦┋. line1
  * ┇✦┋. line2
  * ┇✦╰───────────────⊷
  * ╰━━━━━━━━━━━━━━━━━❖
+ *
+ * Automatically displays the real command name (e.g. PING, ALIVE, MENU, HELP, INFO) dynamically.
+ * Never outputs the generic word "COMMANDE".
+ * Automatically converts any HTML tags into proper WhatsApp markdown.
  */
-export function formatCommandCard(content: string, title: string = 'ᴄᴏᴍᴍᴀɴᴅᴇ'): string {
+export function formatCommandCard(content: string, cmdOrTitle?: string): string {
   if (!content) return '';
-  const trimmed = content.trim();
-  if (
-    trimmed.startsWith('╭─━━━━━━━━━━━━━━━⊷❖') ||
-    trimmed.startsWith('╭─❖━━━') ||
-    trimmed.startsWith('╭━━〔') ||
-    trimmed.startsWith('╭━━━〔') ||
-    trimmed.startsWith('╭━━━━━━━━━━━━━━━━━━━━━┈⊷')
-  ) {
-    return trimmed;
+
+  // 1. Sanitize all HTML tags into WhatsApp markdown (*texte* for bold)
+  let cleaned = cleanHtmlToWhatsApp(content.trim());
+
+  // 2. Resolve dynamic command title in UPPERCASE (e.g. PING, ALIVE, MENU, HELP, INFO)
+  let rawTitle = (cmdOrTitle || '').trim();
+  let displayTitle = rawTitle.replace(/^[.!\/#$]+/, '').trim().toUpperCase();
+
+  if (!displayTitle || displayTitle === 'COMMANDE' || displayTitle === 'CMD' || displayTitle === 'ᴄᴏᴍᴍᴀɴᴅᴇ') {
+    displayTitle = 'KAYDO MD';
   }
 
-  const lines = trimmed.split('\n');
+  // 3. If content is already a complete boxed card (e.g. official menu, apology, or specialized card),
+  // update any generic COMMANDE header to the dynamic command name and return as-is
+  if (
+    cleaned.startsWith('╭─━━━━━━━━━━━━━━━⊷❖') ||
+    cleaned.startsWith('*╭─━━━━━━━━━━━━━━━⊷❖*') ||
+    cleaned.startsWith('╭─❖━━━') ||
+    cleaned.startsWith('*╭─❖━━━') ||
+    cleaned.startsWith('╭━━〔') ||
+    cleaned.startsWith('╭━━━〔') ||
+    cleaned.startsWith('╭━━━━━━━━━━━━━━━━━━━━━┈⊷')
+  ) {
+    cleaned = cleaned
+      .replace(/╭─❖━━━\s*(?:ᴄᴏᴍᴍᴀɴᴅᴇ|COMMANDE)\s*━━━❖/gi, `╭─❖━━━ ⟣ ⟣ ⟣  ${displayTitle}  ⟣ ⟣ ⟣━━━❖`)
+      .replace(/\*╭─❖━━━\s*(?:ᴄᴏᴍᴍᴀɴᴅᴇ|COMMANDE)\s*━━━❖\*/gi, `*╭─❖━━━ ⟣ ⟣ ⟣  ${displayTitle}  ⟣ ⟣ ⟣━━━❖*`);
+    return cleaned;
+  }
+
+  // 4. Otherwise wrap the lines with the dynamic command title card
+  const lines = cleaned.split('\n');
   const formattedLines = lines.map((line) => `┇✦┋. ${line}`);
 
-  return `╭─❖━━━ ${title} ━━━❖\n┇✦╭───────────────\n${formattedLines.join('\n')}\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
+  return `╭─❖━━━ ⟣ ⟣ ⟣  ${displayTitle}  ⟣ ⟣ ⟣━━━❖\n┇✦╭───────────────\n${formattedLines.join('\n')}\n┇✦╰───────────────⊷\n╰━━━━━━━━━━━━━━━━━❖`;
 }
 
 /**

@@ -2,7 +2,7 @@ import { runMultiSessionLoadTest } from './loadTester';
 
 async function main() {
   console.log('====================================================');
-  console.log('⚡ KAYDO BOT V1 - MULTI-SESSION LOAD TEST HARNESS');
+  console.log('⚡ KAYDO MD V1 - MULTI-SESSION LOAD TEST HARNESS');
   console.log('====================================================\n');
 
   const testCounts = [1, 10, 25, 50, 100];

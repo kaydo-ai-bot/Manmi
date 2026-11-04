@@ -2,7 +2,7 @@ import { toSmallCaps } from '../utils/textStyler';
 import { getNextBotPhoto } from './botPhotoManager';
 
 /**
- * 92+ NOUVELLES COMMANDES UTILES POUR PORTER LE BOT KAYDO BOT À 200 COMMANDES OFFICIELLES
+ * 92+ NOUVELLES COMMANDES UTILES POUR PORTER LE BOT KAYDO MD À 200 COMMANDES OFFICIELLES
  * Utilitaires, Calculs, Réseau, Sécurité, Conversions, Santé, Fun, Code, Dates, Horoscope, etc.
  */
 
@@ -128,7 +128,7 @@ export function handleUsefulCommands(
     case 'repeat': {
       const parts = cleanArgs.split('|');
       const count = Math.min(15, Math.max(1, parseInt(parts[0], 10) || 3));
-      const text = (parts[1] || 'KAYDO BOT').trim();
+      const text = (parts[1] || 'KAYDO MD').trim();
       let out = '';
       for (let i = 0; i < count; i++) {
         out += `${i + 1}. ${text}\n`;
@@ -480,7 +480,7 @@ export function handleUsefulCommands(
     }
 
     case 'headers': {
-      return toSmallCaps(`📋 *ᴇɴ-ᴛᴇ̂ᴛᴇs ʜᴛᴛᴘ ᴋᴀʏᴅᴏ*\n\n◈ User-Agent: ZLK-XIT/4.0 Baileys\n◈ Content-Type: application/json\n◈ Accept: */*\n◈ Connection: keep-alive\n◈ X-Powered-By: KaydoEngine`);
+      return toSmallCaps(`📋 *ᴇɴ-ᴛᴇ̂ᴛᴇs ʜᴛᴛᴘ ᴋᴀʏᴅᴏ*\n\n◈ User-Agent: KAYDO-MD/4.0 Baileys\n◈ Content-Type: application/json\n◈ Accept: */*\n◈ Connection: keep-alive\n◈ X-Powered-By: KaydoEngine`);
     }
 
     case 'dnsrecords': {
@@ -496,7 +496,7 @@ export function handleUsefulCommands(
     }
 
     case 'ascii': {
-      const t = cleanArgs || 'ZLK';
+      const t = cleanArgs || 'KAYDO MD';
       return `\`\`\`\n _  __     __   ______   ____  \n| |/ /    / /  / / __ \\ / __ \\ \n| ' /    / /  / / / / // / / / \n| . \\   / /  / / /_/ // /_/ /  \n|_|\\_\\ /_/  /_/\\____/ \\____/   \n\`\`\``;
     }
 
@@ -518,7 +518,7 @@ export function handleUsefulCommands(
     }
 
     case 'glitchtext': {
-      if (!cleanArgs) return toSmallCaps(`⚡ *ᴜᴛɪʟɪsᴀᴛɪᴏɴ* : .glitchtext ZLK`);
+      if (!cleanArgs) return toSmallCaps(`⚡ *ᴜᴛɪʟɪsᴀᴛɪᴏɴ* : .glitchtext KAYDO MD`);
       const zalgo = ['̷', '̵', '̶', '̴', '̲', '̳', '͜', '͝'];
       const res = cleanArgs
         .split('')

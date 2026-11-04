@@ -1,5 +1,5 @@
 /**
- * KAYDO BOT - Multi-Session Load & Stress Tester
+ * KAYDO MD - Multi-Session Load & Stress Tester
  * Simulates up to 100 concurrent SessionContext objects, verifies independent queue execution,
  * measures event loop lag, memory consumption, reconnection jitter, and fault isolation.
  */

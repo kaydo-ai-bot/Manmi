@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * KAYDO BOT - Autonomous Bot Photo Manager
+ * KAYDO MD - Autonomous Bot Photo Manager
  * Manages the rotation of official cyber-anime warrior photos in the style of KAYDO DEV.
  * Guarantees that the bot NEVER sends the same photo consecutively across commands.
  */

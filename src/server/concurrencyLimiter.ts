@@ -1,5 +1,5 @@
 /**
- * KAYDO BOT - Global Concurrency Limiters
+ * KAYDO MD - Global Concurrency Limiters
  * Prevents CPU & RAM spikes on Railway when handling up to 100 concurrent WhatsApp sessions.
  */
 

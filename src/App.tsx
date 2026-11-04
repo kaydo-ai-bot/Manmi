@@ -1,39 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { BotStats, SecurityNotification } from './types';
-import { Sidebar, AppTab } from './components/Sidebar';
-import { DashboardHeader } from './components/DashboardHeader';
-import { DashboardPage } from './pages/DashboardPage';
-import { ConnectionPage } from './pages/ConnectionPage';
-import { CommandsPage } from './pages/CommandsPage';
-import { CustomCommandsPage } from './pages/CustomCommandsPage';
-import { SimulatorPage } from './pages/SimulatorPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { LogsPage } from './pages/LogsPage';
+import { Navbar, NavTab } from './components/Navbar';
+import { PairPage } from './pages/PairPage';
+import { OwnerPage } from './pages/OwnerPage';
+import { CommandImagesManager } from './components/CommandImagesManager';
+import { CommandsCatalogue } from './components/CommandsCatalogue';
+import { TerminalPlayground } from './components/TerminalPlayground';
+import { SecurityNotificationPanel } from './components/SecurityNotificationPanel';
 import { NotificationModal } from './components/NotificationModal';
+import { Footer } from './components/Footer';
+import { BotStats, SecurityNotification } from './types';
 
 export default function App() {
-  // Resolve initial tab from window URL location
-  const getInitialTab = (): AppTab => {
+  const getInitialTab = (): NavTab => {
     const path = window.location.pathname.toLowerCase().replace(/^\//, '');
-    if (path === 'connection' || path === 'pair') return 'connection';
-    if (path === 'commands') return 'commands';
-    if (path === 'custom' || path === 'custom-commands' || path === 'custom_commands') return 'custom_commands';
-    if (path === 'simulator' || path === 'terminal') return 'simulator';
-    if (path === 'settings' || path === 'owner') return 'settings';
-    if (path === 'logs' || path === 'security') return 'logs';
-    return 'dashboard';
+    if (path === 'owner' || path === 'login') return 'owner';
+    if (path === 'images' || path === 'media') return 'images';
+    if (path === 'commands' || path === 'menu') return 'commands';
+    if (path === 'terminal' || path === 'simulator') return 'terminal';
+    if (path === 'security' || path === 'logs') return 'security';
+    return 'pair';
   };
 
-  const [activeTab, setActiveTabState] = useState<AppTab>(getInitialTab);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTabState] = useState<NavTab>(getInitialTab);
   const [stats, setStats] = useState<BotStats | null>(null);
   const [notifications, setNotifications] = useState<SecurityNotification[]>([]);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
-  const [triggerCommand, setTriggerCommand] = useState<string | null>(null);
+  const [terminalCommand, setTerminalCommand] = useState<string | null>(null);
 
-  const setActiveTab = (tab: AppTab) => {
+  const setActiveTab = (tab: NavTab) => {
     setActiveTabState(tab);
-    const newPath = tab === 'dashboard' ? '/' : `/${tab}`;
+    const newPath = tab === 'pair' ? '/' : `/${tab}`;
     if (window.location.pathname !== newPath) {
       window.history.pushState(null, '', newPath);
     }
@@ -47,26 +43,22 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Fetch bot status and enterprise anti-spam metrics
   const fetchStatus = async () => {
     try {
       const res = await fetch('/api/status');
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
+      if (res.ok) {
         const data = await res.json();
         setStats(data);
       }
     } catch (err) {
-      console.warn('Statut indisponible temporairement:', err);
+      console.warn('Statut indisponible:', err);
     }
   };
 
-  // Fetch security notifications
   const fetchNotifications = async () => {
     try {
       const res = await fetch('/api/notifications');
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
+      if (res.ok) {
         const data = await res.json();
         if (data.notifications) {
           setNotifications(data.notifications);
@@ -106,89 +98,66 @@ export default function App() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-[#080F1F] text-[#F5F7FF] flex antialiased selection:bg-[#3478F6] selection:text-white overflow-x-hidden">
-      {/* Subtle ambient lighting glows for high-tech aesthetic */}
-      <div className="fixed top-0 left-1/4 w-96 h-96 bg-[#3478F6]/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-[#16D9E8]/10 rounded-full blur-[160px] pointer-events-none -z-10" />
+    <div className="min-h-screen bg-[#06070d] text-slate-100 flex flex-col antialiased selection:bg-purple-600 selection:text-white relative overflow-x-hidden">
+      {/* Dark Ambient Glows */}
+      <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-purple-900/15 rounded-full blur-[160px] pointer-events-none -z-10" />
+      <div className="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-900/15 rounded-full blur-[160px] pointer-events-none -z-10" />
 
-      {/* Modern Responsive Sidebar */}
-      <Sidebar
+      {/* Top Navbar */}
+      <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        mobileOpen={mobileMenuOpen}
-        setMobileOpen={setMobileMenuOpen}
-        activeSessionsCount={stats?.activeSessionsCount || 0}
+        stats={stats}
+        unreadCount={unreadCount}
+        onOpenNotifications={() => setIsNotifModalOpen(true)}
       />
 
-      {/* Main Layout Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:pl-64">
-        {/* Top Header */}
-        <DashboardHeader
-          activeTab={activeTab}
-          stats={stats}
-          unreadCount={unreadCount}
-          onOpenNotifications={() => setIsNotifModalOpen(true)}
-          onOpenMobileMenu={() => setMobileMenuOpen(true)}
-        />
+      {/* Main Content Area */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 pt-4 pb-12">
+        {activeTab === 'pair' && (
+          <PairPage
+            stats={stats}
+            onNotificationTrigger={() => setIsNotifModalOpen(true)}
+            onGoToOwner={() => setActiveTab('owner')}
+          />
+        )}
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          {activeTab === 'dashboard' && (
-            <DashboardPage
-              stats={stats}
-              onNavigate={(tab) => setActiveTab(tab)}
-              onRefresh={fetchStatus}
-            />
-          )}
+        {activeTab === 'images' && (
+          <CommandImagesManager />
+        )}
 
-          {activeTab === 'connection' && (
-            <ConnectionPage stats={stats} onRefresh={fetchStatus} />
-          )}
+        {activeTab === 'owner' && (
+          <OwnerPage
+            onNotificationTrigger={() => setIsNotifModalOpen(true)}
+            onNavigateToPairing={() => setActiveTab('pair')}
+          />
+        )}
 
-          {activeTab === 'commands' && (
-            <CommandsPage
-              onRunCommand={(cmd) => {
-                setTriggerCommand(cmd);
-                setActiveTab('simulator');
-              }}
-            />
-          )}
+        {activeTab === 'commands' && (
+          <CommandsCatalogue
+            onRunCommand={(cmd) => {
+              setTerminalCommand(cmd);
+              setActiveTab('terminal');
+            }}
+          />
+        )}
 
-          {activeTab === 'custom_commands' && (
-            <CustomCommandsPage />
-          )}
+        {activeTab === 'terminal' && (
+          <TerminalPlayground
+            initialCommand={terminalCommand}
+            onClearInitialCommand={() => setTerminalCommand(null)}
+          />
+        )}
 
-          {activeTab === 'simulator' && (
-            <SimulatorPage
-              initialCommand={triggerCommand}
-              onClearInitialCommand={() => setTriggerCommand(null)}
-            />
-          )}
+        {activeTab === 'security' && (
+          <SecurityNotificationPanel />
+        )}
+      </main>
 
-          {activeTab === 'settings' && (
-            <SettingsPage />
-          )}
+      {/* Footer */}
+      <Footer />
 
-          {activeTab === 'logs' && (
-            <LogsPage />
-          )}
-        </main>
-
-        {/* Clean Tech Footer */}
-        <footer className="border-t border-white/5 bg-[#080F1F]/80 backdrop-blur-md py-4 px-6 text-center text-xs text-[#8E9EB5]">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span>KAYDO BOT • Système Anti-Ban & Pacing Intelligent Baileys Actif</span>
-            </div>
-            <p className="text-[11px] text-[#8E9EB5]">
-              Développé par <strong className="text-white">KAYDO DEV</strong> • Production-Ready SaaS
-            </p>
-          </div>
-        </footer>
-      </div>
-
-      {/* Notifications Modal */}
+      {/* Security Notification Modal */}
       <NotificationModal
         isOpen={isNotifModalOpen}
         onClose={() => setIsNotifModalOpen(false)}
@@ -196,7 +165,7 @@ export default function App() {
         onMarkAllRead={handleMarkAllRead}
         onViewAllSecurity={() => {
           setIsNotifModalOpen(false);
-          setActiveTab('logs');
+          setActiveTab('security');
         }}
       />
     </div>

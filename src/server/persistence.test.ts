@@ -1,6 +1,6 @@
 /**
  * =========================================================================
- * KAYDO BOT - SUITE DE TESTS AUTOMATISÉS DE PERSISTANCE POSTGRESQL (RENDER)
+ * KAYDO MD - SUITE DE TESTS AUTOMATISÉS DE PERSISTANCE POSTGRESQL (RENDER)
  * =========================================================================
  * Ce banc d'essai valide les 9 cas critiques de persistance exigés :
  * 1. Connexion d'une nouvelle session
@@ -51,7 +51,7 @@ async function runAllTests() {
   console.log('📌 Test 1: Création des credentials authentiques Baileys');
   const sampleCreds = initAuthCreds();
   sampleCreds.registered = true;
-  sampleCreds.me = { id: '50935970001:1@s.whatsapp.net', name: 'KAYDO BOT PROD' };
+  sampleCreds.me = { id: '50935970001:1@s.whatsapp.net', name: 'KAYDO MD PROD' };
   assert(
     sampleCreds.registered === true && !!sampleCreds.noiseKey,
     'Génération credentials valides avec clés cryptographiques'

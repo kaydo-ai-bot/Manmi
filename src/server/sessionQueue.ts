@@ -1,5 +1,5 @@
 /**
- * KAYDO BOT - Per-Session Isolated Asynchronous Task Queue
+ * KAYDO MD - Per-Session Isolated Asynchronous Task Queue
  * Ensures that commands within a session are processed reliably in order without ever blocking other sessions.
  */
 
